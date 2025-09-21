@@ -1,112 +1,382 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import EmptyState from "components/Explore/EmptyState";
+import SearchResultsList from "components/Explore/SearchResultsList";
+import players from "constants/players";
+import { teamsById } from "constants/teams";
+import { styles } from "styles/Explore.styles";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  Animated,
+  Easing,
+  Pressable,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
+import { CustomHeaderTitle } from "../../components/CustomHeaderTitle";
+import SearchBar from "../../components/Explore/SearchBar";
+import { ResultItem, PlayerResult, TeamResult, UserResult } from "types/types";
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const RECENT_SEARCHES_KEY = "recentSearches";
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
 
-export default function TabTwoScreen() {
+const tabs = ["All", "Teams", "Players", "Accounts"] as const;
+
+export default function ExplorePage() {
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [results, setResults] = useState<ResultItem[]>([]);
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<(typeof tabs)[number]>("All");
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [recentSearches, setRecentSearches] = useState<ResultItem[]>([]);
+
+  const navigation = useNavigation();
+  const router = useRouter();
+  const isDark = useColorScheme() === "dark";
+  const inputAnim = useRef(new Animated.Value(0)).current;
+  const deleteRecentSearch = async (itemToDelete: ResultItem) => {
+    try {
+      const existing = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
+      let parsed: ResultItem[] = existing ? JSON.parse(existing) : [];
+
+      parsed = parsed.filter(
+        (item) =>
+          !(
+            item.type === itemToDelete.type &&
+            (item as any).id === (itemToDelete as any).id
+          )
+      );
+
+      await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(parsed));
+      setRecentSearches(parsed);
+    } catch (err) {
+      console.warn("Failed to delete recent search", err);
+    }
+  };
+
+  useEffect(() => {
+    const loadUserId = async () => {
+      const id = await AsyncStorage.getItem("userId");
+      if (id) setCurrentUserId(Number(id));
+    };
+    loadUserId();
+  }, []);
+
+  useEffect(() => {
+    Animated.timing(inputAnim, {
+      toValue: searchVisible ? 1 : 0,
+      duration: 300,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: false,
+    }).start();
+
+    if (searchVisible) {
+      loadRecentSearches();
+    }
+  }, [searchVisible]);
+
+  useEffect(() => {
+    if (query.trim().length === 0) {
+      setResults([]);
+      setError(null);
+      setSelectedTab("All");
+      return;
+    }
+
+    const fetchFromDb = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await axios.get<{
+          players: PlayerResult[];
+          teams: TeamResult[];
+          users: UserResult[];
+        }>(`${API_URL}/api/search`, { params: { query } });
+
+        const combined: ResultItem[] = [
+          ...res.data.teams.map((t) => ({ ...t, type: "team" as const })),
+          ...res.data.players.map((p) => ({ ...p, type: "player" as const })),
+          ...res.data.users.map((u) => ({ ...u, type: "user" as const })),
+        ];
+
+        setResults(combined);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch data");
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const debounce = setTimeout(fetchFromDb, 400);
+    return () => clearTimeout(debounce);
+  }, [query]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      header: () => (
+        <CustomHeaderTitle
+          tabName="Explore"
+          title="Explore"
+          onSearchToggle={() => setSearchVisible((prev) => !prev)}
+        />
+      ),
+    });
+  }, [navigation]);
+
+  const loadRecentSearches = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const validResults = parsed.filter(
+          (item: any) =>
+            typeof item === "object" &&
+            item !== null &&
+            "type" in item &&
+            "id" in item
+        );
+        setRecentSearches(validResults);
+      }
+    } catch (err) {
+      console.warn("Error loading recent searches", err);
+    }
+  };
+
+  const saveToRecentSearches = async (item: ResultItem) => {
+    if (!item || typeof item !== "object" || !item.type || !(item as any).id) {
+      console.warn("Invalid item passed to saveToRecentSearches:", item);
+      return;
+    }
+
+    try {
+      const existing = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
+      let parsed: ResultItem[] = existing ? JSON.parse(existing) : [];
+
+      parsed = parsed.filter(
+        (r) =>
+          !(
+            typeof r === "object" &&
+            r.type === item.type &&
+            (r as any).id === (item as any).id
+          )
+      );
+
+      parsed.unshift(item);
+      parsed = parsed.slice(0, 10);
+      await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(parsed));
+      setRecentSearches(parsed);
+    } catch (err) {
+      console.warn("Failed to save recent search", err);
+    }
+  };
+
+  function isResultItem(obj: any): obj is ResultItem {
+    return (
+      typeof obj === "object" &&
+      obj !== null &&
+      typeof obj.id === "number" &&
+      typeof obj.type === "string" &&
+      ["player", "team", "user"].includes(obj.type)
+    );
+  }
+
+  const tabToTypeMap = {
+    Teams: "team",
+    Players: "player",
+    Accounts: "user",
+  };
+
+  const filteredResults = (query.trim() ? results : recentSearches).filter(
+    (item) => {
+      if (selectedTab === "All") return true;
+      return item.type === tabToTypeMap[selectedTab];
+    }
+  );
+
+  const getItemKey = (item: ResultItem) => {
+    const id = (item as any)?.id;
+    if (!id) {
+      console.warn("Missing ID for item:", item);
+      return `${item.type}-unknown-${Math.random()}`;
+    }
+    return `${item.type}-${id}`;
+  };
+
+  const handleSelectItem = (item: ResultItem) => {
+    saveToRecentSearches(item);
+    switch (item.type) {
+      case "team":
+        router.push(`/team/${item.id}`);
+        break;
+      case "player":
+        router.push({
+          pathname: "/player/[id]",
+          params: {
+            id: item.player_id.toString(),
+            teamId: item.team_id?.toString() || "",
+          },
+        });
+        break;
+      case "user":
+        router.push(`/user/${item.id}`);
+        break;
+    }
+  };
+
+  const renderItem = ({ item }: { item: ResultItem }) => {
+    if (item.type === "team") {
+      const localTeam = teamsById[item.id.toString()];
+      const logoSource = isDark
+        ? localTeam?.logoLight || localTeam?.logo
+        : localTeam?.logo;
+
+      return (
+        <View style={styles.itemRow}>
+          <Pressable
+            onPress={() => handleSelectItem(item)}
+            style={[styles.itemContainer, isDark && styles.itemContainerDark]}
+          >
+            <View style={styles.teamRow}>
+              {logoSource && (
+                <Image
+                  source={logoSource}
+                  style={styles.teamLogo}
+                  resizeMode="contain"
+                />
+              )}
+              <Text style={[styles.teamName, isDark && styles.textDark]}>
+                {localTeam?.fullName}
+              </Text>
+            </View>
+          </Pressable>
+          {query.length === 0 && (
+            <Pressable onPress={() => deleteRecentSearch(item)}>
+              <Ionicons
+                name="close"
+                size={20}
+                color={isDark ? "#ccc" : "#333"}
+              />
+            </Pressable>
+          )}
+        </View>
+      );
+    }
+
+    if (item.type === "player") {
+      const avatarUrl = item.avatarUrl?.trim()
+        ? item.avatarUrl
+        : players[item.name];
+      const localTeam = teamsById[item.team_id?.toString()];
+
+      return (
+        <View style={styles.itemRow}>
+          <Pressable
+            onPress={() => handleSelectItem(item)}
+            style={[styles.itemContainer, isDark && styles.itemContainerDark]}
+          >
+            <View style={styles.playerRow}>
+              <Image
+                source={{ uri: avatarUrl }}
+                style={styles.avatar}
+                resizeMode="cover"
+              />
+              <View style={styles.playerInfo}>
+                <Text style={[styles.playerName, isDark && styles.textDark]}>
+                  {item.name}
+                </Text>
+                <Text style={[styles.playerTeam, isDark && styles.textDark]}>
+                  {localTeam?.fullName || "Free Agent"}
+                </Text>
+              </View>
+            </View>
+          </Pressable>
+          {query.length === 0 && (
+            <Pressable onPress={() => deleteRecentSearch(item)}>
+              <Ionicons
+                name="close"
+                size={20}
+                color={isDark ? "#ccc" : "#333"}
+              />
+            </Pressable>
+          )}
+        </View>
+      );
+    }
+
+    if (item.type === "user") {
+      const profileImageUrl = item.profileImageUrl.startsWith("http")
+        ? item.profileImageUrl
+        : `${API_URL}${item.profileImageUrl}`;
+
+      return (
+        <View style={styles.itemRow}>
+          <Pressable
+            onPress={() => handleSelectItem(item)}
+            style={[styles.itemContainer, isDark && styles.itemContainerDark]}
+          >
+            <View style={styles.userRow}>
+              <Image
+                source={{ uri: profileImageUrl }}
+                style={styles.avatar}
+                resizeMode="cover"
+              />
+              <View style={styles.userInfo}>
+                <Text style={[styles.userName, isDark && styles.textDark]}>
+                  {item.username}
+                </Text>
+              </View>
+            </View>
+          </Pressable>
+          {query.length === 0 && (
+            <Pressable onPress={() => deleteRecentSearch(item)}>
+              <Ionicons
+                name="close"
+                size={20}
+                color={isDark ? "#ccc" : "#333"}
+              />
+            </Pressable>
+          )}
+        </View>
+      );
+    }
+
+    return null;
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <View style={[styles.container]}>
+      <SearchBar
+        value={query}
+        onChangeText={setQuery}
+        visible={searchVisible}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => {
+          if (query.trim().length === 0) setIsFocused(false);
+        }}
+        tabs={[...tabs]} // spread to convert readonly tuple to mutable string[]
+        selectedTab={selectedTab}
+        onTabPress={(tab) => setSelectedTab(tab as typeof selectedTab)}
+      />
+
+      {!searchVisible && <EmptyState />}
+
+      <SearchResultsList
+        data={filteredResults.length ? filteredResults : recentSearches}
+        loading={loading}
+        error={error}
+        onSelect={handleSelectItem}
+        onDelete={deleteRecentSearch}
+        query={query}
+      />
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-});

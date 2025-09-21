@@ -1,98 +1,350 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import DummyGameCard from "components/Games/DummyGameCard";
+import GamesList from "components/Games/GamesList";
+import Heading from "components/Headings/Heading";
+import NewsHighlightsList from "components/News/NewsHighlightsList";
+import SummerGamesList from "components/summer-league/SummerGamesList";
+import { useSummerLeagueGames } from "hooks/useSummerLeagueGames";
+import { summerGame } from "types/types";
+import { Game } from "types/types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import * as React from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { Animated, Text, View, useColorScheme } from "react-native";
+import { CustomHeaderTitle } from "../../components/CustomHeaderTitle";
+import FavoritesScroll from "../../components/FavoritesScroll";
+import FavoritesScrollSkeleton from "../../components/FavoritesScrollSkeleton";
+import TabBar from "../../components/TabBar";
+import { useNewsStore } from "../../hooks/newsStore";
+import { useHighlights } from "../../hooks/useHighlights";
+import { useLiveGames } from "../../hooks/useLiveGames";
+import { useNews } from "../../hooks/useNews";
+import { useWeeklyGames } from "../../hooks/useWeeklyGames";
+import { getStyles } from "styles/indexStyles";
+import StackedGameCard from "components/Games/StackedGameCard";
+type Tab = "scores" | "news";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+type NewsItem = {
+  id: string;
+  title: string;
+  source: string;
+  url: string;
+  thumbnail?: string;
+  publishedAt?: string;
+};
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+type HighlightItem = {
+  videoId: string;
+  title: string;
+  publishedAt: string;
+  thumbnail: string;
+};
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+type CombinedItem =
+  | (NewsItem & { itemType: "news" })
+  | (HighlightItem & { itemType: "highlight" });
+
+function mapSummerGameToGame(g: summerGame): Game {
+  return {
+    ...g,
+    status:
+      g.status.short === "FT"
+        ? "Final"
+        : g.status.short === "NS"
+          ? "Scheduled"
+          : "In Progress",
+    period: g.period !== undefined ? String(g.period) : undefined,
+  };
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+  const isTodayOrTomorrow = (dateString: string) => {
+    const gameDate = new Date(dateString);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1
+    );
+    return (
+      (gameDate >= today && gameDate < new Date(today.getTime() + 86400000)) ||
+      (gameDate >= tomorrow &&
+        gameDate < new Date(tomorrow.getTime() + 86400000))
+    );
+  };
+
+export default function HomeScreen() {
+  const {
+    games: weeklyGames,
+    loading: weeklyGamesLoading,
+    refreshGames: refreshWeeklyGames,
+  } = useWeeklyGames();
+
+  const {
+    games: liveGames,
+    loading: liveGamesLoading,
+    refreshGames: refreshLiveGames,
+  } = useLiveGames();
+
+  const {
+    games: summerGames,
+    loading: summerLoading,
+    refreshGames: refreshSummerGames,
+  } = useSummerLeagueGames() as {
+    games: summerGame[];
+    loading: boolean;
+    refreshGames: () => Promise<void>;
+  };
+
+  const {
+    news,
+    loading: newsLoading,
+    error: newsError,
+    refreshNews,
+  } = useNews();
+
+  const {
+    highlights,
+    loading: highlightsLoading,
+    error: highlightsError,
+  } = useHighlights("NBA highlights", 50);
+
+  const navigation = useNavigation();
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const setArticles = useNewsStore((state) => state.setArticles);
+
+  const tabs: Tab[] = ["scores", "news"];
+  const [selectedTab, setSelectedTab] = useState<Tab>("scores");
+  const underlineX = useRef(new Animated.Value(0)).current;
+  const underlineWidth = useRef(new Animated.Value(0)).current;
+  const tabMeasurements = useRef<{ x: number; width: number }[]>([]);
+
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (news && news.length > 0) {
+      setArticles(news);
+    }
+  }, [news, setArticles]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadFavorites = async () => {
+        try {
+          const stored = await AsyncStorage.getItem("favorites");
+          if (stored) {
+            setFavorites(JSON.parse(stored));
+          }
+        } catch (error) {
+          console.warn("Failed to load favorites:", error);
+        }
+      };
+      loadFavorites();
+    }, [])
+  );
+
+  useEffect(() => {
+    useNewsStore.getState().loadCachedArticles();
+  }, []);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      header: () => (
+        <CustomHeaderTitle title="Home" tabName="Home" isTeamScreen={false} />
+      ),
+    });
+  }, [navigation, isDark]);
+
+  const handleTabPress = (tab: Tab) => {
+    setSelectedTab(tab);
+    const index = tabs.indexOf(tab);
+    if (tabMeasurements.current[index]) {
+      Animated.parallel([
+        Animated.timing(underlineX, {
+          toValue: tabMeasurements.current[index].x,
+          duration: 200,
+          useNativeDriver: false,
+        }),
+        Animated.timing(underlineWidth, {
+          toValue: tabMeasurements.current[index].width,
+          duration: 200,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      if (selectedTab === "scores") {
+        await Promise.all([
+          refreshLiveGames?.(),
+          refreshWeeklyGames?.(),
+          refreshSummerGames?.(),
+        ]);
+      } else if (selectedTab === "news") {
+        await refreshNews?.();
+      }
+    } catch (err) {
+      console.warn("Refresh failed:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const styles = getStyles(isDark);
+
+
+
+  const filteredLive = liveGames.filter((g) => isTodayOrTomorrow(g.date));
+  const filteredWeekly = weeklyGames.filter((g) => isTodayOrTomorrow(g.date));
+  const filteredSummer: summerGame[] = summerGames.filter((g) =>
+    isTodayOrTomorrow(g.date)
+  );
+
+  const onlySummerLeagueToday =
+    filteredLive.length === 0 &&
+    filteredWeekly.length === 0 &&
+    filteredSummer.length > 0;
+
+  const combinedGames = [...filteredLive];
+  filteredWeekly.forEach((g) => {
+    if (!combinedGames.some((cg) => cg.id === g.id)) combinedGames.push(g);
+  });
+  filteredSummer.forEach((g) => {
+    if (!combinedGames.some((cg) => cg.id === g.id)) {
+      combinedGames.push(mapSummerGameToGame(g));
+    }
+  });
+
+  const combinedNewsAndHighlights: CombinedItem[] = React.useMemo(() => {
+    const taggedNews: CombinedItem[] = news.map((item) => ({
+      ...item,
+      itemType: "news",
+      publishedAt: item.publishedAt ?? item.date ?? new Date().toISOString(),
+    }));
+const taggedHighlights: CombinedItem[] = highlights.map((item) => ({
+  ...item,
+  itemType: "highlight",
+  publishedAt: item.publishedAt ?? new Date().toISOString(),
+}));
+
+
+    const combined = [...taggedNews, ...taggedHighlights];
+
+    combined.sort((a, b) => {
+      const aDate = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const bDate = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return bDate - aDate;
+    });
+
+    return combined;
+  }, [news, highlights]);
+
+
+// useEffect(() => {
+//   if (selectedTab !== "scores") return;
+//   const interval = setInterval(() => {
+//     refreshLiveGames?.();
+//   }, 100_000);
+//   return () => clearInterval(interval);
+// }, [selectedTab, refreshLiveGames]);
+
+
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.tabBarWrapper}>
+        <TabBar
+          tabs={tabs}
+          selected={selectedTab}
+          onTabPress={handleTabPress}
+          renderLabel={(tab, isSelected) => (
+            <Text
+              style={{
+                fontSize: 20, // <- Larger font for Home screen
+                color: isSelected
+                  ? isDark
+                    ? "#fff"
+                    : "#1d1d1d"
+                  : isDark
+                    ? "#888"
+                    : "rgba(0, 0, 0, 0.5)",
+                fontFamily: "Oswald_400Regular",
+              }}
+            >
+              {tab.toUpperCase()}
+            </Text>
+          )}
+        />
+      </View>
+
+      {selectedTab !== "news" &&
+        ((weeklyGamesLoading || liveGamesLoading || summerLoading) &&
+        !favorites.length ? (
+          <FavoritesScrollSkeleton />
+        ) : (
+          <FavoritesScroll favoriteTeamIds={favorites} />
+        ))}
+
+      <View style={styles.contentArea}>
+        {selectedTab === "scores" ? (
+          <>
+            <Heading>Latest Games</Heading>
+           
+            {onlySummerLeagueToday ? (
+              <SummerGamesList
+                games={filteredSummer}
+                loading={summerLoading}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                
+              />
+            ) : (
+              <GamesList
+                games={combinedGames}
+                loading={
+                  liveGamesLoading || weeklyGamesLoading || summerLoading
+                }
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                day={"todayTomorrow"}
+              />
+            )}
+          </>
+        ) : (
+          <>
+
+            {newsError ? (
+              <Text style={styles.emptyText}>{newsError}</Text>
+            ) : combinedNewsAndHighlights.length === 0 && !refreshing ? (
+              <Text style={styles.emptyText}>
+                No news or highlights available.
+              </Text>
+            ) : (
+
+              
+              <NewsHighlightsList
+                items={combinedNewsAndHighlights}
+                loading={newsLoading}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            )}
+          </>
+        )}
+      </View>
+    </View>
+  );
+}
