@@ -112,6 +112,7 @@ const RosterStats: React.FC<Props> = ({ rosterStats, playersDb, teamId }) => {
     { label: "Blocks", stat: "totalBlocks", player: topBlocker },
     { label: "Steals", stat: "totalBlocks", player: topStealer },
   ];
+  
 
   return (
     <ScrollView

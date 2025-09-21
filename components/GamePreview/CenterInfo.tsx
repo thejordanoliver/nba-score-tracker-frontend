@@ -5,6 +5,7 @@ import PlayoffsLogo from "../../assets/Logos/NBAPlayoffs.png";
 import PlayoffsLogoLight from "../../assets/Logos/NBAPlayoffsLight.png";
 import FinalsLogo from "../../assets/Logos/TheNBAFinals.png";
 import FinalsLogoLight from "../../assets/Logos/TheNBAFinalsLight.png";
+
 type CenterInfoProps = {
   isNBAFinals: boolean;
   isFinal: boolean;
@@ -72,8 +73,8 @@ export default function CenterInfo({
     isFinal && totalPeriodsPlayed
       ? totalPeriodsPlayed
       : typeof period === "number"
-        ? period
-        : undefined;
+      ? period
+      : undefined;
 
   useEffect(() => {
     if (isNBAFinals || isPlayoffs) {
@@ -249,10 +250,10 @@ export default function CenterInfo({
             {isHalftime
               ? "Halftime"
               : endOfPeriod && typeof period === "number"
-                ? `End of ${getLivePeriodLabel(period)}`
-                : typeof period === "number"
-                  ? getLivePeriodLabel(period)
-                  : period}
+              ? `End of ${getLivePeriodLabel(period)}`
+              : typeof period === "number"
+              ? getLivePeriodLabel(period)
+              : period}
           </Text>
 
           {!endOfPeriod && (
@@ -283,7 +284,7 @@ export default function CenterInfo({
             {!isFinal && !isCanceled && time && (
               <Text
                 style={{
-                  fontFamily: Fonts.OSLIGHT,
+                  fontFamily: Fonts.OSREGULAR,
                   color: "#fff",
                   fontSize: 16,
                 }}

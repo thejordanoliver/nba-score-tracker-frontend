@@ -74,7 +74,7 @@ const API_HEADERS = {
   "x-rapidapi-host": "api-nba-v1.p.rapidapi.com",
 };
 
-export function useTeamRosterStats(teamId: number, season = "2025") {
+export function useTeamRosterStats(teamId: number, season = "2024") {
   const [rosterStats, setRosterStats] = useState<AggregatedStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
