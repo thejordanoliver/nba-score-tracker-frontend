@@ -151,7 +151,7 @@ export default function PlayerDetailScreen() {
         <CustomHeaderTitle
           playerName={fullName}
           logo={
-            isTeamAvailable ? teamObj?.logo : require("assets/Logos/NBA.png")
+            isTeamAvailable ? teamObj?.logo : require("../../assets/Logos/NBA.png")
           }
           logoLight={teamObj?.logoLight}
           teamColor={isTeamAvailable ? teamObj?.color : "#1D428A"} // NBA blue

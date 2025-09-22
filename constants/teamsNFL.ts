@@ -917,7 +917,7 @@ export const stadiumImages: Record<string, any> = {
   // Map team codes or arena names to images
 
   // You can also map some arena names if you want:
-  "Corinthians Arena": require("../assets/Arenas/CorinthiansArena.webp"),
+  "Corinthians Arena": require("assets/Football/Arenas/CorinthiansArena.webp"),
   // Add more if you have non-NBA arenas...
 };
 
@@ -930,7 +930,7 @@ export const neutralStadiums: Record<string, Stadium> = {
     latitude: 23.5453,
     longitude: -46.4742,
     stadiumCapacity: "49,205",
-    stadiumImage: require("../assets/Arenas/CorinthiansArena.webp"),
+    stadiumImage: require("assets/Football/Arenas/CorinthiansArena.webp"),
   },
 };
 

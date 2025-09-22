@@ -1,8 +1,7 @@
 import { getNFLTeamsLogo, getTeamName } from "constants/teamsNFL";
+import { useRouter } from "expo-router";
 import { useNFLGameBroadcasts } from "hooks/NFLHooks/useNFLGameBroadcasts";
 import { useNFLTeamRecord } from "hooks/NFLHooks/useNFLTeamRecord";
-import { getStyles } from "styles/GameCard.styles";
-import { useRouter } from "expo-router";
 import { memo, useMemo } from "react";
 import {
   Image,
@@ -12,6 +11,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { getStyles } from "styles/GameCard.styles";
 
 type Props = {
   game: any; // TODO: replace with proper type
@@ -63,23 +63,22 @@ function NFLGameCard({ game, isDark }: Props) {
     gameDateStr
   );
 
-const formatQuarter = (short?: string): string => {
-  if (!short) return ""; // <--- guard
+  const formatQuarter = (short?: string): string => {
+    if (!short) return ""; // <--- guard
 
-  const q = short.toLowerCase();
+    const q = short.toLowerCase();
 
-  if (q.includes("1")) return "1st";
-  if (q.includes("2")) return "2nd";
-  if (q.includes("3")) return "3rd";
-  if (q.includes("4")) return "4th";
+    if (q.includes("1")) return "1st";
+    if (q.includes("2")) return "2nd";
+    if (q.includes("3")) return "3rd";
+    if (q.includes("4")) return "4th";
 
-  if (q.includes("ot")) return "OT"; // handle overtime
-  if (q.includes("half")) return "Halftime";
-  if (q.includes("end")) return "End";
+    if (q.includes("ot")) return "OT"; // handle overtime
+    if (q.includes("half")) return "Halftime";
+    if (q.includes("end")) return "End";
 
-  return short; // fallback
-};
-
+    return short; // fallback
+  };
 
   const status = useMemo(() => {
     const long = game.game.status.long ?? "";
@@ -196,7 +195,7 @@ const formatQuarter = (short?: string): string => {
           )}
           {status.isLive && (
             <>
-<Text style={styles.date}>{formatQuarter(status.short)}</Text>
+              <Text style={styles.date}>{formatQuarter(status.short)}</Text>
               <Text style={styles.clock}>{status.timer}</Text>
               {broadcasts.length > 0 && (
                 <Text style={styles.broadcast}>
