@@ -1,32 +1,29 @@
 // components/NFL/Games/NFLGamePreviewModal.tsx
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
 import { TeamLocationSection } from "components/GameDetails";
 import LineScore from "components/GameDetails/LineScore";
 import Weather from "components/GameDetails/Weather";
 import { NFLGameCenterInfo } from "components/NFL/GamePreview/GameCenterInfo";
 import { arenaImages } from "constants/teams";
 import { neutralStadiums, stadiumImages, teams } from "constants/teamsNFL";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
+import { useNFLGamePossession } from "hooks/NFLHooks/useNFLGamePossession";
 import { useNFLGameOfficialsAndInjuries } from "hooks/NFLHooks/useNFLOfficials";
 import { useNFLTeamRecord } from "hooks/NFLHooks/useNFLTeamRecord";
 import { useWeatherForecast } from "hooks/useWeather";
-import { NFLGame } from "types/nfl";
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useMemo, useRef } from "react";
 import { StyleSheet, useColorScheme, View } from "react-native";
+import { NFLGame } from "types/nfl";
 import NFLGameLeaders from "../GameDetails/NFLGameLeaders";
 import NFLInjuries from "../GameDetails/NFLInjuries";
 import NFLOfficials from "../GameDetails/NFLOfficials";
 import NFLTeamDrives from "../GameDetails/NFLTeamDrives";
 import TeamInfo from "./TeamInfo";
-import { useNFLGamePossession } from "hooks/NFLHooks/useNFLGamePossession";
-
-
-
 
 type Props = {
   game: NFLGame;
@@ -137,10 +134,10 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
     : homeTeamData;
 
   const lat = isNeutralSite
-    ? (neutralStadiums[gameInfo.venue?.name ?? ""]?.latitude ?? null)
+    ? neutralStadiums[gameInfo.venue?.name ?? ""]?.latitude ?? null
     : home.latitude;
   const lon = isNeutralSite
-    ? (neutralStadiums[gameInfo.venue?.name ?? ""]?.longitude ?? null)
+    ? neutralStadiums[gameInfo.venue?.name ?? ""]?.longitude ?? null
     : home.longitude;
 
   const { weather } = useWeatherForecast(
@@ -188,19 +185,18 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
         : ""
     );
 
-      const {
+  const {
     possessionTeamId,
     shortDownDistanceText,
+    displayClock,
     homeTimeouts,
     awayTimeouts,
     loading: possessionLoading,
   } = useNFLGamePossession(
-     homeTeamData.name ?? "",
+    homeTeamData.name ?? "",
     awayTeamData?.name ?? "",
     apiDateStr
   );
-
-
 
   return (
     <BottomSheetModal
@@ -292,6 +288,13 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
                 gameStatus === "Postponed"
               }
               hasStarted={gameStatus !== "Scheduled"}
+              possessionTeamId={
+                possessionTeamId !== undefined
+                  ? String(possessionTeamId)
+                  : undefined
+              }
+              side="away"
+  timeouts={awayTimeouts ?? 0} // ✅ fallback to 0
             />
 
             <NFLGameCenterInfo
@@ -299,13 +302,14 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
               date={displayDateStr}
               time={displayTimeStr}
               period={gameInfo.status.short}
-              clock={gameInfo.status.timer ?? ""}
+              clock={displayClock ?? gameInfo?.status?.timer ?? ""} // ✅ main clock: displayClock, fallback: timer
               isDark={isDark}
               homeTeam={homeTeamData} // ✅ must have .code
               awayTeam={awayTeamData} // ✅ must have .code
               colors={colorsRecord}
               lighter
               apiDate={apiDateStr}
+              downAndDistance={shortDownDistanceText ?? ""} // 👈 use real data
             />
 
             <TeamInfo
@@ -321,6 +325,13 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
                 gameStatus === "Postponed"
               }
               hasStarted={gameStatus !== "Scheduled"}
+              possessionTeamId={
+                possessionTeamId !== undefined
+                  ? String(possessionTeamId)
+                  : undefined
+              }
+              side="home"
+               timeouts={homeTimeouts ?? 0}
             />
           </View>
 
@@ -341,7 +352,7 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
                 gameId={String(gameInfo.id)}
                 homeTeamId={String(homeTeamData.id)}
                 awayTeamId={String(awayTeamData.id)}
-                    lighter
+                lighter
               />
 
               <NFLTeamDrives
@@ -376,25 +387,25 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
                 }
                 arenaName={
                   isNeutralSite
-                    ? (gameInfo?.venue?.name ?? "")
-                    : (homeTeamData?.stadium ?? "")
+                    ? gameInfo?.venue?.name ?? ""
+                    : homeTeamData?.stadium ?? ""
                 }
                 location={
                   isNeutralSite
-                    ? (gameInfo?.venue?.city ?? "")
-                    : (homeTeamData?.location ?? "")
+                    ? gameInfo?.venue?.city ?? ""
+                    : homeTeamData?.location ?? ""
                 }
                 address={
                   isNeutralSite
-                    ? (neutralStadiums[gameInfo?.venue?.name ?? ""]?.address ??
-                      "")
-                    : (homeTeamData?.address ?? "")
+                    ? neutralStadiums[gameInfo?.venue?.name ?? ""]?.address ??
+                      ""
+                    : homeTeamData?.address ?? ""
                 }
                 arenaCapacity={
                   isNeutralSite
-                    ? (neutralStadiums[gameInfo?.venue?.name ?? ""]
-                        ?.stadiumCapacity ?? "")
-                    : (homeTeamData?.stadiumCapacity ?? "")
+                    ? neutralStadiums[gameInfo?.venue?.name ?? ""]
+                        ?.stadiumCapacity ?? ""
+                    : homeTeamData?.stadiumCapacity ?? ""
                 }
                 loading={false}
                 error={null}

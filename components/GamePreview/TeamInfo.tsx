@@ -8,10 +8,9 @@ type TeamInfoProps = {
   scoreOrRecord: string | number;
   isWinner: boolean;
   isDark: boolean;
-  isGameOver: boolean;
-  isScheduled?: boolean;
+  isGameOver: boolean; // ✅ new prop
+  isScheduled?: boolean; // 👈 add this
   record?: string;
-  hasPossession?: boolean; // 👈 new
 };
 
 export default function TeamInfo({
@@ -23,33 +22,23 @@ export default function TeamInfo({
   isGameOver,
   isScheduled,
   record,
-  hasPossession,
 }: TeamInfoProps) {
+  // Opacity logic
   const scoreOpacity =
-    isScheduled ? 1 : !isGameOver ? 1 : isWinner ? 1 : 0.5;
+    isScheduled // scheduled games → always full opacity
+      ? 1
+      : !isGameOver // in-progress games → full opacity
+        ? 1
+        : isWinner // game over → winner stays full
+          ? 1
+          : 0.5; // game over → loser gets 0.5 opacity
 
   return (
     <View style={{ alignItems: "center" }}>
-      <View style={{ position: "relative" }}>
-        <Image
-          source={team?.logoLight || team?.logo}
-          style={{ width: 80, height: 80, resizeMode: "contain" }}
-        />
-        {hasPossession && (
-          <View
-            style={{
-              position: "absolute",
-              bottom: -6,
-              alignSelf: "center",
-              width: 10,
-              height: 10,
-              borderRadius: 5,
-              backgroundColor: isDark ? "#FFD700" : "#000",
-            }}
-          />
-        )}
-      </View>
-
+      <Image
+        source={team?.logoLight || team?.logo}
+        style={{ width: 80, height: 80, resizeMode: "contain" }}
+      />
       <Text
         style={{
           fontSize: 14,

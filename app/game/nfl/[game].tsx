@@ -1,3 +1,4 @@
+import { useNavigation } from "@react-navigation/native";
 import { CustomHeaderTitle } from "components/CustomHeaderTitle";
 import FloatingChatButton from "components/FloatingButton";
 import { LineScore, TeamLocationSection } from "components/GameDetails";
@@ -17,15 +18,13 @@ import {
   neutralStadiums,
   stadiumImages,
 } from "constants/teamsNFL";
+import { useLocalSearchParams } from "expo-router";
+import { goBack } from "expo-router/build/global-state/routing";
 import { useNFLGamePossession } from "hooks/NFLHooks/useNFLGamePossession";
 import { useNFLGameOfficialsAndInjuries } from "hooks/NFLHooks/useNFLOfficials";
 import { useNFLTeamRecord } from "hooks/NFLHooks/useNFLTeamRecord";
 import { useNFLTeamStats } from "hooks/NFLHooks/useNFLTeamStats";
 import { useWeatherForecast } from "hooks/useWeather";
-import { useChatStore } from "store/chatStore";
-import { useNavigation } from "@react-navigation/native";
-import { useLocalSearchParams } from "expo-router";
-import { goBack } from "expo-router/build/global-state/routing";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -35,6 +34,7 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { useChatStore } from "store/chatStore";
 export default function NFLGameDetailsScreen() {
   const params = useLocalSearchParams();
   const isDark = useColorScheme() === "dark";
@@ -114,16 +114,15 @@ export default function NFLGameDetailsScreen() {
     if (!headerTitle) return;
     navigation.setOptions({
       header: () => (
-<CustomHeaderTitle
-  tabName="Game"
-  onBack={goBack}
-  league="NFL"
-  homeTeamCode={homeTeam?.code}
-  awayTeamCode={awayTeam?.code}
-  isTeamScreen={false}
-  isNeutralSite={isNeutralSite} // 👈 add this
-/>
-
+        <CustomHeaderTitle
+          tabName="Game"
+          onBack={goBack}
+          league="NFL"
+          homeTeamCode={homeTeam?.code}
+          awayTeamCode={awayTeam?.code}
+          isTeamScreen={false}
+          isNeutralSite={isNeutralSite} // 👈 add this
+        />
       ),
     });
   }, [headerTitle, navigation]);
@@ -212,12 +211,12 @@ export default function NFLGameDetailsScreen() {
   const { record: homeRecord } = useNFLTeamRecord(home?.id);
 
   const lat = isNeutralSite
-    ? (neutralStadiums[gameInfo?.venue?.name ?? ""]?.latitude ?? null)
-    : (homeTeam?.latitude ?? null);
+    ? neutralStadiums[gameInfo?.venue?.name ?? ""]?.latitude ?? null
+    : homeTeam?.latitude ?? null;
 
   const lon = isNeutralSite
-    ? (neutralStadiums[gameInfo?.venue?.name ?? ""]?.longitude ?? null)
-    : (homeTeam?.longitude ?? null);
+    ? neutralStadiums[gameInfo?.venue?.name ?? ""]?.longitude ?? null
+    : homeTeam?.longitude ?? null;
 
   const stadiumData = isNeutralSite
     ? neutralStadiums[gameInfo?.venue?.name ?? ""]
@@ -249,8 +248,6 @@ export default function NFLGameDetailsScreen() {
       })
     : "";
 
-   
-
   const linescore = useMemo(() => {
     if (!scores) return { home: [], away: [] };
     const homePeriods = [
@@ -276,8 +273,14 @@ export default function NFLGameDetailsScreen() {
   const homeTeamName = homeTeam?.name ?? ""; // e.g., "Green Bay Packers"
   const awayTeamName = awayTeam?.name ?? ""; // e.g., "Washington Commanders"
 
-const { possessionTeamId, shortDownDistanceText, homeTimeouts, awayTimeouts, loading: possessionLoading } =
-  useNFLGamePossession(homeTeamName, awayTeamName, gameDateStr);
+  const {
+    possessionTeamId,
+    shortDownDistanceText,
+    displayClock,
+    homeTimeouts,
+    awayTimeouts,
+    loading: possessionLoading,
+  } = useNFLGamePossession(homeTeamName, awayTeamName, gameDateStr);
 
   if (!parsedGame || !homeTeam || !awayTeam) return <View />;
 
@@ -309,6 +312,7 @@ const { possessionTeamId, shortDownDistanceText, homeTimeouts, awayTimeouts, loa
                 ? String(possessionTeamId)
                 : undefined
             }
+            timeouts={awayTimeouts ?? 0} // ✅ pass awayTimeouts
           />
 
           <NFLGameCenterInfo
@@ -316,13 +320,13 @@ const { possessionTeamId, shortDownDistanceText, homeTimeouts, awayTimeouts, loa
             date={formattedDate}
             time={formattedTime}
             period={gameInfo?.status?.short}
-            clock={gameInfo?.status?.timer}
+            clock={displayClock ?? gameInfo?.status?.timer ?? ""}
             colors={colors}
             isDark={isDark}
             playoffInfo={gameInfo?.playoffInfo}
             homeTeam={homeTeam}
             awayTeam={awayTeam}
-  downAndDistance={shortDownDistanceText ?? ""} // 👈 use real data
+            downAndDistance={shortDownDistanceText ?? ""} // 👈 use real data
           />
 
           <NFLTeamRow
@@ -343,6 +347,7 @@ const { possessionTeamId, shortDownDistanceText, homeTimeouts, awayTimeouts, loa
                 ? String(possessionTeamId)
                 : undefined
             }
+            timeouts={homeTimeouts ?? 0} // ✅ pass homeTimeouts
           />
         </View>
 
@@ -388,25 +393,24 @@ const { possessionTeamId, shortDownDistanceText, homeTimeouts, awayTimeouts, loa
               }
               arenaName={
                 isNeutralSite
-                  ? (gameInfo?.venue?.name ?? "")
-                  : (homeTeam?.stadium ?? "")
+                  ? gameInfo?.venue?.name ?? ""
+                  : homeTeam?.stadium ?? ""
               }
               location={
                 isNeutralSite
-                  ? (gameInfo?.venue?.city ?? "")
-                  : (homeTeam?.location ?? "")
+                  ? gameInfo?.venue?.city ?? ""
+                  : homeTeam?.location ?? ""
               }
               address={
                 isNeutralSite
-                  ? (neutralStadiums[gameInfo?.venue?.name ?? ""]?.address ??
-                    "")
-                  : (homeTeam?.address ?? "")
+                  ? neutralStadiums[gameInfo?.venue?.name ?? ""]?.address ?? ""
+                  : homeTeam?.address ?? ""
               }
               arenaCapacity={
                 isNeutralSite
-                  ? (neutralStadiums[gameInfo?.venue?.name ?? ""]
-                      ?.stadiumCapacity ?? "")
-                  : (homeTeam?.stadiumCapacity ?? "")
+                  ? neutralStadiums[gameInfo?.venue?.name ?? ""]
+                      ?.stadiumCapacity ?? ""
+                  : homeTeam?.stadiumCapacity ?? ""
               }
               loading={false}
               error={null}

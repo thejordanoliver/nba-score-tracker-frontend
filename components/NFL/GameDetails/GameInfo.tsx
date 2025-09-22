@@ -100,8 +100,20 @@ export function NFLGameCenterInfo({
       {/* In Progress */}
       {status === "In Progress" && (
         <>
-          <Text style={styles.date}>{period ? formatQuarter(period) : ""}</Text>
-          {clock && <Text style={styles.clock}>{clock}</Text>}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            <Text style={styles.date}>
+              {period ? formatQuarter(period) : ""}
+            </Text>
+            <View style={styles.divider}/>
+            {clock && <Text style={styles.clock}>{clock}</Text>}
+          </View>
           {downAndDistance && (
             <Text style={styles.downAndDistance}>{downAndDistance}</Text>
           )}
@@ -186,5 +198,10 @@ export const getStyles = (isDark: boolean) =>
       fontSize: 16,
       color: isDark ? "#ff4444" : "#cc0000",
       textAlign: "center",
+    },
+    divider: {
+      height: 14,
+      width: 1,
+      backgroundColor: isDark ? "rgba(255,255,255, 1)" : "rgba(0, 0, 0, .5)",
     },
   });

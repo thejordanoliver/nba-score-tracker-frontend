@@ -25,6 +25,7 @@ type NFLGameCenterInfoProps = {
   awayTeam: NFLTeam;
   lighter: boolean;
   apiDate?: string; // ✅ add this
+  downAndDistance: string;
 };
 
 export function NFLGameCenterInfo({
@@ -39,6 +40,7 @@ export function NFLGameCenterInfo({
   awayTeam,
   lighter,
   apiDate, // ✅ now available
+  downAndDistance,
 }: NFLGameCenterInfoProps) {
   const { broadcasts, loading, error } = useNFLGameBroadcasts(
     homeTeam.code,
@@ -87,8 +89,23 @@ export function NFLGameCenterInfo({
       {/* In Progress */}
       {status === "In Progress" && (
         <>
-          <Text style={styles.date}>{period ? formatQuarter(period) : ""}</Text>
-          {clock && <Text style={styles.clock}>{clock}</Text>}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            <Text style={styles.date}>
+              {period ? formatQuarter(period) : ""}
+            </Text>
+            <View style={styles.divider} />
+            {clock && <Text style={styles.clock}>{clock}</Text>}
+          </View>
+          {downAndDistance && (
+            <Text style={styles.downAndDistance}>{downAndDistance}</Text>
+          )}
           {broadcasts.slice(0, 1).map((b, i) => (
             <Text
               key={i}
@@ -100,7 +117,19 @@ export function NFLGameCenterInfo({
         </>
       )}
       {/* Halftime */}
-      {status === "Halftime" && <Text style={styles.date}>Halftime</Text>}
+      {status === "Halftime" && (
+        <>
+          <Text style={styles.date}>Halftime</Text>
+          {broadcasts.slice(0, 1).map((b, i) => (
+            <Text
+              key={i}
+              style={[styles.broadcasts, { color: broadcastColor }]}
+            >
+              {b.names.join("/")}
+            </Text>
+          ))}
+        </>
+      )}
       {/* Final */}
       {status === "Final" && (
         <>
@@ -128,7 +157,7 @@ export const getStyles = (isDark: boolean) =>
     date: {
       fontFamily: Fonts.OSMEDIUM,
       color: isDark ? "#fff" : "#1d1d1d",
-      fontSize: 20,
+      fontSize: 16,
     },
     time: {
       fontSize: 14,
@@ -136,7 +165,7 @@ export const getStyles = (isDark: boolean) =>
       color: isDark ? "#fff" : "#444",
     },
     broadcasts: {
-      fontSize: 10,
+      fontSize: 14,
       fontFamily: Fonts.OSREGULAR,
       color: isDark ? "#aaa" : "#444",
     },
@@ -147,17 +176,22 @@ export const getStyles = (isDark: boolean) =>
     },
     clock: {
       fontFamily: Fonts.OSMEDIUM,
-      fontSize: 14,
+      fontSize: 16,
       color: "#ff4444",
-      marginTop: 4,
       textAlign: "center",
     },
-
+    downAndDistance: {
+      // ← add this
+      fontFamily: Fonts.OSMEDIUM,
+      fontSize: 14,
+      color: isDark ? "#aaa" : "#555",
+      marginTop: 2,
+      textAlign: "center",
+    },
     final: {
       fontSize: 14,
       fontFamily: Fonts.OSBOLD,
     },
-
     dateFinal: {
       fontFamily: Fonts.OSREGULAR,
       color: "rgba(255,255,255, .5)",
@@ -168,5 +202,10 @@ export const getStyles = (isDark: boolean) =>
       fontSize: 20,
       color: "#ff4444",
       textAlign: "center",
+    },
+    divider: {
+      height: 16,
+      width: 1,
+      backgroundColor: isDark ? "rgba(255,255,255, 1)" : "rgba(0, 0, 0, .5)",
     },
   });

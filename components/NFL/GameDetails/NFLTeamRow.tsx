@@ -1,10 +1,8 @@
 import { Fonts } from "constants/fonts";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import Football from "../../../assets/icons8/Football.png";
 import FootballLight from "../../../assets/icons8/FootballLight.png";
-import { useEffect, useState } from "react";
 
 type Props = {
   team: {
@@ -26,6 +24,7 @@ type Props = {
   };
   possessionTeamId?: string;
   size?: number;
+  timeouts: number;
 };
 
 export const NFLTeamRow = ({
@@ -38,10 +37,9 @@ export const NFLTeamRow = ({
   colors,
   possessionTeamId,
   size = 50,
+  timeouts,
 }: Props) => {
   const router = useRouter();
-
-
 
   const handleTeamPress = () => {
     if (!team.id) return;
@@ -71,6 +69,27 @@ export const NFLTeamRow = ({
     return { color: colors.score, opacity: 1 };
   };
 
+const renderTimeouts = (remaining: number) => {
+  const totalTimeouts = 3;
+  const dots = [];
+  for (let i = 0; i < totalTimeouts; i++) {
+    dots.push(
+      <View
+        key={i}
+        style={{
+          width: 8,
+          height: 2,
+          borderRadius: 4,
+          backgroundColor: isDark ? "#fff" : "#000",
+          opacity: i < remaining ? 1 : 0.3, // ✅ used timeouts are faded
+          marginHorizontal: 2,
+        }}
+      />
+    );
+  }
+  return <View style={{ flexDirection: "row", marginTop: 2 }}>{dots}</View>;
+};
+
   return (
     <View style={styles.row}>
       {/* Home Score */}
@@ -97,7 +116,7 @@ export const NFLTeamRow = ({
                   ],
             ]}
           >
-            {isNotStarted ? (team.record ?? "0-0") : (score ?? "0-0")}
+            {isNotStarted ? team.record ?? "0-0" : score ?? "0-0"}
           </Text>
 
           {hasPossession && (
@@ -125,16 +144,26 @@ export const NFLTeamRow = ({
           />
         </Pressable>
         <View style={styles.teamInfo}>
+          {/* Name */}
           <View style={styles.nameRow}>
             <Text
               style={[
                 styles.teamName,
-                { color: colors.text, fontSize: size * 0.25 },
+                { color: colors.text, fontSize: size * 0.25, },
               ]}
             >
               {team.name}
             </Text>
           </View>
+
+          {/* Timeouts dots (centered) */}
+          {timeouts > 0 && (
+            <View style={{ alignItems: "center", marginTop: 2 }}>
+              {renderTimeouts(timeouts)}
+            </View>
+          )}
+
+          {/* Final record */}
           {isFinal && (
             <Text
               style={[
@@ -172,7 +201,7 @@ export const NFLTeamRow = ({
                   ],
             ]}
           >
-            {isNotStarted ? (team.record ?? "0-0") : (score ?? "0-0")}
+            {isNotStarted ? team.record ?? "0-0" : score ?? "0-0"}
           </Text>
 
           {hasPossession && (
@@ -212,6 +241,7 @@ const styles = StyleSheet.create({
   nameRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center"
   },
   teamName: {
     fontFamily: Fonts.OSREGULAR,

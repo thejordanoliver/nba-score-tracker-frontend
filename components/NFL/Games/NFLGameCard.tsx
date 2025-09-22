@@ -1,6 +1,9 @@
+import Football from "assets/icons8/Football.png";
+import FootballLight from "assets/icons8/FootballLight.png";
 import { getNFLTeamsLogo, getTeamName } from "constants/teamsNFL";
 import { useRouter } from "expo-router";
 import { useNFLGameBroadcasts } from "hooks/NFLHooks/useNFLGameBroadcasts";
+import { useNFLGamePossession } from "hooks/NFLHooks/useNFLGamePossession";
 import { useNFLTeamRecord } from "hooks/NFLHooks/useNFLTeamRecord";
 import { memo, useMemo } from "react";
 import {
@@ -26,35 +29,49 @@ function NFLGameCard({ game, isDark }: Props) {
 
   const homeId = game?.teams?.home?.id;
   const awayId = game?.teams?.away?.id;
-  const gameId = game?.game?.id;
 
   // Compute game date
-  const gameDate = useMemo(() => {
-    return game?.game?.date?.timestamp
-      ? new Date(game.game.date.timestamp * 1000)
-      : null;
-  }, [game?.game?.date?.timestamp]);
+  const gameDate = game?.game?.date?.timestamp
+    ? new Date(game.game.date.timestamp * 1000)
+    : null;
   const gameDateStr = gameDate?.toISOString();
+
+  // Fetch live possession info
+  const { possessionTeamId, displayClock } = useNFLGamePossession(
+    getTeamName(homeId),
+    getTeamName(awayId),
+    gameDateStr
+  );
+
+  const gameId = game?.game?.id;
 
   // ✅ Fetch dynamic records for both teams (now from team endpoint)
   const { record: awayRecord } = useNFLTeamRecord(awayId);
   const { record: homeRecord } = useNFLTeamRecord(homeId);
 
-  const awayTeam = useMemo(() => {
-    return {
+  // Determine which team has possession
+
+  const awayTeam = useMemo(
+    () => ({
       logo: getNFLTeamsLogo(awayId, dark),
       name: getTeamName(awayId),
       record: awayRecord.overall ?? "0-0",
-    };
-  }, [awayId, awayRecord.overall, dark]);
+      id: awayId,
+      hasPossession: String(possessionTeamId) === String(awayId),
+    }),
+    [awayId, awayRecord.overall, dark, possessionTeamId]
+  );
 
-  const homeTeam = useMemo(() => {
-    return {
+  const homeTeam = useMemo(
+    () => ({
       logo: getNFLTeamsLogo(homeId, dark),
       name: getTeamName(homeId),
       record: homeRecord.overall ?? "0-0",
-    };
-  }, [homeId, homeRecord.overall, dark]);
+      id: homeId,
+      hasPossession: String(possessionTeamId) === String(homeId),
+    }),
+    [homeId, homeRecord.overall, dark, possessionTeamId]
+  );
 
   // Fetch broadcasts
   const { broadcasts } = useNFLGameBroadcasts(
@@ -167,6 +184,20 @@ function NFLGameCard({ game, isDark }: Props) {
       <View style={styles.card}>
         {/* Away Team */}
         <View style={styles.teamSection}>
+          {/* Possession football on inner side (left for away) */}
+          {awayTeam.hasPossession && (
+            <Image
+              source={dark ? FootballLight : Football}
+              style={{
+                width: 28,
+                height: 28,
+                resizeMode: "contain",
+                position: "absolute",
+                right: -80, // inner side
+                top: 20, // center vertically aligned with logo
+              }}
+            />
+          )}
           <Image source={awayTeam.logo} style={styles.logo} />
           <Text style={styles.teamName}>{awayTeam.name}</Text>
         </View>
@@ -184,7 +215,6 @@ function NFLGameCard({ game, isDark }: Props) {
             ? awayTeam.record
             : game.scores.away?.total}
         </Text>
-
         {/* Game Info */}
         <View style={styles.info}>
           {status.isScheduled && (
@@ -195,8 +225,28 @@ function NFLGameCard({ game, isDark }: Props) {
           )}
           {status.isLive && (
             <>
-              <Text style={styles.date}>{formatQuarter(status.short)}</Text>
-              <Text style={styles.clock}>{status.timer}</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                }}
+              >
+                <Text style={styles.date}>{formatQuarter(status.short)}</Text>
+                <View
+                  style={{
+                    height: 14,
+                    width: 1,
+                    backgroundColor: isDark
+                      ? "rgba(255,255,255, 1)"
+                      : "rgba(0, 0, 0, .5)",
+                  }}
+                />
+                <Text style={styles.clock}>
+                  {displayClock ?? status.timer ?? ""}
+                </Text>
+              </View>
               {broadcasts.length > 0 && (
                 <Text style={styles.broadcast}>
                   {broadcasts
@@ -212,7 +262,23 @@ function NFLGameCard({ game, isDark }: Props) {
             </>
           )}
 
-          {status.isHalftime && <Text style={styles.date}>{status.long}</Text>}
+          {status.isHalftime && (
+            <>
+              <Text style={styles.date}>{status.long}</Text>
+              {broadcasts.length > 0 && (
+                <Text style={styles.broadcast}>
+                  {broadcasts
+                    .map((b) =>
+                      Array.isArray(b.names)
+                        ? b.names.join("/")
+                        : b.name || b.shortName || ""
+                    )
+                    .filter(Boolean)
+                    .join("/")}
+                </Text>
+              )}
+            </>
+          )}
           {status.isFinal && (
             <>
               <Text style={styles.finalText}>
@@ -242,6 +308,20 @@ function NFLGameCard({ game, isDark }: Props) {
 
         {/* Home Team */}
         <View style={styles.teamSection}>
+          {/* Possession football on inner side (right for home) */}
+          {homeTeam.hasPossession && (
+            <Image
+              source={dark ? FootballLight : Football}
+              style={{
+                width: 28,
+                height: 28,
+                resizeMode: "contain",
+                position: "absolute",
+                left: -80, // inner side
+                top: 20, // center vertically aligned with logo
+              }}
+            />
+          )}
           <Image source={homeTeam.logo} style={styles.logo} />
           <Text style={styles.teamName}>{homeTeam.name}</Text>
         </View>

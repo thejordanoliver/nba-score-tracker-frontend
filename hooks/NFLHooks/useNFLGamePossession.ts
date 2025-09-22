@@ -1,5 +1,5 @@
-import { teamIdMap } from "constants/teamsNFL";
 import axios from "axios";
+import { teamIdMap } from "constants/teamsNFL";
 import { useEffect, useState } from "react";
 
 // Flip map: ESPN team ID → internal team ID
@@ -12,8 +12,18 @@ export const useNFLGamePossession = (
   away: string,
   date: string | { date?: string; utc?: string; timestamp?: number } | undefined
 ) => {
-  const [possessionTeamId, setPossessionTeamId] = useState<number | undefined>();
-  const [shortDownDistanceText, setShortDownDistanceText] = useState<string | undefined>();
+  const [possessionTeamId, setPossessionTeamId] = useState<
+    number | undefined
+  >();
+  const [shortDownDistanceText, setShortDownDistanceText] = useState<
+    string | undefined
+  >();
+  const [downDistanceText, setDownDistanceText] = useState<
+    string | undefined
+  >();
+  const [displayClock, setDisplayClock] = useState<
+    string | undefined
+  >();
   const [homeTimeouts, setHomeTimeouts] = useState<number | undefined>();
   const [awayTimeouts, setAwayTimeouts] = useState<number | undefined>();
   const [loading, setLoading] = useState(false);
@@ -34,16 +44,18 @@ export const useNFLGamePossession = (
           targetDate = date.timestamp
             ? new Date(date.timestamp * 1000)
             : date.utc
-              ? new Date(date.utc)
-              : date.date
-                ? new Date(date.date)
-                : null;
+            ? new Date(date.utc)
+            : date.date
+            ? new Date(date.date)
+            : null;
         }
         if (!targetDate) return;
 
         // Format YYYYMMDD in US Eastern Time
         const makeYMD = (d: Date) => {
-          const usDate = d.toLocaleDateString("en-US", { timeZone: "America/New_York" });
+          const usDate = d.toLocaleDateString("en-US", {
+            timeZone: "America/New_York",
+          });
           const [month, day, year] = usDate.split("/");
           return `${year}${month.padStart(2, "0")}${day.padStart(2, "0")}`;
         };
@@ -70,10 +82,14 @@ export const useNFLGamePossession = (
         });
 
         if (!game) {
-          console.warn(`[NFL Possession] Game not found for ${home} vs ${away}`);
+          console.warn(
+            `[NFL Possession] Game not found for ${home} vs ${away}`
+          );
           setError("Game not found on ESPN");
           setPossessionTeamId(undefined);
           setShortDownDistanceText(undefined);
+          setDownDistanceText(undefined);
+          setDisplayClock(undefined);
           setHomeTimeouts(undefined);
           setAwayTimeouts(undefined);
           return;
@@ -84,13 +100,16 @@ export const useNFLGamePossession = (
           console.warn("[NFL Possession] No competition data found");
           setPossessionTeamId(undefined);
           setShortDownDistanceText(undefined);
+          setDownDistanceText(undefined);
+          setDisplayClock(undefined);
           setHomeTimeouts(undefined);
           setAwayTimeouts(undefined);
           return;
         }
 
         // Extract possession
-        const espnPossessionId: string | undefined = competition.situation?.possession;
+        const espnPossessionId: string | undefined =
+          competition.situation?.possession;
         if (espnPossessionId && espnToInternal[espnPossessionId]) {
           setPossessionTeamId(espnToInternal[espnPossessionId]);
         } else {
@@ -99,16 +118,19 @@ export const useNFLGamePossession = (
 
         // Extract down & distance text
         setShortDownDistanceText(competition.situation?.shortDownDistanceText);
+        setDownDistanceText(competition.situation?.downDistanceText);
 
         // Extract timeouts
         setHomeTimeouts(competition.situation?.homeTimeouts);
         setAwayTimeouts(competition.situation?.awayTimeouts);
-
+        //Extract Display Clock
+        setDisplayClock(competition.status?.displayClock);
       } catch (err: any) {
         console.error("[NFL Possession] Error fetching possession:", err);
         setError(err.message || "Failed to fetch possession");
         setPossessionTeamId(undefined);
         setShortDownDistanceText(undefined);
+        setDownDistanceText(undefined);
         setHomeTimeouts(undefined);
         setAwayTimeouts(undefined);
       } finally {
@@ -121,5 +143,14 @@ export const useNFLGamePossession = (
     return () => clearInterval(interval);
   }, [home, away, date]);
 
-  return { possessionTeamId, shortDownDistanceText, homeTimeouts, awayTimeouts, loading, error };
+  return {
+    possessionTeamId,
+    shortDownDistanceText,
+    downDistanceText,
+    displayClock,
+    homeTimeouts,
+    awayTimeouts,
+    loading,
+    error,
+  };
 };
