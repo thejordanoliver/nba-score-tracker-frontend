@@ -51,7 +51,7 @@ export default function TeamInjuriesTab({ injuries, lighter = false }: Props) {
   }
 
   return (
-    <View style={styles.container}>
+    <View>
       <HeadingTwo lighter={lighter}>Injury Report</HeadingTwo>
 
       <View style={{ alignSelf: "center", marginBottom: 12 }}>
@@ -108,7 +108,6 @@ export default function TeamInjuriesTab({ injuries, lighter = false }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { marginTop: 12 },
   tabLabel: {
     flexDirection: "row",
     alignItems: "center",

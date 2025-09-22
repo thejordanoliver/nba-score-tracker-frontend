@@ -44,11 +44,20 @@ export default function GameOddsSection({
     team1: awayCode,
     team2: homeCode,
     gameId,
-    skip: hasUpcomingOdds, // ✅ pass skip flag to prevent fetching
+    skip: hasUpcomingOdds, // ✅ prevent fetching if upcoming exists
   });
 
+  // ✅ If both odds arrays are empty (and not loading), return null
+  if (
+    !upcomingLoading &&
+    !oddsLoading &&
+    (!upcomingOdds?.length && !historicalOdds?.length)
+  ) {
+    return null;
+  }
+
   return (
-    <View style={{ marginTop: 20 }}>
+    <View>
       {/* --- Upcoming Odds --- */}
       {upcomingLoading ? (
         <OddsSkeleton />
@@ -57,7 +66,7 @@ export default function GameOddsSection({
           Error loading upcoming odds: {upcomingError}
         </Text>
       ) : hasUpcomingOdds ? (
-        <View style={{ marginBottom: 20 }}>
+        <View>
           {upcomingOdds.map((game) => (
             <UpcomingOddsCard key={game.id} game={game} />
           ))}

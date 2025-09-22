@@ -33,16 +33,28 @@ function getOpponentCodeFromName(opponentName: string): string | undefined {
   return team?.code;
 }
 
-export default function LastFiveGamesSwitcher({ isDark, lighter, home, away }: Props) {
+export default function LastFiveGamesSwitcher({
+  isDark,
+  lighter,
+  home,
+  away,
+}: Props) {
   const [selected, setSelected] = useState<"home" | "away">("home");
   const team = selected === "home" ? home : away;
+  const styles = getStyles(isDark);
 
   const teamsUsingLogoLightInDark = new Set(["PHI", "TOR", "HOU", "UTA"]);
 
   const renderRow = ({ item, index }: { item: any; index: number }) => {
     const matchupSymbol = item.isHome ? "vs" : "@";
     const resultSymbol = item.won ? "W" : "L";
-    const resultColor = lighter ? item.won ? "#71ff76ff" : "#ff6363ff" : item.won ? "#4caf50" : "#f44336";
+    const resultColor = lighter
+      ? item.won
+        ? "#71ff76ff"
+        : "#ff6363ff"
+      : item.won
+      ? "#4caf50"
+      : "#f44336";
 
     const opponentCode =
       item.opponentCode || getOpponentCodeFromName(item.opponent);
@@ -59,7 +71,7 @@ export default function LastFiveGamesSwitcher({ isDark, lighter, home, away }: P
         style={[
           styles.row,
           {
-            borderBottomColor: isDark ? "#444" : "#ccc",
+            borderBottomColor: "#aaa",
             borderBottomWidth: index === team.games.length - 1 ? 0 : 1,
           },
         ]}
@@ -106,7 +118,8 @@ export default function LastFiveGamesSwitcher({ isDark, lighter, home, away }: P
           renderLabel={(tab, isSelected) => {
             const teamData = tab === "home" ? home : away;
             const useLogoLight =
-              lighter || (isDark && teamsUsingLogoLightInDark.has(teamData.teamCode));
+              lighter ||
+              (isDark && teamsUsingLogoLightInDark.has(teamData.teamCode));
             const logoSource = useLogoLight
               ? teamData.teamLogoLight || teamData.teamLogo
               : teamData.teamLogo;
@@ -160,13 +173,30 @@ export default function LastFiveGamesSwitcher({ isDark, lighter, home, away }: P
         ListEmptyComponent={<Text style={styles.empty}>No recent games.</Text>}
         ListHeaderComponent={
           <View style={styles.headerRow}>
-            <Text style={[styles.cell, styles.date, { color: lighter ? "#fff" : isDark ? "#fff" : "#1d1d1d" }]}>
+            <Text
+              style={[
+                styles.cell,
+                styles.date,
+                { color: lighter ? "#fff" : isDark ? "#fff" : "#1d1d1d" },
+              ]}
+            >
               Date
             </Text>
-            <Text style={[styles.cell, styles.team, { color: lighter ? "#fff" : isDark ? "#fff" : "#1d1d1d" }]}>
+            <Text
+              style={[
+                styles.cell,
+                styles.team,
+                { color: lighter ? "#fff" : isDark ? "#fff" : "#1d1d1d" },
+              ]}
+            >
               Matchup
             </Text>
-            <Text style={[styles.cell, { color: lighter ? "#fff" : isDark ? "#fff" : "#1d1d1d" }]}>
+            <Text
+              style={[
+                styles.cell,
+                { color: lighter ? "#fff" : isDark ? "#fff" : "#1d1d1d" },
+              ]}
+            >
               Result
             </Text>
           </View>
@@ -176,38 +206,39 @@ export default function LastFiveGamesSwitcher({ isDark, lighter, home, away }: P
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1},
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 6,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingBottom: 4,
-    borderBottomWidth: 1,
-    borderColor: "#aaa",
-    marginBottom: 6,
-  },
-  cell: {
-    fontSize: 14,
-    flex: 1,
-    textAlign: "center",
-    fontFamily: Fonts.OSREGULAR,
-  },
-  date: { flex: 1.2 },
-  team: { flex: 2 },
-  teamWithLogo: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  empty: {
-    textAlign: "center",
-    color: "#999",
-    marginTop: 12,
-    fontFamily: Fonts.OSREGULAR,
-  },
-});
+const getStyles = (isDark: boolean) =>
+  StyleSheet.create({
+    container: { flex: 1 },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: 6,
+    },
+    headerRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingBottom: 4,
+      borderBottomWidth: 1,
+      borderColor: "#aaa",
+      marginBottom: 6,
+    },
+    cell: {
+      fontSize: 14,
+      flex: 1,
+      textAlign: "center",
+      fontFamily: Fonts.OSREGULAR,
+    },
+    date: { flex: 1.2 },
+    team: { flex: 2 },
+    teamWithLogo: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    empty: {
+      textAlign: "center",
+      color: "#999",
+      marginTop: 12,
+      fontFamily: Fonts.OSREGULAR,
+    },
+  });

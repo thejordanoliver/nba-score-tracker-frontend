@@ -159,12 +159,20 @@ const UpcomingOddsCard: React.FC<Props> = ({ game }) => {
 
         {/* Bookmaker Info */}
         <View style={styles.bookmaker}>
-          <View style={styles.bookmakerWrapper}>
-            <Text style={styles.subtext}>
-              Powered By: {bookmaker?.title || "Unknown"}
-            </Text>
-          </View>
-        </View>
+                <Text style={styles.subtext}>
+                  Powered By: {bookmaker?.title || "Unknown"}
+                </Text>
+                <Text style={styles.subtext}>
+                  {new Date(game.commence_time).toLocaleString("en-US", {
+                    month: "numeric",
+                    day: "numeric",
+                    year: "2-digit",
+                    hour: "numeric",
+                    minute: "numeric",
+                    hour12: true,
+                  })}
+                </Text>
+              </View>
       </View>
     </>
   );

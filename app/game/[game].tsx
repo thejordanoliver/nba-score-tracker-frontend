@@ -323,15 +323,6 @@ export default function GameDetailsScreen() {
             <GameDetailsSkeleton />
           ) : ( */}
             <>
-              {/* --- Odds Section (Upcoming + Historical) --- */}
-              {/* <GameOddsSection
-                date={date}
-                gameDate={gameDate}
-                homeCode={homeCode}
-                awayCode={awayCode}
-                gameId={stableGameId}
-              /> */}
-
               {linescore && (
                 <LineScore
                   linescore={linescore}
@@ -339,6 +330,17 @@ export default function GameDetailsScreen() {
                   awayCode={awayTeamData.code}
                 />
               )}
+              
+              {/* --- Odds Section (Upcoming + Historical) --- */}
+              <GameOddsSection
+                date={date}
+                gameDate={gameDate}
+                homeCode={homeCode}
+                awayCode={awayCode}
+                gameId={stableGameId}
+              />
+
+            
 
               {/* --- Prediction --- */}
               {prediction && !predictionLoading && !predictionError && (

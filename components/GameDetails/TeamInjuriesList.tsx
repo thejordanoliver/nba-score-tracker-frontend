@@ -76,7 +76,8 @@ export default function GameInjuries({ injuries, lighter }: Props) {
   const textColor = lighter ? "#fff" : isDark ? "#fff" : "#1d1d1d";
   const subTextColor = lighter ? "#ccc" : isDark ? "#888" : "#555";
   const borderColor = lighter ? "#aaa" : isDark ? "#888" : "#888";
-
+  const status = lighter ? "#ff4444" : isDark ? "#ff4444" : "#cc0000";
+  const headshotBackgroundColor = lighter ? "#444" : isDark ? "#444" : "#ddd";
   return (
     <View style={getStyles.container}>
       {injuries.map((team) => {
@@ -132,7 +133,7 @@ export default function GameInjuries({ injuries, lighter }: Props) {
                 >
                   <Image
                     source={{ uri: avatarUrl }}
-                    style={getStyles.headshot}
+                    style={[getStyles.headshot,{backgroundColor: headshotBackgroundColor}]}
                   />
                   <View style={getStyles.injuryText}>
                     <View style={getStyles.playerHeader}>
@@ -144,7 +145,7 @@ export default function GameInjuries({ injuries, lighter }: Props) {
                       </Text>
                     </View>
                     {inj.details?.detail && (
-                      <Text style={getStyles.details}>
+                      <Text style={[getStyles.details,  {color: status}]}>
                         {inj.details.detail}
                       </Text>
                     )}
@@ -178,7 +179,7 @@ const styles = (isDark: boolean) =>
       borderRadius: 100,
       paddingTop: 4,
       marginRight: 8,
-      backgroundColor: isDark ? "#444" : "#ddd",
+   
     },
     injuryText: { flex: 1 },
     player: {

@@ -41,8 +41,9 @@ export default function GameUniforms({
 
   return (
     <>
-      <HeadingTwo lighter={lighter}>Uniform Matchup</HeadingTwo>
       <View style={styles.container}>
+      <HeadingTwo lighter={lighter}>Uniform Matchup</HeadingTwo>
+        <View style={styles.wrapper}>
         {/* Away Team Away uniforms */}
         <View style={styles.uniformsContainer}>
           <Image source={awayTeam.uniforms?.away} style={styles.uniformsImage} />
@@ -61,6 +62,7 @@ export default function GameUniforms({
             {homeTeam.name} Home
           </Text>
         </View>
+        </View>
       </View>
     </>
   );
@@ -68,6 +70,9 @@ export default function GameUniforms({
 
 const styles = StyleSheet.create({
   container: {
+    justifyContent: "center",
+  },
+  wrapper: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
