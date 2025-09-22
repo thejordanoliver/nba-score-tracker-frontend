@@ -19,7 +19,6 @@ type Props = {
   arenaImage?: any;
   arenaName?: string;
   location?: string;
-  weather: WeatherData | null;
   loading: boolean;
   error: string | null;
   address: string;
@@ -33,7 +32,7 @@ const TeamLocationSection: React.FC<Props> = ({
   location,
   address,
   arenaCapacity,
-  weather,
+
   loading,
   error,
   lighter = false, // default false

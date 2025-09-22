@@ -1,6 +1,8 @@
+import TeamInfoBottomSheetNFL from "components/NFL/Team/TeamInfoModal"; // NFL
 import TeamInfoBottomSheet from "components/Team/TeamInfoModal"; // NBA
 import { Fonts } from "constants/fonts";
 import { teams as nbaTeams } from "constants/teams";
+import { teams as nflTeams } from "constants/teamsNFL";
 import { Ionicons } from "@expo/vector-icons";
 import { HeaderTitle } from "@react-navigation/elements";
 import { LinearGradient } from "expo-linear-gradient";
@@ -17,6 +19,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 const { width } = Dimensions.get("window");
 
 type CustomHeaderTitleProps = {
@@ -42,7 +45,7 @@ type CustomHeaderTitleProps = {
   teamHistory?: string;
   isPlayerScreen?: boolean;
   showBackButton?: boolean;
-
+  league?: "NBA" | "NFL";
   isNeutralSite?: boolean;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
@@ -74,23 +77,32 @@ export function CustomHeaderTitle({
   isPlayerScreen,
   showBackButton = true,
   isNeutralSite = false,
-
+  league = "NBA",
 }: CustomHeaderTitleProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
 
-  const selectedTeam = nbaTeams.find((t) => t.code === teamCode);
+  const selectedTeam =
+    league === "NFL"
+      ? nflTeams.find((t) => t.code === teamCode)
+      : nbaTeams.find((t) => t.code === teamCode);
 
-  const homeTeam = nbaTeams.find((t) => t.code === homeTeamCode);
+  const homeTeam =
+    league === "NFL"
+      ? nflTeams.find((t) => t.code === homeTeamCode)
+      : nbaTeams.find((t) => t.code === homeTeamCode);
 
-  const awayTeam = nbaTeams.find((t) => t.code === awayTeamCode);
+  const awayTeam =
+    league === "NFL"
+      ? nflTeams.find((t) => t.code === awayTeamCode)
+      : nbaTeams.find((t) => t.code === awayTeamCode);
 
   const defaultBgColor = isDark ? "#1d1d1d" : "#fff";
 
   const textStyle: TextStyle = {
-    fontFamily: Fonts.OSREGULAR,
+    fontFamily: "Oswald_400Regular",
     fontSize: 20,
     color: isDark ? "#fff" : "#1d1d1d",
     textAlign: "center",
@@ -134,9 +146,17 @@ export function CustomHeaderTitle({
           <View style={styles.teamHalfContent}>
             <Image
               source={
-               isDark
+                league === "NFL"
+                  ? ["NYG", "NYJ"].includes(awayTeam.code) // Giants/Jets always light
+                    ? ((awayTeam as any).logoLight ?? awayTeam.logo)
+                    : isDark
+                      ? ((awayTeam as any).logoLight500x500 ??
+                        (awayTeam as any).logoLight ??
+                        awayTeam.logo)
+                      : ((awayTeam as any).logo500x500 ?? awayTeam.logo)
+                  : isDark
                     ? (awayTeam.logoLight ?? awayTeam.logo)
-                    : awayTeam.logoLight || awayTeam.logo
+                    : awayTeam.logo
               }
               style={styles.bgLogo}
               resizeMode="contain"
@@ -155,9 +175,17 @@ export function CustomHeaderTitle({
           <View style={styles.teamHalfContent}>
             <Image
               source={
-                 isDark
+                league === "NFL"
+                  ? ["NYG", "NYJ"].includes(homeTeam.code)
+                    ? ((homeTeam as any).logoLight ?? homeTeam.logo)
+                    : isDark
+                      ? ((homeTeam as any).logoLight500x500 ??
+                        (homeTeam as any).logoLight ??
+                        homeTeam.logo)
+                      : ((homeTeam as any).logo500x500 ?? homeTeam.logo)
+                  : isDark
                     ? (homeTeam.logoLight ?? homeTeam.logo)
-                    : homeTeam.logoLight || homeTeam.logo
+                    : homeTeam.logo
               }
               style={styles.bgLogo}
               resizeMode="contain"
@@ -174,7 +202,7 @@ export function CustomHeaderTitle({
     homeColor,
     tabName,
     isDark,
-
+    league,
     isNeutralSite,
   ]);
 
@@ -211,7 +239,7 @@ export function CustomHeaderTitle({
           />
           {selectedTeam?.logo && (
             <Image
-              source={selectedTeam.logoLight || selectedTeam.logo}
+              source={selectedTeam.logo}
               style={{
                 height: 200,
                 width: "100%",
@@ -301,14 +329,19 @@ export function CustomHeaderTitle({
               </TouchableOpacity>
             )}
 
-            {
+            {league === "NFL" ? (
+              <TeamInfoBottomSheetNFL
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                teamId={selectedTeam?.id?.toString()}
+              />
+            ) : (
               <TeamInfoBottomSheet
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
                 teamId={selectedTeam?.id?.toString()}
-                coachName={teamCoach || ""} // fallback to empty string
               />
-            }
+            )}
           </View>
         ) : tabName === "Profile" && onSettings ? (
           <TouchableOpacity onPress={onSettings}>

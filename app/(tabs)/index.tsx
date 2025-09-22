@@ -1,10 +1,9 @@
-import DummyGameCard from "components/Games/DummyGameCard";
-import GamesList from "components/Games/GamesList";
 import Heading from "components/Headings/Heading";
 import NewsHighlightsList from "components/News/NewsHighlightsList";
-import SummerGamesList from "components/summer-league/SummerGamesList";
+import NFLGamesList from "components/NFL/Games/NFLGamesList";
+import { useNFLWeeklyGames } from "hooks/NFLHooks/useWeeklyNFLGames";
 import { useSummerLeagueGames } from "hooks/useSummerLeagueGames";
-import { summerGame } from "types/types";
+import type { summerGame } from "types/types";
 import { Game } from "types/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -27,8 +26,8 @@ import { useHighlights } from "../../hooks/useHighlights";
 import { useLiveGames } from "../../hooks/useLiveGames";
 import { useNews } from "../../hooks/useNews";
 import { useWeeklyGames } from "../../hooks/useWeeklyGames";
-import { getStyles } from "styles/indexStyles";
-import StackedGameCard from "components/Games/StackedGameCard";
+import { getStyles } from "../../styles/indexStyles";
+
 type Tab = "scores" | "news";
 
 type NewsItem = {
@@ -64,21 +63,20 @@ function mapSummerGameToGame(g: summerGame): Game {
   };
 }
 
-  const isTodayOrTomorrow = (dateString: string) => {
-    const gameDate = new Date(dateString);
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tomorrow = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1
-    );
-    return (
-      (gameDate >= today && gameDate < new Date(today.getTime() + 86400000)) ||
-      (gameDate >= tomorrow &&
-        gameDate < new Date(tomorrow.getTime() + 86400000))
-    );
-  };
+const isTodayOrTomorrow = (dateString: string) => {
+  const gameDate = new Date(dateString);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tomorrow = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1
+  );
+  return (
+    (gameDate >= today && gameDate < new Date(today.getTime() + 86400000)) ||
+    (gameDate >= tomorrow && gameDate < new Date(tomorrow.getTime() + 86400000))
+  );
+};
 
 export default function HomeScreen() {
   const {
@@ -115,6 +113,13 @@ export default function HomeScreen() {
     loading: highlightsLoading,
     error: highlightsError,
   } = useHighlights("NBA highlights", 50);
+
+  const {
+    games: nflGames,
+    loading: nflLoading,
+    error: nflError,
+    refetch: refreshNFLGames,
+  } = useNFLWeeklyGames();
 
   const navigation = useNavigation();
   const router = useRouter();
@@ -205,8 +210,6 @@ export default function HomeScreen() {
 
   const styles = getStyles(isDark);
 
-
-
   const filteredLive = liveGames.filter((g) => isTodayOrTomorrow(g.date));
   const filteredWeekly = weeklyGames.filter((g) => isTodayOrTomorrow(g.date));
   const filteredSummer: summerGame[] = summerGames.filter((g) =>
@@ -234,12 +237,11 @@ export default function HomeScreen() {
       itemType: "news",
       publishedAt: item.publishedAt ?? item.date ?? new Date().toISOString(),
     }));
-const taggedHighlights: CombinedItem[] = highlights.map((item) => ({
-  ...item,
-  itemType: "highlight",
-  publishedAt: item.publishedAt ?? new Date().toISOString(),
-}));
-
+    const taggedHighlights: CombinedItem[] = highlights.map((item) => ({
+      ...item,
+      itemType: "highlight",
+      publishedAt: item.publishedAt ?? new Date().toISOString(),
+    }));
 
     const combined = [...taggedNews, ...taggedHighlights];
 
@@ -252,16 +254,13 @@ const taggedHighlights: CombinedItem[] = highlights.map((item) => ({
     return combined;
   }, [news, highlights]);
 
-
-// useEffect(() => {
-//   if (selectedTab !== "scores") return;
-//   const interval = setInterval(() => {
-//     refreshLiveGames?.();
-//   }, 100_000);
-//   return () => clearInterval(interval);
-// }, [selectedTab, refreshLiveGames]);
-
-
+  // useEffect(() => {
+  //   if (selectedTab !== "scores") return;
+  //   const interval = setInterval(() => {
+  //     refreshLiveGames?.();
+  //   }, 100_000);
+  //   return () => clearInterval(interval);
+  // }, [selectedTab, refreshLiveGames]);
 
   return (
     <View style={styles.container}>
@@ -289,21 +288,47 @@ const taggedHighlights: CombinedItem[] = highlights.map((item) => ({
           )}
         />
       </View>
-
-      {selectedTab !== "news" &&
-        ((weeklyGamesLoading || liveGamesLoading || summerLoading) &&
+        {(weeklyGamesLoading || liveGamesLoading || summerLoading) &&
         !favorites.length ? (
           <FavoritesScrollSkeleton />
         ) : (
           <FavoritesScroll favoriteTeamIds={favorites} />
-        ))}
+        )}
 
       <View style={styles.contentArea}>
         {selectedTab === "scores" ? (
           <>
             <Heading>Latest Games</Heading>
-           
-            {onlySummerLeagueToday ? (
+            <NFLGamesList
+              games={nflGames}
+              loading={nflLoading}
+              refreshing={refreshing}
+              onRefresh={async () => {
+                setRefreshing(true);
+                try {
+                  await refreshNFLGames();
+                } finally {
+                  setRefreshing(false);
+                }
+              }}
+              error={nflError}
+              expectedCount={nflGames.length}
+            />
+
+             {/* <CombinedGamesList
+  gamesByCategory={[
+    { category: "NFL", data: nflGames },
+    { category: "NBA", data: combinedGames },
+    { category: "Summer League", data: filteredSummer },
+  ]}
+  loading={
+    nflLoading || liveGamesLoading || weeklyGamesLoading || summerLoading
+  }
+  refreshing={refreshing}
+  onRefresh={handleRefresh}
+/> */}
+
+            {/* {onlySummerLeagueToday ? (
               <SummerGamesList
                 games={filteredSummer}
                 loading={summerLoading}
@@ -321,11 +346,10 @@ const taggedHighlights: CombinedItem[] = highlights.map((item) => ({
                 onRefresh={handleRefresh}
                 day={"todayTomorrow"}
               />
-            )}
+            )} */}
           </>
         ) : (
           <>
-
             {newsError ? (
               <Text style={styles.emptyText}>{newsError}</Text>
             ) : combinedNewsAndHighlights.length === 0 && !refreshing ? (
@@ -333,8 +357,6 @@ const taggedHighlights: CombinedItem[] = highlights.map((item) => ({
                 No news or highlights available.
               </Text>
             ) : (
-
-              
               <NewsHighlightsList
                 items={combinedNewsAndHighlights}
                 loading={newsLoading}

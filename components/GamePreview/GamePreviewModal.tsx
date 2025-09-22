@@ -1,24 +1,25 @@
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
 import GameTeamStats from "components/GameDetails/GameTeamStats";
 import TeamInjuriesTab from "components/GameDetails/TeamInjuries";
 import { Fonts } from "constants/fonts";
 import { arenaImages, neutralArenas, teams } from "constants/teams";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
+
 import { useESPNBroadcasts } from "hooks/useESPNBroadcasts";
 import { useGameDetails } from "hooks/useGameDetails";
 import { useGameStatistics } from "hooks/useGameStatistics";
 import { useLastFiveGames } from "hooks/useLastFiveGames";
 import { useFetchPlayoffGames } from "hooks/usePlayoffSeries";
 import { useWeatherForecast } from "hooks/useWeather";
-import { Game } from "types/types";
-import { matchBroadcastToGame } from "utils/matchBroadcast";
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useMemo, useRef } from "react";
 import { Dimensions, StyleSheet, View, useColorScheme } from "react-native";
+import { Game } from "types/types";
+import { matchBroadcastToGame } from "utils/matchBroadcast";
 import { GameLeaders } from "../GameDetails";
 import BoxScore from "../GameDetails/BoxScore";
 import GameOfficials from "../GameDetails/GameOfficials";
@@ -29,6 +30,7 @@ import TeamLocationSection from "../GameDetails/TeamLocationSection";
 import Weather from "../GameDetails/Weather";
 import CenterInfo from "./CenterInfo";
 import TeamInfo from "./TeamInfo";
+
 type Props = {
   visible: boolean;
   game: Game;
@@ -153,11 +155,12 @@ export default function GamePreviewModal({ visible, game, onClose }: Props) {
     dateObj.getMonth() === 5 &&
     dateObj.getDate() >= 5 &&
     dateObj.getDate() <= 22;
-  const { weather, loading, error } = useWeatherForecast(
+  const { weather, weatherLoading, weatherError } = useWeatherForecast(
     lat,
     lon,
     dateObj.toISOString()
   );
+
 
   const showLiveInfo = game.status !== "Scheduled" && game.status !== "Final";
   const snapPoints = useMemo(() => ["40%", "60%", "80%", "88%", "94%"], []);
@@ -175,8 +178,6 @@ export default function GamePreviewModal({ visible, game, onClose }: Props) {
     game.home.name,
     game.away.name
   );
-
-
 
   return (
     <BottomSheetModal
@@ -266,9 +267,7 @@ export default function GamePreviewModal({ visible, game, onClose }: Props) {
               team={away}
               teamName={game.away.name}
               scoreOrRecord={
-                game.status === "Scheduled"
-                  ? awayRecord
-                  : (game.awayScore ?? "-")
+                game.status === "Scheduled" ? awayRecord : game.awayScore ?? "-"
               }
               isWinner={awayWins}
               record={awayRecord} // 👈 added
@@ -301,9 +300,7 @@ export default function GamePreviewModal({ visible, game, onClose }: Props) {
               teamName={game.home.name}
               record={homeRecord} // 👈 added
               scoreOrRecord={
-                game.status === "Scheduled"
-                  ? homeRecord
-                  : (game.homeScore ?? "-")
+                game.status === "Scheduled" ? homeRecord : game.homeScore ?? "-"
               }
               isWinner={homeWins}
               isDark={isDark}
@@ -412,10 +409,9 @@ export default function GamePreviewModal({ visible, game, onClose }: Props) {
                     location={resolvedArenaCity}
                     address={resolvedArenaAddress}
                     arenaCapacity={resolvedArenaCapacity}
-                    weather={weather}
-                    loading={loading}
-                    error={error}
                     lighter
+                    loading={detailsLoading}
+                    error={detailsError ?? null}
                   />
                 </View>
               )}
@@ -425,9 +421,9 @@ export default function GamePreviewModal({ visible, game, onClose }: Props) {
                   <Weather
                     address={resolvedArenaAddress}
                     weather={weather}
-                    loading={loading}
                     lighter
-                    error={error}
+                    loading={weatherLoading}
+                    error={weatherError ?? null}
                   />
                 </View>
               )}
