@@ -3,7 +3,6 @@ import FavoriteTeamsSelector from "components/Favorites/FavoriteTeamsSelector";
 import { getSignupStepsStyles } from "styles/signupStepStyles";
 import { useRef, useState } from "react";
 import {
-  Animated,
   Image,
   Pressable,
   Text,
@@ -11,10 +10,10 @@ import {
   useColorScheme,
   useWindowDimensions,
   View,
+  ScrollView,
 } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import {
+import Reanimated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -43,7 +42,7 @@ export type SignupStepsProps = {
   onOpenImagePickerFor: (target: "profile" | "banner") => void;
   toggleLayout: () => void;
   isGridView: boolean;
-  fadeAnim: Animated.Value;
+  fadeAnim: any; // Animated.Value from RN
 };
 
 export default function SignupSteps({
@@ -56,23 +55,19 @@ export default function SignupSteps({
   onOpenImagePickerFor,
   isGridView,
   fadeAnim,
+  toggleLayout,
 }: SignupStepsProps) {
   const isDark = useColorScheme() === "dark";
   const styles = getSignupStepsStyles(isDark);
   const { width: screenWidth } = useWindowDimensions();
+
   const numColumns = 3;
   const containerPadding = 40;
   const columnGap = 12;
   const totalSpacing = columnGap * (numColumns - 1);
-  const itemWidth =
-    (screenWidth - containerPadding - totalSpacing) / numColumns;
+  const itemWidth = (screenWidth - containerPadding - totalSpacing) / numColumns;
 
   const [search, setSearch] = useState("");
-
-  const filteredTeams = teams.filter((team) =>
-    team.fullName.toLowerCase().includes(search.toLowerCase())
-  );
-
   const scrollRef = useRef<ScrollView | null>(null);
 
   const translateX = useSharedValue(0);
@@ -101,7 +96,7 @@ export default function SignupSteps({
     case 0:
       return (
         <GestureDetector gesture={pan}>
-          <Animated.View style={[{ flex: 1 }, animatedStyle]}>
+          <Reanimated.View style={[{ flex: 1 }, animatedStyle]}>
             <ScrollView
               ref={scrollRef}
               contentContainerStyle={{ flexGrow: 1 }}
@@ -155,7 +150,7 @@ export default function SignupSteps({
                 />
               </View>
             </ScrollView>
-          </Animated.View>
+          </Reanimated.View>
         </GestureDetector>
       );
 
@@ -176,18 +171,15 @@ export default function SignupSteps({
             style={styles.searchBar}
             placeholderTextColor={isDark ? "#888" : "#aaa"}
           />
-
-          <Animated.View style={{ flex: 1, opacity: fadeAnim, marginTop: 12 }}>
-            <FavoriteTeamsSelector
-              teams={filteredTeams}
-              favorites={signupData.favorites}
-              toggleFavorite={onToggleFavorite}
-              isGridView={isGridView}
-              fadeAnim={fadeAnim}
-              search={search}
-              itemWidth={itemWidth}
-            />
-          </Animated.View>
+          <FavoriteTeamsSelector
+            teams={teams}
+            favorites={signupData.favorites}
+            toggleFavorite={onToggleFavorite}
+            isGridView={isGridView}
+            fadeAnim={fadeAnim}
+            search={search}
+            itemWidth={itemWidth}
+          />
         </View>
       );
 
@@ -195,9 +187,7 @@ export default function SignupSteps({
       return (
         <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
           <Text style={styles.title}>Upload Images</Text>
-          <Text
-            style={[styles.reviewText, { textAlign: "center", marginTop: 24 }]}
-          >
+          <Text style={[styles.reviewText, { textAlign: "center", marginTop: 24 }]}>
             Banner Image
           </Text>
           <Pressable
@@ -210,9 +200,7 @@ export default function SignupSteps({
                 style={{ width: "100%", height: "100%", borderRadius: 10 }}
               />
             ) : (
-              <Text style={styles.imagePlaceholder}>
-                Tap to select banner image
-              </Text>
+              <Text style={styles.imagePlaceholder}>Tap to select banner image</Text>
             )}
           </Pressable>
           <Text style={[styles.reviewText, { textAlign: "center" }]}>
@@ -223,14 +211,9 @@ export default function SignupSteps({
             style={styles.profileImageUploadBox}
           >
             {signupData.profileImage ? (
-              <Image
-                source={{ uri: signupData.profileImage }}
-                style={styles.imagePreview}
-              />
+              <Image source={{ uri: signupData.profileImage }} style={styles.imagePreview} />
             ) : (
-              <Text style={styles.imagePlaceholder}>
-                Tap to select profile image
-              </Text>
+              <Text style={styles.imagePlaceholder}>Tap to select profile image</Text>
             )}
           </Pressable>
         </ScrollView>
@@ -241,12 +224,7 @@ export default function SignupSteps({
         <ScrollView>
           <View style={styles.reviewContainer}>
             <Text style={styles.title}>Review Details</Text>
-            <Text
-              style={[
-                styles.reviewText,
-                { textAlign: "center", marginTop: 24 },
-              ]}
-            >
+            <Text style={[styles.reviewText, { textAlign: "center", marginTop: 24 }]}>
               Banner Image
             </Text>
             <View style={[styles.imageUploadBox]}>
@@ -257,15 +235,10 @@ export default function SignupSteps({
                 />
               )}
             </View>
-            <Text style={[styles.reviewText, { textAlign: "center" }]}>
-              Profile Picture
-            </Text>
+            <Text style={[styles.reviewText, { textAlign: "center" }]}>Profile Picture</Text>
             <View style={[styles.profileImageUploadBox]}>
               {signupData.profileImage && (
-                <Image
-                  source={{ uri: signupData.profileImage }}
-                  style={styles.imagePreview}
-                />
+                <Image source={{ uri: signupData.profileImage }} style={styles.imagePreview} />
               )}
             </View>
             <Text style={styles.heading}>Name</Text>
@@ -282,9 +255,7 @@ export default function SignupSteps({
             </View>
             <Text style={styles.heading}>Password</Text>
             <View style={styles.reviewInput}>
-              <Text style={styles.reviewText}>
-                {signupData.password.replace(/./g, "*")}
-              </Text>
+              <Text style={styles.reviewText}>{signupData.password.replace(/./g, "*")}</Text>
             </View>
 
             <Text style={[styles.heading, { marginTop: 16 }]}>Favorites</Text>
@@ -296,18 +267,10 @@ export default function SignupSteps({
                   return (
                     <View
                       key={team.id}
-                      style={[
-                        styles.teamCardList,
-                        { backgroundColor: team.color || "#007AFF" },
-                      ]}
+                      style={[styles.teamCardList, { backgroundColor: team.color || "#007AFF" }]}
                     >
-                      <Image
-                        source={team.logoLight ? team.logoLight : team.logo}
-                        style={styles.logo}
-                      />
-                      <Text style={[styles.teamName, { color: "#fff" }]}>
-                        {team.fullName}
-                      </Text>
+                      <Image source={team.logoLight ? team.logoLight : team.logo} style={styles.logo} />
+                      <Text style={[styles.teamName, { color: "#fff" }]}>{team.fullName}</Text>
                     </View>
                   );
                 })}
