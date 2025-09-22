@@ -294,7 +294,7 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
                   : undefined
               }
               side="away"
-  timeouts={awayTimeouts ?? 0} // ✅ fallback to 0
+              timeouts={awayTimeouts ?? 0} // ✅ fallback to 0
             />
 
             <NFLGameCenterInfo
@@ -331,7 +331,7 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
                   : undefined
               }
               side="home"
-               timeouts={homeTimeouts ?? 0}
+              timeouts={homeTimeouts ?? 0}
             />
           </View>
 

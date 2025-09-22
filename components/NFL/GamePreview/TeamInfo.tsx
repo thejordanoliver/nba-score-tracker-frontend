@@ -42,27 +42,6 @@ export default function TeamInfo({
   const hasPossession =
     hasStarted && String(possessionTeamId) === String(team?.id);
 
-  // Render timeout dots only when game is live
-  const renderTimeouts = () => {
-    const totalTimeouts = 3;
-    const dots = [];
-    for (let i = 0; i < totalTimeouts; i++) {
-      dots.push(
-        <View
-          key={i}
-          style={{
-            width: 10,
-            height: 4,
-            borderRadius: 5,
-            marginHorizontal: 2,
-            backgroundColor: i < timeouts ? "#fff" : "rgba(255,255,255,0.3)",
-          }}
-        />
-      );
-    }
-    return <View style={{ flexDirection: "row", marginTop: 4 }}>{dots}</View>;
-  };
-
   return (
     <View style={{ alignItems: "center", position: "relative" }}>
       <Image
@@ -88,7 +67,7 @@ export default function TeamInfo({
         }}
       >
         <View style={{ flexDirection: "row" }}>
-          {side === "home" && hasPossession && !isGameOver && (
+          {side === "home" && hasPossession && (
             <Image
               source={isDark ? FootballLight : Football}
               style={{
@@ -113,7 +92,7 @@ export default function TeamInfo({
             {displayValue}
           </Text>
 
-          {side === "away" && hasPossession && !isGameOver && (
+          {side === "away" && hasPossession && (
             <Image
               source={isDark ? FootballLight : Football}
               style={{
@@ -128,10 +107,7 @@ export default function TeamInfo({
           )}
         </View>
 
-        {/* Show timeouts only during live game */}
-        {hasStarted && !isGameOver && renderTimeouts()}
-
-        {/* Show record only when game is final */}
+        {/* Only show record when game is final */}
         {isGameOver && record && (
           <Text
             style={{

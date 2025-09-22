@@ -182,38 +182,7 @@ const nbaBannerMap: Record<string, any> = {
   "40": require("../assets/banners/JAZZ.png"),
   "41": require("../assets/banners/WIZARDS.png"),
 };
-const nbaBannerLightMap: Record<string, any> = {
-  "1": require("../assets/banners/HAWKSLIGHT.png"),
-  "2": require("../assets/banners/CELTICSLIGHT.png"),
-  "4": require("../assets/banners/NETSLIGHT.png"),
-  "5": require("../assets/banners/HORNETSLIGHT.png"),
-  "6": require("../assets/banners/BULLSLIGHT.png"),
-  "7": require("../assets/banners/CAVSLIGHT.png"),
-  "8": require("../assets/banners/MAVSLIGHT.png"),
-  "9": require("../assets/banners/NUGGETSLIGHT.png"),
-  "10": require("../assets/banners/PISTONSLIGHT.png"),
-  "11": require("../assets/banners/WARRIORSLIGHT.png"),
-  "14": require("../assets/banners/ROCKETSLIGHT.png"),
-  "15": require("../assets/banners/PACERSLIGHT.png"),
-  "16": require("../assets/banners/CLIPPERSLIGHT.png"),
-  "17": require("../assets/banners/LAKERSLIGHT.png"),
-  "19": require("../assets/banners/GRIZZLIESLIGHT.png"),
-  "20": require("../assets/banners/HEATLIGHT.png"),
-  "21": require("../assets/banners/BUCKSLIGHT.png"),
-  "22": require("../assets/banners/TIMBERWOLVESLIGHT.png"),
-  "23": require("../assets/banners/PELICANSLIGHT.png"),
-  "24": require("../assets/banners/KNICKSLIGHT.png"),
-  "25": require("../assets/banners/THUNDERLIGHT.png"),
-  "26": require("../assets/banners/MAGICLIGHT.png"),
-  "27": require("../assets/banners/76ERSLIGHT.png"),
-  "28": require("../assets/banners/SUNSLIGHT.png"),
-  "29": require("../assets/banners/TRAILBLAZERSLIGHT.png"),
-  "30": require("../assets/banners/KINGSLIGHT.png"),
-  "31": require("../assets/banners/SPURSLIGHT.png"),
-  "38": require("../assets/banners/RAPTORSLIGHT.png"),
-  "40": require("../assets/banners/JAZZLIGHT.png"),
-  "41": require("../assets/banners/WIZARDSLIGHT.png"),
-};
+
 
 // NFL (you’ll need to add assets like these)
 const nflBannerMap: Record<string, any> = {
@@ -250,40 +219,7 @@ const nflBannerMap: Record<string, any> = {
   "31": require("../assets/bannersNFL/RAMS.png"),
   "32": require("../assets/bannersNFL/VIKINGS.png"),
 };
-const nflBannerLightMap: Record<string, any> = {
-  "1": require("../assets/bannersNFL/RAIDERS.png"),
-  "2": require("../assets/bannersNFL/JAGUARS.png"),
-  "3": require("../assets/bannersNFL/PATRIOTS.png"),
-  "4": require("../assets/bannersNFL/GIANTS.png"),
-  "5": require("../assets/bannersNFL/RAVENS.png"),
-  "6": require("../assets/bannersNFL/TITANS.png"),
-  "7": require("../assets/bannersNFL/LIONS.png"),
-  "8": require("../assets/bannersNFL/FALCONS.png"),
-  "9": require("../assets/bannersNFL/BROWNS.png"),
-  "10": require("../assets/bannersNFL/BENGALS.png"),
-  "11": require("../assets/bannersNFL/CARDINALS.png"),
-  "12": require("../assets/bannersNFL/EAGLES.png"),
-  "13": require("../assets/bannersNFL/JETS.png"),
-  "14": require("../assets/bannersNFL/NINERS.png"),
-  "15": require("../assets/bannersNFL/PACKERS.png"),
-  "16": require("../assets/bannersNFL/BEARS.png"),
-  "17": require("../assets/bannersNFL/CHIEFS.png"),
-  "18": require("../assets/bannersNFL/COMMANDERS.png"),
-  "19": require("../assets/bannersNFL/PANTHERS.png"),
-  "20": require("../assets/bannersNFL/BILLS.png"),
-  "21": require("../assets/bannersNFL/COLTS.png"),
-  "22": require("../assets/bannersNFL/STEELERS.png"),
-  "23": require("../assets/bannersNFL/SEAHAWKS.png"),
-  "24": require("../assets/bannersNFL/BUCCANEERS.png"),
-  "25": require("../assets/bannersNFL/DOLPHINS.png"),
-  "26": require("../assets/bannersNFL/TEXANS.png"),
-  "27": require("../assets/bannersNFL/SAINTS.png"),
-  "28": require("../assets/bannersNFL/BRONCOS.png"),
-  "29": require("../assets/bannersNFL/COWBOYS.png"),
-  "30": require("../assets/bannersNFL/CHARGERS.png"),
-  "31": require("../assets/bannersNFL/RAMS.png"),
-  "32": require("../assets/bannersNFL/VIKINGS.png"),
-};
+
 
 function getBannerImage(
   teamId?: string | number,
@@ -301,12 +237,10 @@ function getBannerImage(
 
   const maps =
     league === "NFL"
-      ? { map: nflBannerMap, light: nflBannerLightMap }
-      : { map: nbaBannerMap, light: nbaBannerLightMap };
+      ? { map: nflBannerMap }
+      : { map: nbaBannerMap};
 
-  if (isDark && maps.light[id]) {
-    return maps.light[id];
-  }
+
 
   if (maps.map[id]) {
     return maps.map[id];
