@@ -1,10 +1,9 @@
 import { Fonts } from "constants/fonts";
-import { useESPNBroadcasts } from "hooks/useESPNBroadcasts";
-import { useTeamInfo } from "hooks/useTeamInfo";
-import { matchBroadcastToGame } from "utils/matchBroadcast";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { useESPNBroadcasts } from "hooks/useESPNBroadcasts";
+import { useTeamInfo } from "hooks/useTeamInfo";
 import { useMemo } from "react";
 import {
   StyleSheet,
@@ -14,6 +13,7 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import { matchBroadcastToGame } from "utils/matchBroadcast";
 
 import { teams } from "../../constants/teams";
 import { useFetchPlayoffGames } from "../../hooks/usePlayoffSeries";
@@ -79,7 +79,7 @@ export default function StackedGameCard({
     game.isPlayoff || (game.stage !== undefined && game.stage >= 4);
 
   const winnerStyle = (teamWins: boolean): TextStyle | undefined =>
-    teamWins ? { color: dark ? "#fff" : "#000", fontWeight: "bold" } : {};
+    teamWins ? { color: dark ? "#fff" : "#1d1d1d", fontWeight: "bold" } : {};
 
   const getLogoSource = (
     teamData?: Team & { logoLight?: string; logoDark?: string },
@@ -158,7 +158,7 @@ export default function StackedGameCard({
     : null;
 
   const finalsScoreStyle = (isWinner: boolean): TextStyle => ({
-    color: isWinner ? (dark ? "#000" : "#000") : "rgba(0, 0, 0, 0.4)",
+    color: isWinner ? (dark ? "#1d1d1d" : "#1d1d1d") : "rgba(0, 0, 0, 0.4)",
   });
 
   const gameNumberLabel = gameNumber ? `Game ${gameNumber}` : null;
@@ -211,7 +211,7 @@ export default function StackedGameCard({
                   accessibilityLabel={`${awayTeam.name} logo`}
                 />
                 <Text
-                  style={[styles.teamName, { color: dark ? "#000" : "#000" }]}
+                  style={[styles.teamName, { color: dark ? "#1d1d1d" : "#1d1d1d" }]}
                 >
                   {awayTeamData?.name ?? awayTeam.code ?? awayTeam.fullName}
                 </Text>
@@ -244,7 +244,7 @@ export default function StackedGameCard({
                   accessibilityLabel={`${homeTeam.name} logo`}
                 />
                 <Text
-                  style={[styles.teamName, { color: dark ? "#000" : "#000" }]}
+                  style={[styles.teamName, { color: dark ? "#1d1d1d" : "#1d1d1d" }]}
                 >
                   {homeTeamData?.name ?? homeTeam.code ?? homeTeam.fullName}
                 </Text>
@@ -284,13 +284,13 @@ export default function StackedGameCard({
               </>
             ) : game.status === "Scheduled" ? (
               <>
-                <Text style={[styles.date, { color: "#000" }]}>
+                <Text style={[styles.date, { color: "#1d1d1d" }]}>
                   {new Date(game.date).toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
                   })}
                 </Text>
-                <Text style={[styles.time, { color: "#000" }]}>
+                <Text style={[styles.time, { color: "#1d1d1d" }]}>
                   {game.time}
                 </Text>
               </>
@@ -365,7 +365,7 @@ export default function StackedGameCard({
                 {gameNumberLabel && (
                   <Text
                     style={{
-                      color: "#000",
+                      color: "#1d1d1d",
                       fontFamily: Fonts.OSLIGHT,
                       fontSize: 10,
                       maxWidth: 50,
@@ -382,7 +382,7 @@ export default function StackedGameCard({
                     style={{
                       height: 10,
                       width: 1,
-                      backgroundColor: "#000",
+                      backgroundColor: "#1d1d1d",
                       opacity: 0.3,
                     }}
                   />
@@ -390,7 +390,7 @@ export default function StackedGameCard({
                 {seriesSummary && (
                   <Text
                     style={{
-                      color: "#000",
+                      color: "#1d1d1d",
                       fontFamily: Fonts.OSLIGHT,
                       fontSize: 10,
                       textAlign: "center",
@@ -422,7 +422,7 @@ export default function StackedGameCard({
                   accessibilityLabel={`${awayTeam.name} logo`}
                 />
                 <Text
-                  style={[styles.teamName, { color: dark ? "#fff" : "#000" }]}
+                  style={[styles.teamName, { color: dark ? "#fff" : "#1d1d1d" }]}
                 >
                   {awayTeamData?.name ?? awayTeam.code ?? awayTeam.fullName}
                 </Text>
@@ -455,7 +455,7 @@ export default function StackedGameCard({
                   accessibilityLabel={`${homeTeam.name} logo`}
                 />
                 <Text
-                  style={[styles.teamName, { color: dark ? "#fff" : "#000" }]}
+                  style={[styles.teamName, { color: dark ? "#fff" : "#1d1d1d" }]}
                 >
                   {homeTeamData?.name ?? homeTeam.code ?? homeTeam.fullName}
                 </Text>
@@ -497,7 +497,6 @@ export default function StackedGameCard({
                   style={[
                     styles.date,
                     {
-                      fontFamily: Fonts.OSMEDIUM,
                       color: isDark ? "#fff" : "#1d1d1d",
                     },
                   ]}
@@ -527,7 +526,6 @@ export default function StackedGameCard({
                   style={[
                     styles.date,
                     {
-                      fontFamily: Fonts.OSMEDIUM,
                       color: isDark ? "#fff" : "#1d1d1d",
                     },
                   ]}
@@ -588,7 +586,7 @@ export default function StackedGameCard({
                 {gameNumberLabel && (
                   <Text
                     style={{
-                      color: dark ? "#fff" : "#000",
+                      color: dark ? "#fff" : "#1d1d1d",
                       fontFamily: Fonts.OSEXTRALIGHT,
                       fontSize: 10,
                       maxWidth: 50,
@@ -605,7 +603,7 @@ export default function StackedGameCard({
                     style={{
                       height: 10,
                       width: 1,
-                      backgroundColor: dark ? "#fff" : "#000",
+                      backgroundColor: dark ? "#fff" : "#1d1d1d",
                       opacity: 0.3,
                     }}
                   />
@@ -613,7 +611,7 @@ export default function StackedGameCard({
                 {seriesSummary && (
                   <Text
                     style={{
-                      color: dark ? "#fff" : "#000",
+                      color: dark ? "#fff" : "#1d1d1d",
                       fontFamily: Fonts.OSEXTRALIGHT,
                       fontSize: 10,
                       textAlign: "center",
@@ -629,7 +627,7 @@ export default function StackedGameCard({
                 {holidayLabel && (
                   <Text
                     style={{
-                      color: dark ? "#fff" : "#000",
+                      color: dark ? "#fff" : "#1d1d1d",
                       fontFamily: Fonts.OSEXTRALIGHT,
                       fontSize: 10,
                       textAlign: "center",
@@ -687,8 +685,8 @@ export const getStyles = (dark: boolean) =>
       flex: 1,
     },
     logo: {
-      width: 24,
-      height: 24,
+      width: 32,
+      height: 32,
       resizeMode: "contain",
     },
     teamName: {
@@ -702,16 +700,14 @@ export const getStyles = (dark: boolean) =>
       fontSize: 18,
       fontFamily: Fonts.OSBOLD,
       textAlign: "right",
-      color: dark ? "#aaa" : "#888",
+      color: dark ? "#fff" : "#1d1d1d",
       width: 40,
     },
     teamRecord: {
-      width: 40,
-      fontSize: 12,
-      fontFamily: Fonts.OSREGULAR,
-      textAlign: "center",
-      marginVertical: 2,
-      color: dark ? "#bbb" : "#888",
+      fontSize: 18,
+      fontFamily: Fonts.OSBOLD,
+      textAlign: "right",
+      color: dark ? "#fff" : "#1d1d1d",
     },
     info: {
       alignItems: "center",
@@ -729,9 +725,9 @@ export const getStyles = (dark: boolean) =>
     },
     date: {
       fontSize: 12,
-      fontFamily: Fonts.OSEXTRALIGHT,
       textAlign: "center",
-      color: dark ? "#fff" : "#000",
+      color: dark ? "#fff" : "#1d1d1d",
+      fontFamily: Fonts.OSMEDIUM,
     },
     dateFinal: {
       fontFamily: Fonts.OSREGULAR,
@@ -754,7 +750,6 @@ export const getStyles = (dark: boolean) =>
       fontSize: 12,
       fontFamily: Fonts.OSREGULAR,
       textAlign: "center",
-      marginTop: 4,
       color: dark ? "rgba(255,255,255, .5)" : "rgba(0, 0, 0, .5)",
     },
   });

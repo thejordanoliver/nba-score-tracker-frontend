@@ -30,7 +30,7 @@ export default function TeamInfo({
   hasStarted,
   possessionTeamId,
   side = "home",
-  timeouts
+  timeouts,
 }: TeamInfoProps) {
   const scoreOpacity = !isGameOver ? 1 : isWinner ? 1 : 0.5;
 
@@ -41,6 +41,27 @@ export default function TeamInfo({
 
   const hasPossession =
     hasStarted && String(possessionTeamId) === String(team?.id);
+
+  const renderTimeouts = (remaining: number) => {
+    const totalTimeouts = 3;
+    const dots = [];
+    for (let i = 0; i < totalTimeouts; i++) {
+      dots.push(
+        <View
+          key={i}
+          style={{
+            width: 8,
+            height: 4,
+            borderRadius: 4,
+            backgroundColor: isDark ? "#fff" : "#000",
+            opacity: i < remaining ? 1 : 0.3, // ✅ used timeouts are faded
+            marginHorizontal: 2,
+          }}
+        />
+      );
+    }
+    return <View style={{ flexDirection: "row", marginTop: 2 }}>{dots}</View>;
+  };
 
   return (
     <View style={{ alignItems: "center", position: "relative" }}>
@@ -72,7 +93,7 @@ export default function TeamInfo({
               source={isDark ? FootballLight : Football}
               style={{
                 position: "absolute",
-                right: 20,
+                right: 40,
                 bottom: "10%",
                 width: 36,
                 height: 36,
@@ -97,7 +118,7 @@ export default function TeamInfo({
               source={isDark ? FootballLight : Football}
               style={{
                 position: "absolute",
-                left: 20,
+                left: 40,
                 bottom: "10%",
                 width: 36,
                 height: 36,
@@ -114,12 +135,26 @@ export default function TeamInfo({
               fontSize: 14,
               fontFamily: Fonts.OSREGULAR,
               color: "#fff",
-              marginTop: 4,
             }}
           >
             {record}
           </Text>
         )}
+
+{/* Timeouts dots (only show if game started and not over) */}
+{hasStarted && !isGameOver && (
+  <View
+    style={{
+      width: "100%",
+      alignItems: "center",
+      marginTop: 4,
+    }}
+  >
+    {renderTimeouts(timeouts)}
+  </View>
+)}
+
+
       </View>
     </View>
   );

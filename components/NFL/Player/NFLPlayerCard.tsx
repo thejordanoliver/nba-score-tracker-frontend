@@ -100,6 +100,7 @@ const getStyles = (isDark: boolean) =>
       paddingVertical: 10,
       flexDirection: "row",
       alignItems: "center",
+      marginBottom: 12,
     },
     avatar: {
       width: 50,

@@ -1133,7 +1133,6 @@ export const teams = [
   },
 ];
 
-// ... all other imports
 
 export const coachImages: { [key: string]: any } = {
   BucksCoach,
@@ -1318,7 +1317,6 @@ export const neutralArenas: Record<string, Arena> = {
     arenaCapacity: "13,295",
     arenaImage: require("../assets/Arenas/NorthCharlestonColiseum.webp"),
   },
-  // add more neutral arenas if needed here
   "Legacy Arena at BJCC": {
     name: "Legacy Arena at BJCC",
     address: "1001 19th St N, Birmingham, AL 35234",

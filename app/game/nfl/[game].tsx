@@ -2,9 +2,11 @@ import { useNavigation } from "@react-navigation/native";
 import { CustomHeaderTitle } from "components/CustomHeaderTitle";
 import FloatingChatButton from "components/FloatingButton";
 import { LineScore, TeamLocationSection } from "components/GameDetails";
+import LastPlay from "components/NFL/GameDetails/LastPlay";
 import Weather from "components/GameDetails/Weather";
 import { NFLGameCenterInfo } from "components/NFL/GameDetails/GameInfo";
 import NFLGameLeaders from "components/NFL/GameDetails/NFLGameLeaders";
+import NFLGameOddsSection from "components/NFL/GameDetails/NFLGameOddsSection";
 import NFLGameTeamStats from "components/NFL/GameDetails/NFLGameTeamStats";
 import NFLInjuries from "components/NFL/GameDetails/NFLInjuries";
 import NFLOfficials from "components/NFL/GameDetails/NFLOfficials";
@@ -35,6 +37,7 @@ import {
   View,
 } from "react-native";
 import { useChatStore } from "store/chatStore";
+
 export default function NFLGameDetailsScreen() {
   const params = useLocalSearchParams();
   const isDark = useColorScheme() === "dark";
@@ -130,7 +133,7 @@ export default function NFLGameDetailsScreen() {
   const colors = useMemo(
     () => ({
       background: isDark ? "#1d1d1d" : "#ffffff",
-      text: isDark ? "#ffffff" : "#000000",
+      text: isDark ? "#ffffff" : "#1d1d1d",
       record: isDark ? "#fff" : "#1d1d1d",
       score: isDark ? "#fff" : "#1d1d1d",
       winnerScore: isDark ? "#fff" : "#000",
@@ -186,6 +189,34 @@ export default function NFLGameDetailsScreen() {
     gameInfo?.status?.long ||
     ""
   ).toUpperCase();
+
+  // Add this helper inside your component
+  const formatPeriod = (raw: string | number | undefined | null) => {
+    if (!raw) return "";
+    const map: Record<string, string> = {
+      Q1: "1st",
+      Q2: "2nd",
+      Q3: "3rd",
+      Q4: "4th",
+      OT: "OT",
+      HT: "Halftime",
+      FT: "Final",
+    };
+
+    // If it matches keys (Q1..OT) use map
+    if (typeof raw === "string" && map[raw]) {
+      return map[raw];
+    }
+
+    // If it’s a number, format with ordinal suffix
+    if (typeof raw === "number") {
+      const suffix =
+        raw === 1 ? "st" : raw === 2 ? "nd" : raw === 3 ? "rd" : "th";
+      return `${raw}${suffix}`;
+    }
+
+    return String(raw);
+  };
 
   const gameStatus: GameStatus = statusMap[rawStatus] ?? "Scheduled";
 
@@ -273,14 +304,24 @@ export default function NFLGameDetailsScreen() {
   const homeTeamName = homeTeam?.name ?? ""; // e.g., "Green Bay Packers"
   const awayTeamName = awayTeam?.name ?? ""; // e.g., "Washington Commanders"
 
-  const {
-    possessionTeamId,
-    shortDownDistanceText,
-    displayClock,
-    homeTimeouts,
-    awayTimeouts,
-    loading: possessionLoading,
-  } = useNFLGamePossession(homeTeamName, awayTeamName, gameDateStr);
+  const awayCode = useMemo(() => awayTeam?.code, [awayTeam?.code]);
+  const homeCode = useMemo(() => homeTeam?.code, [homeTeam?.code]);
+  const stableGameId = useMemo(
+    () => (parsedGame?.game?.id ? String(parsedGame.game.id) : ""),
+    [parsedGame?.game?.id]
+  );
+
+const {
+  possessionTeamId,
+  shortDownDistanceText,
+  downDistanceText,
+  lastPlay,
+  displayClock,
+  period,
+  homeTimeouts,
+  awayTimeouts,
+  loading: possessionLoading,
+} = useNFLGamePossession(homeTeamName, awayTeamName, gameDateStr);
 
   if (!parsedGame || !homeTeam || !awayTeam) return <View />;
 
@@ -294,61 +335,62 @@ export default function NFLGameDetailsScreen() {
       >
         {/* Teams & Score Section */}
         <View style={[styles.teamsContainer, { borderColor: colors.border }]}>
-          <NFLTeamRow
-            team={{
-              id: String(awayTeam.id),
-              name: getTeamName(away.id, away.nickname),
-              logo: getNFLTeamsLogo(away.id, isDark),
-              record: awayRecord?.overall ?? "0-0",
-            }}
-            isDark={isDark}
-            isHome={false}
-            score={scores?.away?.total}
-            isWinner={awayIsWinner}
-            colors={colors}
-            status={gameStatus}
-            possessionTeamId={
-              possessionTeamId !== undefined
-                ? String(possessionTeamId)
-                : undefined
-            }
-            timeouts={awayTimeouts ?? 0} // ✅ pass awayTimeouts
-          />
+         <NFLTeamRow
+  team={{
+    id: String(awayTeam.id),
+    name: getTeamName(away.id, away.nickname),
+    logo: getNFLTeamsLogo(away.id, isDark),
+    record: awayRecord?.overall ?? "0-0",
+  }}
+  isDark={isDark}
+  isHome={false}
+  score={scores?.away?.total}
+  isWinner={awayIsWinner}
+  colors={colors}
+  status={gameStatus}
+  possessionTeamId={
+    possessionTeamId !== undefined
+      ? String(possessionTeamId)
+      : undefined
+  }
+  timeouts={awayTimeouts ?? 0}
+/>
 
           <NFLGameCenterInfo
             status={gameStatus}
             date={formattedDate}
             time={formattedTime}
-            period={gameInfo?.status?.short}
+            period={formatPeriod(period ?? gameInfo?.status?.short ?? "")}
             clock={displayClock ?? gameInfo?.status?.timer ?? ""}
             colors={colors}
             isDark={isDark}
             playoffInfo={gameInfo?.playoffInfo}
             homeTeam={homeTeam}
             awayTeam={awayTeam}
-            downAndDistance={shortDownDistanceText ?? ""} // 👈 use real data
+            downAndDistance={shortDownDistanceText ?? ""}
           />
 
-          <NFLTeamRow
-            team={{
-              id: String(homeTeam.id),
-              name: getTeamName(home.id, home.nickname),
-              logo: getNFLTeamsLogo(home.id, isDark),
-              record: homeRecord?.overall ?? "0-0",
-            }}
-            isDark={isDark}
-            isHome
-            score={scores?.home?.total}
-            isWinner={homeIsWinner}
-            colors={colors}
-            status={gameStatus}
-            possessionTeamId={
-              possessionTeamId !== undefined
-                ? String(possessionTeamId)
-                : undefined
-            }
-            timeouts={homeTimeouts ?? 0} // ✅ pass homeTimeouts
-          />
+   <NFLTeamRow
+  team={{
+    id: String(homeTeam.id),
+    name: getTeamName(home.id, home.nickname),
+    logo: getNFLTeamsLogo(home.id, isDark),
+    record: homeRecord?.overall ?? "0-0",
+  }}
+  isDark={isDark}
+  isHome
+  score={scores?.home?.total}
+  isWinner={homeIsWinner}
+  colors={colors}
+  status={gameStatus}
+  possessionTeamId={
+    possessionTeamId !== undefined
+      ? String(possessionTeamId)
+      : undefined
+  }
+  timeouts={homeTimeouts ?? 0}
+/>
+
         </View>
 
         {/* Lazy-loaded Section */}
@@ -360,17 +402,27 @@ export default function NFLGameDetailsScreen() {
               awayCode={awayTeam?.code ?? ""}
             />
 
-            <NFLGameLeaders
-              gameId={String(parsedGame.game.id)}
-              homeTeamId={String(homeTeam.id)}
-              awayTeamId={String(awayTeam.id)}
+            <NFLGameOddsSection
+              date={gameDateStr} // string version of date
+              gameDate={gameDateStr} // 👈 string, consistent
+              homeCode={homeTeam.code}
+              awayCode={awayTeam.code}
             />
+
+            {/* Last Play Section */}
+            <LastPlay lastPlay={lastPlay} isDark={isDark} />
 
             <NFLTeamDrives
               previousDrives={previousDrives ?? []}
               currentDrives={currentDrives ?? []}
               awayTeamAbbr={awayTeam?.code} // 👈 use getTeamInfo result
               homeTeamAbbr={homeTeam?.code} // 👈 use getTeamInfo result
+            />
+
+            <NFLGameLeaders
+              gameId={String(parsedGame.game.id)}
+              homeTeamId={String(homeTeam.id)}
+              awayTeamId={String(awayTeam.id)}
             />
 
             {stats && <NFLGameTeamStats stats={stats} />}
@@ -393,7 +445,7 @@ export default function NFLGameDetailsScreen() {
               }
               arenaName={
                 isNeutralSite
-                  ? gameInfo?.venue?.name ?? ""
+                  ? neutralStadiums[gameInfo?.venue?.name ?? ""]?.name ?? "" // ✅ always use name from neutralStadiums
                   : homeTeam?.stadium ?? ""
               }
               location={
@@ -456,4 +508,4 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     position: "relative",
   },
-});
+}); 

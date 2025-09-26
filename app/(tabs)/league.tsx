@@ -1,11 +1,10 @@
 import CalendarModal from "components/CalendarModal";
 import DateNavigator from "components/DateNavigator";
 import LeagueForum from "components/Forum/LeagueForum";
-import GamesList from "components/Games/GamesList"; // import GamesList component
 import NewsHighlightsList from "components/News/NewsHighlightsList";
 import SeasonLeadersList from "components/SeasonLeadersList";
 import { StandingsList } from "components/Standings/StandingsList";
-import SummerGamesList from "components/summer-league/SummerGamesList"; // Import your SummerGamesList
+import CombinedGamesList from "components/CombinedGamesList";
 import { useSeasonGames as useDBGames } from "hooks/useDBGames";
 import { useSeasonGames as useLiveSeasonGames } from "hooks/useSeasonGames";
 import { useSeasonLeaders } from "hooks/useSeasonLeaders";
@@ -21,6 +20,13 @@ import { CustomHeaderTitle } from "../../components/CustomHeaderTitle";
 import TabBar from "../../components/TabBar";
 import { useHighlights } from "../../hooks/useHighlights";
 import { useNews } from "../../hooks/useNews";
+import { useNFLSeasonGames } from "hooks/NFLHooks/useNFLSeasonGames";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 function StatsTabContent() {
   const { leaders, loading, error } = useSeasonLeaders({
@@ -29,13 +35,7 @@ function StatsTabContent() {
     minGames: 10,
   });
 
-  return (
-    <SeasonLeadersList
-      leadersByStat={leaders}
-      loading={loading}
-      error={error}
-    />
-  );
+  return <SeasonLeadersList leadersByStat={leaders} loading={loading} error={error} />;
 }
 
 type TeamLike = {
@@ -62,43 +62,23 @@ type HighlightItem = {
   thumbnail: string;
 };
 
-type CombinedItem =
-  | (NewsItem & { itemType: "news" })
-  | (HighlightItem & { itemType: "highlight" });
+type CombinedItem = (NewsItem & { itemType: "news" }) | (HighlightItem & { itemType: "highlight" });
 
 export default function ScoresScreen() {
   const currentYear = "2025";
 
-  const {
-    games: liveGames,
-    loading: liveLoading,
-    refreshGames: refreshLiveGames,
-  } = useLiveSeasonGames(currentYear);
+  // --- Fetch games ---
+  const { games: liveGames, loading: liveLoading, refreshGames: refreshLiveGames } =
+    useLiveSeasonGames(currentYear);
+  const { games: nflGames, loading: nflLoading, refetch: refreshNFLGames } =
+    useNFLSeasonGames("2025", "1");
+  const { games: dbGames, loading: dbLoading, refreshGames: refreshDBGames } =
+    useDBGames(currentYear);
+  const { games: summerGames, loading: summerLoading, refreshGames: refreshSummerGames } =
+    useSummerLeagueGames();
 
-  const {
-    games: dbGames,
-    loading: dbLoading,
-    refreshGames: refreshDBGames,
-  } = useDBGames(currentYear);
-
-  const {
-    games: summerGames,
-    loading: summerLoading,
-    refreshGames: refreshSummerGames,
-  } = useSummerLeagueGames();
-
-  const {
-    news,
-    loading: newsLoading,
-    error: newsError,
-    refreshNews,
-  } = useNews();
-
-  const {
-    highlights,
-    loading: highlightsLoading,
-    error: highlightsError,
-  } = useHighlights("NBA highlights", 50);
+  const { news, loading: newsLoading, refreshNews } = useNews();
+  const { highlights, loading: highlightsLoading } = useHighlights("NBA highlights", 50);
 
   const navigation = useNavigation();
   const colorScheme = useColorScheme();
@@ -120,6 +100,7 @@ export default function ScoresScreen() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
+  // --- Load favorites ---
   useFocusEffect(
     useCallback(() => {
       const loadFavorites = async () => {
@@ -134,6 +115,7 @@ export default function ScoresScreen() {
     }, [])
   );
 
+  // --- Header ---
   useLayoutEffect(() => {
     navigation.setOptions({
       header: () => (
@@ -141,15 +123,14 @@ export default function ScoresScreen() {
           title="League"
           tabName="League"
           onCalendarPress={
-            selectedTab === "scores"
-              ? () => setShowCalendarModal(true)
-              : undefined
+            selectedTab === "scores" ? () => setShowCalendarModal(true) : undefined
           }
         />
       ),
     });
   }, [navigation, selectedTab]);
 
+  // --- Tab handling ---
   const handleTabPress = (tab: TabType) => {
     setSelectedTab(tab);
     const index = tabs.indexOf(tab);
@@ -169,27 +150,82 @@ export default function ScoresScreen() {
     }
   };
 
-  // From live API, only keep in-progress games
+  // --- Helpers ---
+  const localDateOnly = (date: string | Date) => {
+    const d = new Date(date);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  };
+
+  const filterByDate = (games: any[], date: Date) =>
+    games.filter((game) => localDateOnly(game.date).getTime() === localDateOnly(date).getTime());
+
+  const hasIdAndName = (team: any): team is TeamLike =>
+    team && typeof team.id === "string" && typeof team.name === "string";
+
+  const normalizeTeam = (team: any): TeamLike => {
+    if (hasIdAndName(team)) {
+      return {
+        id: team.id,
+        name: team.name,
+        record: team.record,
+        logo: team.logo,
+        fullName: team.fullName ?? team.name ?? "Unknown Team",
+      };
+    }
+    const fallbackName = team?.name ?? "Unknown Team";
+    return { id: fallbackName, name: fallbackName, fullName: fallbackName };
+  };
+
+  // --- Combine NBA games ---
   const inProgressGames = liveGames.filter((g) => g.status === "In Progress");
-
-  // From DB, only keep scheduled or final games
-  const dbOnlyGames = dbGames.filter(
-    (g) => g.status === "Scheduled" || g.status === "Final"
-  );
-
-  // Combine them
+  const dbOnlyGames = dbGames.filter((g) => g.status === "Scheduled" || g.status === "Final");
   const combinedSeasonGames = [...inProgressGames, ...dbOnlyGames];
 
-  // Apply date filtering
-  const filteredSeasonGames = combinedSeasonGames.filter((game) => {
-    const gameDate = new Date(game.date);
-    return (
-      gameDate.getFullYear() === selectedDate.getFullYear() &&
-      gameDate.getMonth() === selectedDate.getMonth() &&
-      gameDate.getDate() === selectedDate.getDate()
-    );
+  const filteredSeasonGames = filterByDate(combinedSeasonGames, selectedDate);
+  const filteredSummerGames = filterByDate(summerGames, selectedDate);
+
+  // --- Normalize NBA / Summer ---
+  const normalizedSeasonGames = filteredSeasonGames.map((game) => ({
+    ...game,
+    period: game.period === undefined ? undefined : String(game.period),
+    home: normalizeTeam(game.home),
+    away: normalizeTeam(game.away),
+  }));
+
+  const normalizedSummerGames = filteredSummerGames.map((game) => ({
+    ...game,
+    period: game.period === undefined ? undefined : String(game.period),
+    home: normalizeTeam(game.home),
+    away: normalizeTeam(game.away),
+  }));
+
+  // --- Normalize NFL games to Eastern Time ---
+  const normalizedNFLGames = nflGames.map((g) => {
+    const utcDateString = g.game.date.date;
+    const easternDate = utcDateString
+      ? dayjs.utc(utcDateString).tz("America/New_York").toDate()
+      : new Date();
+
+    return {
+      ...g,
+      home: {
+        id: g.teams.home?.id ?? "unknown",
+        name: g.teams.home?.nickname ?? "Unknown",
+        fullName: g.teams.home?.name ?? "Unknown Team",
+      },
+      away: {
+        id: g.teams.away?.id ?? "unknown",
+        name: g.teams.away?.nickname ?? "Unknown",
+        fullName: g.teams.away?.name ?? "Unknown Team",
+      },
+      date: easternDate,
+      status: g.game.status,
+    };
   });
 
+  const filteredNFLGames = filterByDate(normalizedNFLGames, selectedDate);
+
+  // --- Refresh handler ---
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
@@ -198,6 +234,7 @@ export default function ScoresScreen() {
         refreshDBGames(),
         refreshSummerGames(),
         refreshNews(),
+        refreshNFLGames(),
       ]);
     } catch (error) {
       console.warn("Failed to refresh:", error);
@@ -214,67 +251,7 @@ export default function ScoresScreen() {
     });
   };
 
-  const summerStart = new Date("2025-07-05");
-  const summerEnd = new Date("2025-07-23");
-
-  const isSummerLeague =
-    selectedDate >= summerStart && selectedDate <= summerEnd;
-
-  const filteredSummerGames = summerGames.filter((game) => {
-    const gameDate = new Date(game.date);
-    return (
-      gameDate.getFullYear() === selectedDate.getFullYear() &&
-      gameDate.getMonth() === selectedDate.getMonth() &&
-      gameDate.getDate() === selectedDate.getDate()
-    );
-  });
-
-  function hasIdAndName(team: any): team is TeamLike {
-    return (
-      team &&
-      typeof team === "object" &&
-      typeof team.id === "string" &&
-      typeof team.name === "string"
-    );
-  }
-
-  function normalizeTeam(team: any): TeamLike {
-    if (hasIdAndName(team)) {
-      return {
-        id: team.id,
-        name: team.name,
-        record: team.record,
-        logo: team.logo,
-        fullName: team.fullName ?? team.name ?? "Unknown Team", // fallback string
-      };
-    }
-    const fallbackName = team?.name ?? "Unknown Team";
-    return {
-      id: fallbackName,
-      name: fallbackName,
-      record: undefined,
-      logo: undefined,
-      fullName: fallbackName, // always a string
-    };
-  }
-
-  // Normalize season games - keep period as string | undefined (assuming Game type expects string)
-  const normalizedSeasonGames = filteredSeasonGames.map((game) => ({
-    ...game,
-    period: game.period === undefined ? undefined : String(game.period),
-    home: normalizeTeam(game.home),
-    away: normalizeTeam(game.away),
-  }));
-
-  // Normalize summer games - convert period to number | undefined
-  const normalizedSummerGames = filteredSummerGames.map((game) => ({
-    ...game,
-    period: game.period === undefined ? undefined : Number(game.period),
-    home: normalizeTeam(game.home),
-    away: normalizeTeam(game.away),
-  }));
-
-  // Combine news and highlights for the "news" tab and sort by publishedAt descending
+  // --- Combine news + highlights ---
   const combinedNewsAndHighlights: CombinedItem[] = React.useMemo(() => {
     const taggedNews: CombinedItem[] = news.map((item) => ({
       ...item,
@@ -284,28 +261,20 @@ export default function ScoresScreen() {
     const taggedHighlights: CombinedItem[] = highlights.map((item) => ({
       ...item,
       itemType: "highlight",
-      publishedAt: item.publishedAt ?? new Date().toISOString(), // fallback if missing
+      publishedAt: item.publishedAt ?? new Date().toISOString(),
     }));
-
     const combined = [...taggedNews, ...taggedHighlights];
-
-    combined.sort((a, b) => {
-      const aDate = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-      const bDate = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-      return bDate - aDate;
-    });
-
+    combined.sort(
+      (a, b) =>
+        new Date(b.publishedAt ?? 0).getTime() - new Date(a.publishedAt ?? 0).getTime()
+    );
     return combined;
   }, [news, highlights]);
 
   return (
     <>
       <View style={styles.container}>
-        <TabBar
-          tabs={tabs}
-          selected={selectedTab}
-          onTabPress={handleTabPress}
-        />
+        <TabBar tabs={tabs} selected={selectedTab} onTabPress={handleTabPress} />
 
         <View style={styles.contentArea}>
           {selectedTab === "scores" && (
@@ -317,23 +286,16 @@ export default function ScoresScreen() {
                 isDark={isDark}
               />
 
-              {isSummerLeague ? (
-                // Use SummerGamesList for summer league games
-                <SummerGamesList
-                  games={normalizedSummerGames} // use normalized summer games here
-                  loading={summerLoading}
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                />
-              ) : (
-                // Use GamesList for regular season games
-                <GamesList
-                  games={normalizedSeasonGames} // which you build from filteredSeasonGames
-                  loading={liveLoading || dbLoading}
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                />
-              )}
+              <CombinedGamesList
+                gamesByCategory={[
+                  { category: "NFL", data: filteredNFLGames },
+                  { category: "NBA", data: normalizedSeasonGames },
+                  { category: "NBA Summer League", data: normalizedSummerGames },
+                ]}
+                loading={liveLoading || dbLoading || summerLoading || nflLoading}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
             </>
           )}
 
@@ -361,23 +323,15 @@ export default function ScoresScreen() {
           setShowCalendarModal(false);
         }}
         markedDates={{
-          ...[...combinedSeasonGames, ...summerGames].reduce(
-            (acc, game) => {
-              const localDate = new Date(game.date);
-              const localISODate = `${localDate.getFullYear()}-${String(
-                localDate.getMonth() + 1
-              ).padStart(
-                2,
-                "0"
-              )}-${String(localDate.getDate()).padStart(2, "0")}`;
-              acc[localISODate] = {
-                marked: true,
-                dotColor: isDark ? "#fff" : "#1d1d1d",
-              };
-              return acc;
-            },
-            {} as Record<string, { marked: boolean; dotColor: string }>
-          ),
+          ...[...combinedSeasonGames, ...summerGames].reduce((acc, game) => {
+            const localDate = localDateOnly(game.date);
+            const iso = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(
+              2,
+              "0"
+            )}-${String(localDate.getDate()).padStart(2, "0")}`;
+            acc[iso] = { marked: true, dotColor: isDark ? "#fff" : "#1d1d1d" };
+            return acc;
+          }, {} as Record<string, { marked: boolean; dotColor: string }>),
         }}
       />
     </>

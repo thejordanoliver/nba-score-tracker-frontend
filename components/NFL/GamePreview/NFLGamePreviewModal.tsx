@@ -1,4 +1,4 @@
-// components/NFL/Games/NFLGamePreviewModal.tsx
+//./NFL/GamePreview/NFLGamePreviewModal.tsx
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
@@ -18,7 +18,7 @@ import { useNFLTeamRecord } from "hooks/NFLHooks/useNFLTeamRecord";
 import { useWeatherForecast } from "hooks/useWeather";
 import { useEffect, useMemo, useRef } from "react";
 import { StyleSheet, useColorScheme, View } from "react-native";
-import { NFLGame } from "types/nfl";
+import { Game } from "types/nfl";
 import NFLGameLeaders from "../GameDetails/NFLGameLeaders";
 import NFLInjuries from "../GameDetails/NFLInjuries";
 import NFLOfficials from "../GameDetails/NFLOfficials";
@@ -26,7 +26,7 @@ import NFLTeamDrives from "../GameDetails/NFLTeamDrives";
 import TeamInfo from "./TeamInfo";
 
 type Props = {
-  game: NFLGame;
+  game: Game; // ✅ normalized type, consistent with NBA + Summer League
   visible: boolean;
   onClose: () => void;
 };
@@ -185,18 +185,64 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
         : ""
     );
 
+
+      const formatPeriod = (raw: string | number | undefined | null) => {
+  if (!raw) return "";
+  const map: Record<string, string> = {
+    Q1: "1st",
+    Q2: "2nd",
+    Q3: "3rd",
+    Q4: "4th",
+    OT: "OT",
+    HT: "Halftime",
+    FT: "Final",
+  };
+
+  // If it matches keys (Q1..OT) use map
+  if (typeof raw === "string" && map[raw]) {
+    return map[raw];
+  }
+
+  // If it’s a number, format with ordinal suffix
+  if (typeof raw === "number") {
+    const suffix =
+      raw === 1 ? "st" : raw === 2 ? "nd" : raw === 3 ? "rd" : "th";
+    return `${raw}${suffix}`;
+  }
+
+  return String(raw);
+};
+
+
+  const isLive =
+    gameStatus === "In Progress" || gameStatus === "Halftime" || gameStatus === "Delayed";
+
+  const possessionData = isLive
+    ? useNFLGamePossession(
+        homeTeamData.name ?? "",
+        awayTeamData?.name ?? "",
+        apiDateStr
+      )
+    : {
+        possessionTeamId: undefined,
+        shortDownDistanceText: "",
+        displayClock: gameInfo?.status?.timer ?? "",
+        period: gameInfo?.status?.short ?? "",
+        homeTimeouts: 0,
+        awayTimeouts: 0,
+        loading: false,
+      };
+
   const {
     possessionTeamId,
     shortDownDistanceText,
     displayClock,
+    period,
     homeTimeouts,
     awayTimeouts,
     loading: possessionLoading,
-  } = useNFLGamePossession(
-    homeTeamData.name ?? "",
-    awayTeamData?.name ?? "",
-    apiDateStr
-  );
+  } = possessionData;
+
 
   return (
     <BottomSheetModal
@@ -248,7 +294,7 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
           colors={
             isDark
               ? ["rgba(0,0,0,0)", "rgba(0,0,0,0.8)"]
-              : ["rgba(0, 0, 0, 0)", "rgba(255,255,255,0.9)"]
+              : ["rgba(0, 0, 0, 0)", "rgba(0, 0, 0, .8)"]
           }
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
@@ -301,7 +347,7 @@ export default function NFLGamePreviewModal({ game, visible, onClose }: Props) {
               status={gameStatus}
               date={displayDateStr}
               time={displayTimeStr}
-              period={gameInfo.status.short}
+              period={formatPeriod(period ??gameInfo.status.short ?? "")}
               clock={displayClock ?? gameInfo?.status?.timer ?? ""} // ✅ main clock: displayClock, fallback: timer
               isDark={isDark}
               homeTeam={homeTeamData} // ✅ must have .code

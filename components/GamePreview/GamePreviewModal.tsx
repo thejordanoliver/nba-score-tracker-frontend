@@ -237,7 +237,7 @@ export default function GamePreviewModal({ visible, game, onClose }: Props) {
           colors={
             isDark
               ? ["rgba(0,0,0,0)", "rgba(0,0,0,0.8)"]
-              : ["rgba(255,255,255,0)", "rgba(255,255,255,0.9)"]
+              : ["rgba(0, 0, 0, 1)", "rgba(0, 0, 0, .)"]
           }
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}

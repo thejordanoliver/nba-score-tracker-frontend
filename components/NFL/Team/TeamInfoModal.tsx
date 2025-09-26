@@ -87,7 +87,7 @@ const team = teamId ? getTeamInfo(teamId) : undefined;
                 fontSize: 20,
                 paddingTop: insets.top - 20,
                 paddingBottom: 12,
-                color: isDark ? "#fff" : "#000",
+                color: isDark ? "#fff" : "#1d1d1d",
                 textAlign: "center",
               }}
             >

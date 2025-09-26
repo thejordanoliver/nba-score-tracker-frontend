@@ -45,29 +45,12 @@ export default function TeamPreviewModal({
   }, [visible]);
 
   const specialTeams = [
-    "Brooklyn Nets",
-    "Los Angeles Lakers",
-    "Milwaukee Bucks",
-    "Washington Wizards",
-    "Golden State Warriors",
-    "Denver Nuggets",
-    "Dallas Mavericks",
-    "Indiana Pacers",
-    "Memphis Grizzlies",
-    "Phoenix Suns",
-    "San Antonio Spurs",
-    "Utah Jazz",
-    "Philadelphia 76ers",
-    "New York Knicks",
-    "New Orleans Pelicans",
-    "Oklahoma City Thunder",
+    "Las Vegas Raiders",
   ];
 
   const logoLightTeams = [
-    "Houston Rockets",
-    "Philadelphia 76ers",
-    "Toronto Raptors",
-    "Utah Jazz",
+    "New York Giants",
+    "New York Jets",
   ];
 
   const teamName = team?.fullName?.trim() ?? "";

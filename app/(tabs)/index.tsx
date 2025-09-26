@@ -1,13 +1,10 @@
-import Heading from "components/Headings/Heading";
-import NewsHighlightsList from "components/News/NewsHighlightsList";
-import NFLGamesList from "components/NFL/Games/NFLGamesList";
-import { useNFLWeeklyGames } from "hooks/NFLHooks/useWeeklyNFLGames";
-import { useSummerLeagueGames } from "hooks/useSummerLeagueGames";
-import type { summerGame } from "types/types";
-import { Game } from "types/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import CombinedGamesList from "components/CombinedGamesList";
+import NewsHighlightsList from "components/News/NewsHighlightsList";
 import { useRouter } from "expo-router";
+import { useNFLWeeklyGames } from "hooks/NFLHooks/useWeeklyNFLGames";
+import { useSummerLeagueGames } from "hooks/useSummerLeagueGames";
 import * as React from "react";
 import {
   useCallback,
@@ -16,7 +13,16 @@ import {
   useRef,
   useState,
 } from "react";
-import { Animated, Text, View, useColorScheme } from "react-native";
+import {
+  Animated,
+  FlatList,
+  RefreshControl,
+  Text,
+  View,
+  useColorScheme,
+} from "react-native";
+import type { summerGame } from "types/types";
+import { Game } from "types/types";
 import { CustomHeaderTitle } from "../../components/CustomHeaderTitle";
 import FavoritesScroll from "../../components/FavoritesScroll";
 import FavoritesScrollSkeleton from "../../components/FavoritesScrollSkeleton";
@@ -57,8 +63,8 @@ function mapSummerGameToGame(g: summerGame): Game {
       g.status.short === "FT"
         ? "Final"
         : g.status.short === "NS"
-          ? "Scheduled"
-          : "In Progress",
+        ? "Scheduled"
+        : "In Progress",
     period: g.period !== undefined ? String(g.period) : undefined,
   };
 }
@@ -278,8 +284,8 @@ export default function HomeScreen() {
                     ? "#fff"
                     : "#1d1d1d"
                   : isDark
-                    ? "#888"
-                    : "rgba(0, 0, 0, 0.5)",
+                  ? "#888"
+                  : "rgba(0, 0, 0, 0.5)",
                 fontFamily: "Oswald_400Regular",
               }}
             >
@@ -288,66 +294,30 @@ export default function HomeScreen() {
           )}
         />
       </View>
+
+      <View style={styles.contentArea}>
         {(weeklyGamesLoading || liveGamesLoading || summerLoading) &&
         !favorites.length ? (
           <FavoritesScrollSkeleton />
         ) : (
           <FavoritesScroll favoriteTeamIds={favorites} />
         )}
-
-      <View style={styles.contentArea}>
         {selectedTab === "scores" ? (
-          <>
-            <Heading>Latest Games</Heading>
-            <NFLGamesList
-              games={nflGames}
-              loading={nflLoading}
-              refreshing={refreshing}
-              onRefresh={async () => {
-                setRefreshing(true);
-                try {
-                  await refreshNFLGames();
-                } finally {
-                  setRefreshing(false);
-                }
-              }}
-              error={nflError}
-              expectedCount={nflGames.length}
-            />
-
-             {/* <CombinedGamesList
-  gamesByCategory={[
-    { category: "NFL", data: nflGames },
-    { category: "NBA", data: combinedGames },
-    { category: "Summer League", data: filteredSummer },
-  ]}
-  loading={
-    nflLoading || liveGamesLoading || weeklyGamesLoading || summerLoading
-  }
-  refreshing={refreshing}
-  onRefresh={handleRefresh}
-/> */}
-
-            {/* {onlySummerLeagueToday ? (
-              <SummerGamesList
-                games={filteredSummer}
-                loading={summerLoading}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                
-              />
-            ) : (
-              <GamesList
-                games={combinedGames}
-                loading={
-                  liveGamesLoading || weeklyGamesLoading || summerLoading
-                }
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                day={"todayTomorrow"}
-              />
-            )} */}
-          </>
+          <CombinedGamesList
+                  gamesByCategory={[
+                    { category: "NFL", data: nflGames },
+                    { category: "NBA", data: combinedGames },
+                    { category: "NBA Summer League", data: filteredSummer },
+                  ]}
+                  loading={
+                    nflLoading ||
+                    liveGamesLoading ||
+                    weeklyGamesLoading ||
+                    summerLoading
+                  }
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                />
         ) : (
           <>
             {newsError ? (

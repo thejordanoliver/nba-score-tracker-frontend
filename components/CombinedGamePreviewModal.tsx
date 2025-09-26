@@ -21,6 +21,7 @@ import GameTeamStats from "./GameDetails/GameTeamStats";
 import LineScore from "./GameDetails/LineScore";
 import CenterInfo from "./GamePreview/CenterInfo";
 import TeamInfo from "./GamePreview/TeamInfo";
+import { default as NFLTeamInfo } from "./NFL/GamePreview/TeamInfo";
 import NFLGameLeaders from "./NFL/GameDetails/NFLGameLeaders";
 import NFLInjuries from "./NFL/GameDetails/NFLInjuries";
 import NFLOfficials from "./NFL/GameDetails/NFLOfficials";
@@ -219,6 +220,9 @@ let nflExtras: ReactElement | null = null;
     minute: "2-digit",
   });
 
+
+  console.log(homeRecord)
+
   return (
     <BottomSheetModal
       ref={sheetRef}
@@ -302,12 +306,13 @@ let nflExtras: ReactElement | null = null;
           >
             <TeamInfo
               team={awayTeam}
-              teamName={awayTeam.name ?? awayTeam.nickname}
+              teamName={awayTeam.nickname ?? awayTeam.name}
               scoreOrRecord={
                 league === "NFL"
                   ? game.scores.away?.total
                   : (game.awayScore ?? awayRecord)
               }
+               record={awayRecord}
               isWinner={awayWins}
               isDark={isDark}
               isGameOver={isFinal || isCanceled}
@@ -327,13 +332,14 @@ let nflExtras: ReactElement | null = null;
 
             <TeamInfo
               team={homeTeam}
-              teamName={homeTeam.name ?? homeTeam.nickname}
+              teamName={homeTeam.nickname ?? homeTeam.name}
               scoreOrRecord={
                 league === "NFL"
                   ? game.scores.home?.total
                   : (game.homeScore ?? homeRecord)
               }
               isWinner={homeWins}
+              record={homeRecord}
               isDark={isDark}
               isGameOver={isFinal || isCanceled}
             />

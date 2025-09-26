@@ -5,14 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { NFLTeam } from "types/nfl";
 
 type NFLGameCenterInfoProps = {
-  status:
-    | "Scheduled"
-    | "In Progress"
-    | "Final"
-    | "Canceled"
-    | "Postponed"
-    | "Delayed"
-    | "Halftime";
+  status: string; // <- allow any string now
   date: string;
   time: string;
   period?: string;
@@ -24,6 +17,7 @@ type NFLGameCenterInfoProps = {
   homeTeam: NFLTeam;
   awayTeam: NFLTeam;
 };
+
 
 export function NFLGameCenterInfo({
   status,

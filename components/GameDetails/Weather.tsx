@@ -1,6 +1,5 @@
 import { Fonts } from "constants/fonts";
 import { WeatherData } from "hooks/useWeather";
-import { BlurView } from "expo-blur";
 import LottieView from "lottie-react-native";
 import { StyleSheet, Text, useColorScheme, View } from "react-native";
 import ClearDay from "../../assets/Weather/clear-day.json";
@@ -88,23 +87,20 @@ export const Weather: React.FC<Props> = ({
                   autoPlay
                   loop
                   style={{
-                    width: 200,
-                    height: 200,
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: [{ translateX: -100 }, { translateY: -100 }],
-                    zIndex: 0, // behind the blur
+                    ...StyleSheet.absoluteFillObject, // ⬅️ makes it fill the container
+                    zIndex: 0,
                   }}
+                  resizeMode="cover" // ⬅️ ensures it scales to fill
                 />
               );
             })()}
 
+          {/* 
           <BlurView
             intensity={30}
             tint="systemThinMaterial"
             style={StyleSheet.absoluteFill}
-          />
+          /> */}
 
           {/* Main weather Lottie */}
           {animation ? (

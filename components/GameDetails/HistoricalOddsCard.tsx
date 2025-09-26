@@ -36,8 +36,6 @@ const HistoricalOddsCard: React.FC<Props> = ({ game }) => {
     return isDark ? team.logoLight || team.logo : team.logo;
   };
 
-  const bookmakerImage = require(`@/assets/Odds/BETMGM.png`);
-const bookerImageLight = require(`@/assets/Odds/BETMGMLight.png`);
   const colors = {
     textPrimary: isDark ? "#fff" : "#000",
     textSecondary: isDark ? "#eee" : "#333",
@@ -58,7 +56,9 @@ const bookerImageLight = require(`@/assets/Odds/BETMGMLight.png`);
       return `${index === 0 ? "O" : "U"} ${outcome.point ?? "-"}`;
     }
 
-    return `${outcome.price}${outcome.point !== undefined ? ` (${outcome.point})` : ""}`;
+    return `${outcome.price}${
+      outcome.point !== undefined ? ` (${outcome.point})` : ""
+    }`;
   };
 
   return (
@@ -160,25 +160,10 @@ const bookerImageLight = require(`@/assets/Odds/BETMGMLight.png`);
       {/* Bookmaker Info */}
       <View style={styles.bookmaker}>
         <View style={styles.bookmakerWrapper}>
-          <Text
-            style={{ color: colors.textPrimary, fontFamily: Fonts.OSREGULAR }}
-          >
-            Powered By:
-            {/* {bookmaker?.title || "Unknown"} */}
+          <Text style={styles.subtext}>
+            Powered By: {bookmaker?.title || "Unknown"}
           </Text>
-
-          <Image source={isDark? bookerImageLight : bookmakerImage} style={styles.bookmakerImage} />
         </View>
-        {/* <Text style={styles.subtext}>
-          {new Date(game.commence_time).toLocaleString("en-US", {
-            month: "numeric",
-            day: "numeric",
-            year: "2-digit",
-            hour: "numeric",
-            minute: "numeric",
-            hour12: true,
-          })}
-        </Text> */}
       </View>
     </View>
   );
@@ -249,7 +234,6 @@ const styles = StyleSheet.create({
     height: 20,
     resizeMode: "contain",
     marginLeft: 4,
-
   },
   subtext: {
     color: "#888",

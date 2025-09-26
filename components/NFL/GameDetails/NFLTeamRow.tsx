@@ -13,9 +13,9 @@ type Props = {
   };
   isDark: boolean;
   isHome?: boolean;
-  score?: number;
+  score?: number | null;
   isWinner?: boolean;
-  status?: string; // "Live", "Final", etc.
+  status?: string; // "Scheduled", "In Progress", "Final", etc.
   colors: {
     text: string;
     record: string;
@@ -46,14 +46,18 @@ export const NFLTeamRow = ({
     router.push(`/team/nfl/${team.id}`);
   };
 
-  const isLive = status && status !== "Scheduled" && status !== "Final";
+  const isScheduled = status === "Scheduled";
+  const isLive =
+    status &&
+    status !== "Scheduled" &&
+    status !== "Final" &&
+    status !== undefined;
   const isFinal = status === "Final";
-  const isNotStarted = status === "Scheduled";
 
   const hasPossession = isLive && String(possessionTeamId) === String(team.id);
 
   const getScoreStyle = () => {
-    if (score == null) return { color: colors.score };
+    if (score == null) return { color: colors.score, opacity: 0.5 };
 
     if (isLive) {
       return { color: isDark ? "#fff" : "#000", opacity: 1 };
@@ -69,26 +73,35 @@ export const NFLTeamRow = ({
     return { color: colors.score, opacity: 1 };
   };
 
-const renderTimeouts = (remaining: number) => {
-  const totalTimeouts = 3;
-  const dots = [];
-  for (let i = 0; i < totalTimeouts; i++) {
-    dots.push(
-      <View
-        key={i}
-        style={{
-          width: 8,
-          height: 2,
-          borderRadius: 4,
-          backgroundColor: isDark ? "#fff" : "#000",
-          opacity: i < remaining ? 1 : 0.3, // ✅ used timeouts are faded
-          marginHorizontal: 2,
-        }}
-      />
-    );
-  }
-  return <View style={{ flexDirection: "row", marginTop: 2 }}>{dots}</View>;
-};
+  const renderTimeouts = (remaining: number) => {
+    const totalTimeouts = 3;
+    const dots = [];
+    for (let i = 0; i < totalTimeouts; i++) {
+      dots.push(
+        <View
+          key={i}
+          style={{
+            width: 8,
+            height: 2,
+            borderRadius: 4,
+            backgroundColor: isDark ? "#fff" : "#000",
+            opacity: i < remaining ? 1 : 0.3,
+            marginHorizontal: 2,
+          }}
+        />
+      );
+    }
+    return <View style={{ flexDirection: "row", marginTop: 2 }}>{dots}</View>;
+  };
+
+  // Determine what to display in the score box
+  const displayScore = isScheduled
+    ? team.record ?? "0-0"
+    : score != null
+    ? score
+    : isLive
+    ? "..."
+    : team.record ?? "0-0";
 
   return (
     <View style={styles.row}>
@@ -97,26 +110,18 @@ const renderTimeouts = (remaining: number) => {
         <View style={styles.scoreWrapper}>
           <Text
             style={[
-              isNotStarted
+              isScheduled
                 ? [
                     styles.preGameRecord,
-                    {
-                      color: colors.record,
-                      fontSize: size * 0.5,
-                      width: size + 10,
-                    },
+                    { color: colors.record, fontSize: size * 0.5, width: size + 10 },
                   ]
                 : [
                     styles.score,
-                    {
-                      ...getScoreStyle(),
-                      fontSize: size * 0.7,
-                      width: size + 10,
-                    },
+                    { ...getScoreStyle(), fontSize: size * 0.7, width: size + 10 },
                   ],
             ]}
           >
-            {isNotStarted ? team.record ?? "0-0" : score ?? "0-0"}
+            {displayScore}
           </Text>
 
           {hasPossession && (
@@ -143,27 +148,27 @@ const renderTimeouts = (remaining: number) => {
             style={{ width: size, height: size, resizeMode: "contain" }}
           />
         </Pressable>
+
         <View style={styles.teamInfo}>
-          {/* Name */}
           <View style={styles.nameRow}>
             <Text
               style={[
                 styles.teamName,
-                { color: colors.text, fontSize: size * 0.25, },
+                { color: colors.text, fontSize: size * 0.25 },
               ]}
             >
               {team.name}
             </Text>
           </View>
 
-          {/* Timeouts dots (centered) */}
+          {/* Timeouts */}
           {timeouts > 0 && (
             <View style={{ alignItems: "center", marginTop: 2 }}>
               {renderTimeouts(timeouts)}
             </View>
           )}
 
-          {/* Final record */}
+          {/* Record (only show final record if game finished) */}
           {isFinal && (
             <Text
               style={[
@@ -182,26 +187,18 @@ const renderTimeouts = (remaining: number) => {
         <View style={styles.scoreWrapper}>
           <Text
             style={[
-              isNotStarted
+              isScheduled
                 ? [
                     styles.preGameRecord,
-                    {
-                      color: colors.record,
-                      fontSize: size * 0.5,
-                      width: size + 10,
-                    },
+                    { color: colors.record, fontSize: size * 0.5, width: size + 10 },
                   ]
                 : [
                     styles.score,
-                    {
-                      ...getScoreStyle(),
-                      fontSize: size * 0.7,
-                      width: size + 10,
-                    },
+                    { ...getScoreStyle(), fontSize: size * 0.7, width: size + 10 },
                   ],
             ]}
           >
-            {isNotStarted ? team.record ?? "0-0" : score ?? "0-0"}
+            {displayScore}
           </Text>
 
           {hasPossession && (
@@ -241,7 +238,7 @@ const styles = StyleSheet.create({
   nameRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   teamName: {
     fontFamily: Fonts.OSREGULAR,
@@ -265,10 +262,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
-  },
-  possessionIconAbsolute: {
-    position: "absolute",
-    top: "75%",
-    alignSelf: "center",
   },
 });

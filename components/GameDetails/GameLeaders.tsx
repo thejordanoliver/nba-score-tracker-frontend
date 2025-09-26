@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   playerName: {
     fontFamily: Fonts.OSBOLD,
     fontSize: 14,
-    color: "#000",
+    color: "#1d1d1d",
   },
   nameRow: {
     flexDirection: "row",

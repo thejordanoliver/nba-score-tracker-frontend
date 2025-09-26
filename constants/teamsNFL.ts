@@ -105,6 +105,43 @@ import TexansStadium from "assets/Football/Arenas/TexansStadium.webp";
 import TitansStadium from "assets/Football/Arenas/TitansStadium.webp";
 import VikingsStadium from "assets/Football/Arenas/VikingsStadium.webp";
 
+
+//Coaches
+import CardinalsCoach from "assets/Football/Coaches/CardinalsCoach.png";
+import FalconsCoach from "assets/Football/Coaches/FalconsCoach.png";
+import RavensCoach from "assets/Football/Coaches/RavensCoach.png";
+import BillsCoach from "assets/Football/Coaches/BillsCoach.png";
+import PanthersCoach from "assets/Football/Coaches/PanthersCoach.png";
+import BearsCoach from "assets/Football/Coaches/BearsCoach.png";
+import BengalsCoach from "assets/Football/Coaches/BengalsCoach.png";
+import BrownsCoach from "assets/Football/Coaches/BrownsCoach.png";
+import CowboysCoach from "assets/Football/Coaches/CowboysCoach.png";
+import BroncosCoach from "assets/Football/Coaches/BroncosCoach.png";
+import LionsCoach from "assets/Football/Coaches/LionsCoach.png";
+import PackersCoach from "assets/Football/Coaches/PackersCoach.png";
+import TexansCoach from "assets/Football/Coaches/TexansCoach.png";
+import ColtsCoach from "assets/Football/Coaches/ColtsCoach.png";
+import JaguarsCoach from "assets/Football/Coaches/JaguarsCoach.png";
+import ChiefsCoach from "assets/Football/Coaches/ChiefsCoach.png";
+import RaidersCoach from "assets/Football/Coaches/RaidersCoach.png";
+import ChargersCoach from "assets/Football/Coaches/ChargersCoach.png";
+import RamsCoach from "assets/Football/Coaches/RamsCoach.png";
+import DolphinsCoach from "assets/Football/Coaches/DolphinsCoach.png";
+import VikingsCoach from "assets/Football/Coaches/VikingsCoach.png";
+import PatriotsCoach from "assets/Football/Coaches/PatriotsCoach.png";
+import SaintsCoach from "assets/Football/Coaches/SaintsCoach.png";
+import GiantsCoach from "assets/Football/Coaches/GiantsCoach.png";
+import JetsCoach from "assets/Football/Coaches/JetsCoach.png";
+import EaglesCoach from "assets/Football/Coaches/EaglesCoach.png";
+import SteelersCoach from "assets/Football/Coaches/SteelersCoach.png";
+import NinersCoach from "assets/Football/Coaches/NinersCoach.png"; // 49ers
+import SeahawksCoach from "assets/Football/Coaches/SeahawksCoach.png";
+import BuccaneersCoach from "assets/Football/Coaches/BuccaneersCoach.png";
+import TitansCoach from "assets/Football/Coaches/TitansCoach.png";
+import CommandersCoach from "assets/Football/Coaches/CommandersCoach.png";
+
+
+
 export const teams: NFLTeam[] = [
   {
     id: 1,
@@ -113,7 +150,8 @@ export const teams: NFLTeam[] = [
     city: "Las Vegas",
     location: "Las Vegas, NV",
     address: "6475 S. Raiders Way, Las Vegas, NV 89118",
-    coach: "Antonio Pierce (interim)",
+    coach: "Pete Carroll",
+        coachImage: RaidersCoach,
     owner: "Carol and Mark Davis",
     stadium: "Allegiant Stadium",
     established: 1960,
@@ -138,7 +176,8 @@ export const teams: NFLTeam[] = [
     city: "Jacksonville",
     location: "Jacksonville, FL",
     address: "1 EverBank Stadium Dr, Jacksonville, FL 32202",
-    coach: "Doug Pederson",
+    coach: "Liam Coen",
+        coachImage: JaguarsCoach,
     owner: "Shahid Khan",
     stadium: "EverBank Stadium",
     established: 1995,
@@ -163,13 +202,13 @@ export const teams: NFLTeam[] = [
     city: "Foxborough",
     location: "Foxborough, MA",
     address: "1 Patriot Pl., Foxborough, MA 02035",
-    coach: "Bill Belichick",
+    coach: "Mike Vrabel",
     owner: "Robert Kraft",
     stadium: "Gillette Stadium",
     established: 1960,
     logo: PatriotsLogo,
     logo500x500: PatriotsLogo500x500,
-
+    coachImage: PatriotsCoach,
     country: {
       name: "USA",
       code: "US",
@@ -190,6 +229,7 @@ export const teams: NFLTeam[] = [
     location: "New York, NY",
     address: "1 MetLife Stadium Dr., East Rutherford, NJ 07073",
     coach: "Brian Daboll",
+        coachImage: GiantsCoach,
     owner: "John Mara, Steve Tisch",
     stadium: "MetLife Stadium",
     established: 1925,
@@ -217,6 +257,7 @@ export const teams: NFLTeam[] = [
     location: "Baltimore, MD",
     address: "1101 Russell Street, Baltimore, MD 21230",
     coach: "John Harbaugh",
+        coachImage: RavensCoach,
     owner: "Steve Bisciotti",
     stadium: "M&T Bank Stadium",
     established: 1996,
@@ -241,7 +282,8 @@ export const teams: NFLTeam[] = [
     city: "Nashville",
     location: "Nashville, TN",
     address: "1 Titans Way, Nashville, TN 37213",
-    coach: "Mike Vrabel",
+    coach: "Brian Callahan",
+        coachImage: TitansCoach,
     owner: "Amy Adams Strunk",
     stadium: "Nissan Stadium",
     established: 1960,
@@ -267,6 +309,7 @@ export const teams: NFLTeam[] = [
     location: "Detroit, MI",
     address: "2000 Brush Street, Detroit, MI 48226",
     coach: "Dan Campbell",
+        coachImage: LionsCoach,
     owner: "Sheila Ford Hamp",
     stadium: "Ford Field",
     established: 1930,
@@ -291,7 +334,8 @@ export const teams: NFLTeam[] = [
     city: "Atlanta",
     location: "Atlanta, GA",
     address: "181 Donald Lee Hollowell Pkwy NW, Atlanta, GA 30318",
-    coach: "Arthur Smith",
+    coach: "Raheem Morris",
+    coachImage: FalconsCoach,
     owner: "Arthur Blank",
     stadium: "Mercedes-Benz Stadium",
     established: 1966,
@@ -317,6 +361,7 @@ export const teams: NFLTeam[] = [
     location: "Cleveland, OH",
     address: "76 Lou Groza Blvd., Berea, OH 44017",
     coach: "Kevin Stefanski",
+     coachImage: BrownsCoach,
     owner: "Dee and Jimmy Haslam",
     stadium: "Huntington Bank Field",
     established: 1946,
@@ -342,6 +387,7 @@ export const teams: NFLTeam[] = [
     location: "Cincinnati, OH",
     address: "1 Paycor Stadium, Cincinnati, OH 45202",
     coach: "Zac Taylor",
+    coachImage: BengalsCoach,
     owner: "Mike Brown",
     stadium: "Paycor Stadium",
     established: 1968,
@@ -367,6 +413,7 @@ export const teams: NFLTeam[] = [
     location: "Glendale, AZ",
     address: "1 Cardinals Dr, Glendale, AZ 85305",
     coach: "Jonathan Gannon",
+    coachImage: CardinalsCoach,
     owner: "Michael Bidwill",
     stadium: "State Farm Stadium",
     established: 1920,
@@ -392,6 +439,7 @@ export const teams: NFLTeam[] = [
     location: "Philadelphia, PA",
     address: "1 Lincoln Financial Field Way, Philadelphia, PA 19148",
     coach: "Nick Sirianni",
+        coachImage: EaglesCoach,
     owner: "Jeffrey Lurie",
     stadium: "Lincoln Financial Field",
     established: 1933,
@@ -416,7 +464,8 @@ export const teams: NFLTeam[] = [
     city: "New York",
     location: "New York, NY",
     address: "1 MetLife Stadium Dr., East Rutherford, NJ 07073",
-    coach: "Robert Saleh",
+    coach: "Aaron Glenn",
+        coachImage: JetsCoach,
     owner: "Robert Wood Johnson IV",
     stadium: "MetLife Stadium",
     established: 1960,
@@ -444,6 +493,7 @@ export const teams: NFLTeam[] = [
     location: "San Francisco, CA",
     address: "4900 Marie P DeBartolo Way, Santa Clara, CA 95054",
     coach: "Kyle Shanahan",
+        coachImage: NinersCoach,
     owner: "Jed York",
     stadium: "Levi's® Stadium",
     established: 1946,
@@ -469,6 +519,7 @@ export const teams: NFLTeam[] = [
     location: "Green Bay, WI",
     address: "1265 Lombardi Ave, Green Bay, WI 54304",
     coach: "Matt LaFleur",
+        coachImage: PackersCoach,
     owner: "Green Bay Packers, Inc.",
     stadium: "Lambeau Field",
     established: 1921,
@@ -493,7 +544,8 @@ export const teams: NFLTeam[] = [
     city: "Chicago",
     location: "Chicago, IL",
     address: "1410 Special Olympics Dr, Chicago, IL 60605",
-    coach: "Matt Eberflus",
+    coach: "Ben Johnson",
+        coachImage: BearsCoach,
     owner: "Virginia Halas McCaskey",
     stadium: "Soldier Field",
     established: 1920,
@@ -519,6 +571,7 @@ export const teams: NFLTeam[] = [
     location: "Kansas City, MO",
     address: "1 Arrowhead Dr, Kansas City, MO 64129",
     coach: "Andy Reid",
+        coachImage: ChiefsCoach,
     owner: "Clark Hunt",
     stadium: "GEHA Field at Arrowhead Stadium",
     established: 1960,
@@ -543,7 +596,8 @@ export const teams: NFLTeam[] = [
     city: "Washington",
     location: "Washington, DC",
     address: "1600 Fedex Way, Landover, MD 20785",
-    coach: "Ron Rivera",
+    coach: "Dan Quinn",
+        coachImage: CommandersCoach,
     owner: "Josh Harris",
     stadium: "FedExField",
     established: 1932,
@@ -568,7 +622,8 @@ export const teams: NFLTeam[] = [
     city: "Charlotte",
     location: "Charlotte, NC",
     address: "800 S Mint St, Charlotte, NC 28202",
-    coach: "Chris Tabor (interim)",
+    coach: "David Canales",
+        coachImage: PanthersCoach,
     owner: "David Tepper",
     stadium: "Bank of America Stadium",
     established: 1995,
@@ -594,6 +649,7 @@ export const teams: NFLTeam[] = [
     location: "Buffalo, NY",
     address: "1 Bills Dr, Orchard Park, NY 14127",
     coach: "Sean McDermott",
+        coachImage: BillsCoach,
     owner: "Kim and Terry Pegula",
     stadium: "Highmark Stadium",
     established: 1960,
@@ -619,6 +675,7 @@ export const teams: NFLTeam[] = [
     location: "Indianapolis, IN",
     address: "500 S Capitol Ave, Indianapolis, IN 46225",
     coach: "Shane Steichen",
+        coachImage: ColtsCoach,
     owner: "Jim Irsay",
     stadium: "Lucas Oil Stadium",
     established: 1944,
@@ -644,6 +701,7 @@ export const teams: NFLTeam[] = [
     location: "Pittsburgh, PA",
     address: "100 Art Rooney Ave, Pittsburgh, PA 15212",
     coach: "Mike Tomlin",
+        coachImage: SteelersCoach,
     owner: "Art Rooney II and Family",
     stadium: "Acrisure Stadium",
     established: 1933,
@@ -668,7 +726,8 @@ export const teams: NFLTeam[] = [
     city: "Seattle",
     location: "Seattle, WA",
     address: "800 Occidental Ave S, Seattle, WA 98134",
-    coach: "Pete Carroll",
+    coach: "Mike Macdonald",
+        coachImage: SeahawksCoach,
     owner: "Seattle Seahawks Ownership Trust",
     stadium: "Lumen Field",
     established: 1976,
@@ -694,6 +753,7 @@ export const teams: NFLTeam[] = [
     location: "Tampa, FL",
     address: "4201 N Dale Mabry Hwy, Tampa, FL 33607",
     coach: "Todd Bowles",
+        coachImage: BuccaneersCoach,
     owner: "Bryan Glazer, Edward Glazer, Joel Glazer",
     stadium: "Raymond James Stadium",
     established: 1976,
@@ -719,6 +779,7 @@ export const teams: NFLTeam[] = [
     location: "Miami, FL",
     address: "347 Don Shula Dr, Miami Gardens, FL 33056",
     coach: "Mike McDaniel",
+        coachImage: DolphinsCoach,
     owner: "Stephen M. Ross",
     stadium: "Hard Rock Stadium",
     established: 1966,
@@ -744,6 +805,7 @@ export const teams: NFLTeam[] = [
     location: "Houston, TX",
     address: "Two NRG Park, Houston, TX 77054",
     coach: "DeMeco Ryans",
+        coachImage: TexansCoach,
     owner: "Janice S. McNair",
     stadium: "NRG Stadium",
     established: 2002,
@@ -769,6 +831,7 @@ export const teams: NFLTeam[] = [
     location: "New Orleans, LA",
     address: "1500 Sugar Bowl Dr, New Orleans, LA 70112",
     coach: "Dennis Allen",
+        coachImage: SaintsCoach,
     owner: "Gayle Benson",
     stadium: "Caesars Superdome",
     established: 1967,
@@ -794,6 +857,7 @@ export const teams: NFLTeam[] = [
     location: "Denver, CO",
     address: "1701 Bryant St, Denver, CO 80204",
     coach: "Sean Payton",
+        coachImage: BroncosCoach,
     owner: "Walton-Penner Family Ownership Group",
     stadium: "Empower Field at Mile High",
     established: 1960,
@@ -818,7 +882,8 @@ export const teams: NFLTeam[] = [
     city: "Dallas",
     location: "Dallas, TX",
     address: "1 AT&T Way, Arlington, TX 76011",
-    coach: "Mike McCarthy",
+    coach: "Brian Schottenheimer",
+        coachImage: CowboysCoach,
     owner: "Jerry Jones",
     stadium: "AT&T Stadium",
     established: 1960,
@@ -844,6 +909,7 @@ export const teams: NFLTeam[] = [
     location: "Los Angeles, CA",
     address: "1001 Stadium Dr, Inglewood, CA 90301",
     coach: "Giff Smith (interim)",
+      coachImage: ChargersCoach,
     owner: "Alex Spanos and Family",
     stadium: "SoFi Stadium",
     established: 1960,
@@ -869,6 +935,7 @@ export const teams: NFLTeam[] = [
     location: "Los Angeles, CA",
     address: "1001 Stadium Dr, Inglewood, CA 90301",
     coach: "Sean McVay",
+      coachImage: RamsCoach,
     owner: "Stan Kroenke",
     stadium: "SoFi Stadium",
     established: 1937,
@@ -894,6 +961,7 @@ export const teams: NFLTeam[] = [
     location: "Minneapolis, MN",
     address: "900 S 5th St, Minneapolis, MN 55415",
     coach: "Kevin O'Connell",
+      coachImage: VikingsCoach,
     owner: "Zygi Wilf",
     stadium: "U.S. Bank Stadium",
     established: 1961,
@@ -913,11 +981,51 @@ export const teams: NFLTeam[] = [
   },
 ] as const;
 
+
+export const nflCoachImages: { [key: string]: any } = {
+  CardinalsCoach,
+  FalconsCoach,
+  RavensCoach,
+  BillsCoach,
+  PanthersCoach,
+  BearsCoach,
+  BengalsCoach,
+  BrownsCoach,
+  CowboysCoach,
+  BroncosCoach,
+  LionsCoach,
+  PackersCoach,
+  TexansCoach,
+  ColtsCoach,
+  JaguarsCoach,
+  ChiefsCoach,
+  RaidersCoach,
+  ChargersCoach,
+  RamsCoach,
+  DolphinsCoach,
+  VikingsCoach,
+  PatriotsCoach,
+  SaintsCoach,
+  GiantsCoach,
+  JetsCoach,
+  EaglesCoach,
+  SteelersCoach,
+  NinersCoach,
+  SeahawksCoach,
+  BuccaneersCoach,
+  TitansCoach,
+  CommandersCoach,
+};
+
+
 export const stadiumImages: Record<string, any> = {
   // Map team codes or arena names to images
 
   // You can also map some arena names if you want:
   "Corinthians Arena": require("assets/Football/Arenas/CorinthiansArena.webp"),
+  "Croke Park": require("assets/Football/Arenas/CrokePark.webp"),
+  "Tottenham Hotspur Stadium": require("assets/Football/Arenas/TottenhamHotspurStadium.webp"),
+  "Olympic Stadium Berlin": require("assets/Football/Arenas/OlympicStadium.webp"),
   // Add more if you have non-NBA arenas...
 };
 
@@ -925,12 +1033,38 @@ export const neutralStadiums: Record<string, Stadium> = {
   "Corinthians Arena": {
     name: "Corinthians Arena",
     city: "São Paulo",
-    address:
-      "Av. Miguel Ignácio Curi, 111 - Vila Carmosina, São Paulo - SP, 08295-005, Brazil",
+    address: "Av. Miguel Ignácio Curi, 111 - Vila Carmosina, São Paulo - SP, 08295-005, Brazil",
     latitude: 23.5453,
     longitude: -46.4742,
     stadiumCapacity: "49,205",
     stadiumImage: require("assets/Football/Arenas/CorinthiansArena.webp"),
+  },
+  "Croke Park": {
+    name: "Croke Park",
+    city: "Dublin",
+    address: "Jones Road Dublin 3 D03 P6K7 Ireland",
+    latitude: 53.3607,
+    longitude: 6.2511,
+    stadiumCapacity: "82,300",
+    stadiumImage: require("assets/Football/Arenas/CrokePark.webp"),
+  },
+  "Tottenham Hotspur Stadium": {
+    name: "Tottenham Hotspur Stadium",
+    city: "London",
+    address: "782 High Rd, London N17 0BX, United Kingdom",
+    latitude: 51.6043,
+    longitude: 0.0662,
+    stadiumCapacity: "62,850",
+    stadiumImage: require("assets/Football/Arenas/TottenhamHotspurStadium.webp"),
+  },
+  "Olympic Stadium Berlin": {
+    name: "Olympiastadion Berlin",
+    city: "Berlin",
+    address: "Olympischer Platz 3, 14053 Berlin, Germany",
+    latitude: 51.5387,
+    longitude: 0.0165,
+    stadiumCapacity: "74,475",
+    stadiumImage: require("assets/Football/Arenas/OlympicStadium.webp"),
   },
 };
 
@@ -966,7 +1100,6 @@ export function getNFLTeamsLogo(
 
   return isDark ? team.logoLight || team.logo : team.logo;
 }
-
 
 export const getTeamName = (teamId: number | string, fallback?: string) => {
   const team = getTeamInfo(teamId);
@@ -1011,6 +1144,14 @@ export const logoMap: Record<string, any> = {
   ChargersLogo: ChargersLogo,
   VikingsLogo: VikingsLogo,
 };
+
+export const teamsNFLById: Record<string, NFLTeam> = teams.reduce(
+  (map, team) => {
+    map[team.id] = team;
+    return map;
+  },
+  {} as Record<string, NFLTeam>
+);
 
 // Map your numeric team IDs to ESPN team IDs
 export const teamIdMap: Record<number, string> = {

@@ -38,7 +38,7 @@ import {
 } from "react-native";
 import { useChatStore } from "store/chatStore";
 import { matchBroadcastToGame } from "utils/matchBroadcast";
-
+import GameOddsSection from "components/GameDetails/GameOddsSection";
 export default function GameDetailsScreen() {
   const { game } = useLocalSearchParams();
   const isDark = useColorScheme() === "dark";
@@ -342,13 +342,13 @@ useEffect(() => {
           ) : ( */}
           <>
             {/* --- Odds Section (Upcoming + Historical) --- */}
-            {/* <GameOddsSection
+            <GameOddsSection
                 date={date}
                 gameDate={gameDate}
                 homeCode={homeCode}
                 awayCode={awayCode}
                 gameId={stableGameId}
-              /> */}
+              />
 
             {linescore && (
               <LineScore

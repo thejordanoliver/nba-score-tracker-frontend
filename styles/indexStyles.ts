@@ -1,7 +1,6 @@
 // HomeScreen.styles.ts
-import { StyleSheet } from "react-native";
 import { Fonts } from "constants/fonts";
-
+import { StyleSheet } from "react-native";
 
 export const getStyles = (isDark: boolean) =>
   StyleSheet.create({
@@ -14,36 +13,10 @@ export const getStyles = (isDark: boolean) =>
     tabBarWrapper: {
       paddingHorizontal: 80,
     },
-
     contentArea: {
       flex: 1,
     },
-    favorites: {
-      flexDirection: "row",
-      marginBottom: 20,
-      paddingBottom: 0,
-      paddingTop: 24,
-    },
-    teamIcon: {
-      alignItems: "center",
-      marginRight: 16,
-      marginBottom: 0,
-    },
-    logoWrapper: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
-      borderWidth: 0.5,
-      borderColor: "black",
-    },
-    logo: {
-      width: 50,
-      height: 50,
-      resizeMode: "contain",
-    },
+
     editIcon: {
       backgroundColor: isDark ? "#fff" : "#1d1d1d",
       width: 80,
@@ -57,16 +30,6 @@ export const getStyles = (isDark: boolean) =>
       fontSize: 12,
       color: isDark ? "#ccc" : "#1d1d1d",
       fontFamily: Fonts.OSREGULAR,
-    },
-    heading: {
-      fontSize: 24,
-      fontFamily: Fonts.OSMEDIUM,
-      marginBottom: 8,
-      marginTop: 8,
-      paddingBottom: 4,
-      borderBottomWidth: 1,
-      borderBottomColor: isDark ? "#444" : "#ccc",
-      color: isDark ? "#fff" : "#1d1d1d",
     },
     emptyText: {
       textAlign: "center",

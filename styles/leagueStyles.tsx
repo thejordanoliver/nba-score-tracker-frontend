@@ -18,25 +18,16 @@ export const getScoresStyles = (isDark: boolean) =>
       alignItems: "center",
       marginVertical: 8,
     },
-
-    sectionHeading: {
-      fontSize: 18,
-      fontFamily: Fonts.OSSEMIBOLD,
-      marginLeft: 12,
-      marginTop: 16,
-      marginBottom: 8,
-      color: isDark ? "#fff" : "#000",
-    },
-
+   
     dateNavButton: {
       paddingHorizontal: 16,
       paddingVertical: 8,
       marginHorizontal: 12,
-      backgroundColor: isDark ? "white" : "black",
+      backgroundColor: isDark ? "#fff" : "#1d1d1d",
       borderRadius: 6,
     },
     dateNavText: {
-      color: isDark ? "black" : "white",
+      color: isDark ? "#1d1d1d" : "#fff",
       fontWeight: "normal",
       fontSize: 18,
       fontFamily: Fonts.OSMEDIUM,

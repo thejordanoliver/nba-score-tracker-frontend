@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Image, Text, View } from "react-native";
 import { teams, teamsById } from "../constants/teams";
+import { teams as teamsNFL, teamsNFLById } from "../constants/teamsNFL";
 import { Fonts } from "constants/fonts";
 
 type TeamColors = {
@@ -38,27 +39,35 @@ export default function InfoCard({
   textColor,
   labelColor,
 }: Props) {
-  // Determine team colors from ID or name
+  // Determine team colors from NBA/NFL ID or name
   let teamObj: TeamColors | undefined;
 
-  if (teamId && teamsById[teamId]) {
-    teamObj = teamsById[teamId];
+  // --- ID checks ---
+  if (teamId && (teamsById[teamId] || teamsNFLById[teamId])) {
+    teamObj = teamsById[teamId] ?? teamsNFLById[teamId];
   }
 
+  // --- Name checks ---
   if (!teamObj && teamName) {
-    teamObj = teams.find(
-      (t) => t.fullName.toLowerCase() === teamName.toLowerCase()
-    );
+    teamObj =
+      teams.find((t) => t.fullName.toLowerCase() === teamName.toLowerCase()) ??
+      teamsNFL.find((t) => t.name.toLowerCase() === teamName.toLowerCase());
   }
 
+  // --- Provided team object fallback ---
   if (!teamObj && team.fullName) {
-    teamObj = teams.find(
-      (t) => t.fullName?.toLowerCase() === team.fullName?.toLowerCase()
-    );
+    teamObj =
+      teams.find(
+        (t) => t.fullName?.toLowerCase() === team.fullName?.toLowerCase()
+      ) ??
+      teamsNFL.find(
+        (t) => t.name?.toLowerCase() === team.fullName?.toLowerCase()
+      );
   }
 
+  // Final fallback
   if (!teamObj) {
-    teamObj = team; // fallback to provided team object
+    teamObj = team;
   }
 
   // Define whether label requires wrapping

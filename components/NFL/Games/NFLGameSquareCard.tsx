@@ -4,10 +4,9 @@ import {
   getTeamAbbreviation,
   getTeamName,
 } from "constants/teamsNFL";
+import { useRouter } from "expo-router";
 import { useNFLGameBroadcasts } from "hooks/NFLHooks/useNFLGameBroadcasts";
 import { useNFLTeamRecord } from "hooks/NFLHooks/useNFLTeamRecord";
-import { Game } from "types/nfl";
-import { useRouter } from "expo-router";
 import { memo, useMemo } from "react";
 import {
   Image,
@@ -210,7 +209,15 @@ function NFLGameSquareCard({ game, isDark }: Props) {
             <>
               <Text style={styles.date}>{formattedDate}</Text>
               <Text
-                style={[styles.time, { color: isDark ? "#fff" : "#1d1d1d" }]}
+                style={[
+                  styles.time,
+                  {
+                    fontFamily: Fonts.OSREGULAR,
+                    color: isDark
+                      ? "rgba(255,255,255, .5)"
+                      : "rgba(0, 0, 0, .5)",
+                  },
+                ]}
               >
                 {formattedTime}
               </Text>
@@ -234,18 +241,25 @@ function NFLGameSquareCard({ game, isDark }: Props) {
           {status.isCanceled && <Text style={styles.finalText}>Cancelled</Text>}
           {status.isDelayed && <Text style={styles.finalText}>Delayed</Text>}
         </View>
-        {broadcasts.length > 0 && (
-          <Text style={styles.broadcast}>
-            {broadcasts
+        {broadcasts.length > 0 &&
+          (() => {
+            const names = broadcasts
               .map((b) =>
                 Array.isArray(b.names)
                   ? b.names.join("/")
                   : b.name || b.shortName || ""
               )
-              .filter(Boolean)
-              .join("/")}
-          </Text>
-        )}
+              .filter(Boolean);
+
+            let display = "";
+            if (names.includes("ESPN") && names.includes("ABC")) {
+              display = "ESPN/ABC";
+            } else {
+              display = names[0]; // just the first broadcast
+            }
+
+            return <Text style={styles.broadcast}>{display}</Text>;
+          })()}
       </View>
     </TouchableOpacity>
   );
@@ -257,7 +271,6 @@ export const getStyles = (dark: boolean) =>
   StyleSheet.create({
     card: {
       flexDirection: "row",
-      width: "100%",
       height: 120,
       backgroundColor: dark ? "#2e2e2e" : "#eee",
       justifyContent: "space-between",
@@ -331,9 +344,9 @@ export const getStyles = (dark: boolean) =>
     },
     date: {
       fontSize: 12,
-      fontFamily: Fonts.OSEXTRALIGHT,
       textAlign: "center",
-      color: dark ? "#fff" : "#000",
+      color: dark ? "#fff" : "#1d1d1d",
+      fontFamily: Fonts.OSMEDIUM,
     },
     dateFinal: {
       fontFamily: Fonts.OSREGULAR,

@@ -36,12 +36,54 @@ function NFLGameCard({ game, isDark }: Props) {
     : null;
   const gameDateStr = gameDate?.toISOString();
 
-  // Fetch live possession info
-  const { possessionTeamId, displayClock } = useNFLGamePossession(
-    getTeamName(homeId),
-    getTeamName(awayId),
-    gameDateStr
-  );
+// compute status first
+const status = useMemo(() => {
+  const long = game.game.status.long ?? "";
+  const short = game.game.status.short?.toLowerCase() ?? "";
+  const longLower = long.toLowerCase();
+
+  const wentOT =
+    longLower.includes("ot") ||
+    longLower.includes("over time") ||
+    short.includes("ot");
+
+  const isFinal =
+    long === "Finished" ||
+    longLower.includes("final") ||
+    longLower.includes("after over") ||
+    longLower.includes("aot") ||
+    short.includes("ft");
+
+  const live = ![
+    "Not Started",
+    "Finished",
+    "Canceled",
+    "Delayed",
+    "Postponed",
+    "Halftime",
+  ].includes(long);
+
+  return {
+    isScheduled: long === "Not Started",
+    isFinal,
+    wentOT,
+    isCanceled: long === "Canceled",
+    isDelayed: long === "Delayed",
+    isPostponed: long === "Postponed",
+    isHalftime: long === "Halftime",
+    isLive: live && !isFinal,
+    short: game.game.status.short,
+    long,
+    timer: game.game.status.timer,
+  };
+}, [game.game.status]);
+
+// ✅ only use hook when game is live
+const possession = status.isLive
+  ? useNFLGamePossession(getTeamName(homeId), getTeamName(awayId), gameDateStr)
+  : { possessionTeamId: undefined, displayClock: undefined };
+
+const { possessionTeamId, displayClock } = possession;
 
   const gameId = game?.game?.id;
 
@@ -97,46 +139,6 @@ function NFLGameCard({ game, isDark }: Props) {
     return short; // fallback
   };
 
-  const status = useMemo(() => {
-    const long = game.game.status.long ?? "";
-    const short = game.game.status.short?.toLowerCase() ?? "";
-    const longLower = long.toLowerCase();
-
-    const wentOT =
-      longLower.includes("ot") ||
-      longLower.includes("over time") ||
-      short.includes("ot");
-
-    const isFinal =
-      long === "Finished" ||
-      longLower.includes("final") ||
-      longLower.includes("after over") ||
-      longLower.includes("aot") ||
-      short.includes("ft");
-
-    const live = ![
-      "Not Started",
-      "Finished",
-      "Canceled",
-      "Delayed",
-      "Postponed",
-      "Halftime",
-    ].includes(long);
-
-    return {
-      isScheduled: long === "Not Started",
-      isFinal,
-      wentOT,
-      isCanceled: long === "Canceled",
-      isDelayed: long === "Delayed",
-      isPostponed: long === "Postponed",
-      isHalftime: long === "Halftime",
-      isLive: live && !isFinal,
-      short: game.game.status.short,
-      long,
-      timer: game.game.status.timer,
-    };
-  }, [game.game.status]);
 
   const formattedDate = gameDate
     ? gameDate.toLocaleDateString("en-US", { month: "numeric", day: "numeric" })

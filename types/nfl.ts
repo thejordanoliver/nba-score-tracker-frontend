@@ -8,6 +8,7 @@ export type NFLTeam = {
   location: string;
   address?: string;
   coach: string;
+  coachImage?: string;
   owner: string;
   stadium: string;
   established: number;
@@ -76,7 +77,7 @@ export type NFLGamesResponse = {
 
 export type Game = {
   game: {
-    id: number;
+    id: string; // ✅
     stage: string;
     week: string;
     date: {
@@ -92,7 +93,7 @@ export type Game = {
     status: {
       short: string;
       long: string;
-      timer: string | null;
+      timer?: string | null; // allow null too
     };
   };
   league: {
@@ -110,3 +111,34 @@ export type Game = {
     away: Record<string, number | null>;
   };
 };
+
+export interface RawNFLGame {
+  id: string | number;
+  date: string; // ISO string
+  time?: string; // "HH:mm" optional
+  status: {
+    short: string;
+    long: string;
+    timer?: string | null;
+  };
+  venue?: {
+    name: string;
+    city: string;
+  };
+  week?: string;
+  stage?: string;
+  teams: {
+    home: { id: string; name: string; logo?: string };
+    away: { id: string; name: string; logo?: string };
+  };
+  scores: {
+    home?: Record<string, any>;
+    away?: Record<string, any>;
+  };
+  league?: {
+    id?: number;
+    name?: string;
+    season?: string;
+    logo?: string;
+  };
+}

@@ -28,15 +28,7 @@ export function useNFLTeamGames(
 
       const games = res.data.response || [];
 
-      games.forEach((g: Game, i: number) => {
-        const ts = g?.game?.date?.timestamp;
-        if (ts) {
-          const utc = new Date(ts * 1000);
-          console.log(
-            `Game[${i}] → timestamp: ${ts}, UTC: ${utc.toISOString()}, Local: ${utc.toString()}`
-          );
-        }
-      });
+      
 
       setGames(games);
     } catch (err: any) {

@@ -109,6 +109,8 @@ export default function CenterInfo({
     }
   }
 
+  
+
   return (
     <View style={{ alignItems: "center" }}>
       {isNBAFinals ? (

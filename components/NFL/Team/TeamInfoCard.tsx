@@ -30,7 +30,7 @@ export default function TeamInfoCard({ teamId }: Props) {
     return null;
   }
 
-  const primaryColor = team.color ?? (isDark ? "#111" : "#eee");
+  const primaryColor = team.color ?? (isDark ? "#1d1d1d" : "#fff");
 
   return (
     <View style={{ width: "100%" }}>
@@ -46,7 +46,7 @@ export default function TeamInfoCard({ teamId }: Props) {
       <InfoCard
         label="Head Coach"
         value={team.coach ?? "N/A"}
-        // image={team.coach_image ? coachImages[team.coach_image] : undefined} // Make sure coachImages is imported
+        image={team.coachImage} // Make sure coachImages is imported
         isDark={isDark}
         team={team}
         backgroundColor={primaryColor}

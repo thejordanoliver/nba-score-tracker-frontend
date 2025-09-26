@@ -4,10 +4,9 @@ import {
   getTeamAbbreviation,
   getTeamName,
 } from "constants/teamsNFL";
+import { useRouter } from "expo-router";
 import { useNFLGameBroadcasts } from "hooks/NFLHooks/useNFLGameBroadcasts";
 import { useNFLTeamRecord } from "hooks/NFLHooks/useNFLTeamRecord";
-import { Game } from "types/nfl";
-import { useRouter } from "expo-router";
 import { memo, useMemo } from "react";
 import {
   Image,
@@ -36,8 +35,6 @@ function NFLStackedGameCard({ game, isDark }: Props) {
   const awayId = String(game?.teams?.away?.id);
 
   const gameId = game?.game?.id;
-
-  console.log(`Game ID: ${gameId}`);
 
   // Compute game date
   const gameDate = useMemo(() => {
@@ -118,7 +115,7 @@ function NFLStackedGameCard({ game, isDark }: Props) {
   }, [game.game.status]);
 
   const formattedDate = gameDate
-    ? gameDate.toLocaleDateString("en-US", { month: "numeric", day: "numeric" })
+    ? gameDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
     : "";
 
   const formattedTime = gameDate
@@ -166,7 +163,7 @@ function NFLStackedGameCard({ game, isDark }: Props) {
           <View style={styles.teamSection}>
             <View style={styles.teamWrapper}>
               <Image source={awayTeam.logo} style={styles.logo} />
-              <Text style={styles.teamName}>{awayTeam.code}</Text>
+              <Text style={styles.teamName}>{awayTeam.name}</Text>
             </View>
 
             {/* Away record / score */}
@@ -189,7 +186,7 @@ function NFLStackedGameCard({ game, isDark }: Props) {
             <View style={styles.teamWrapper}>
               {/* Home Team */}
               <Image source={homeTeam.logo} style={styles.logo} />
-              <Text style={styles.teamName}>{homeTeam.code}</Text>
+              <Text style={styles.teamName}>{homeTeam.name}</Text>
             </View>
             <Text
               style={[
@@ -212,7 +209,12 @@ function NFLStackedGameCard({ game, isDark }: Props) {
             <>
               <Text style={styles.date}>{formattedDate}</Text>
               <Text
-                style={[styles.time, { color: isDark ? "#fff" : "#1d1d1d" }]}
+                style={[
+                  styles.time,
+                  {
+                    color: dark ? "rgba(255,255,255, .5)" : "rgba(0, 0, 0, .5)",
+                  },
+                ]}
               >
                 {formattedTime}
               </Text>
@@ -225,7 +227,7 @@ function NFLStackedGameCard({ game, isDark }: Props) {
             </>
           )}
           {status.isHalftime && <Text style={styles.date}>{status.long}</Text>}
-        {status.isFinal && (
+          {status.isFinal && (
             <>
               <Text style={styles.finalText}>
                 {status.wentOT ? "Final/OT" : "Final"}
@@ -236,18 +238,27 @@ function NFLStackedGameCard({ game, isDark }: Props) {
 
           {status.isCanceled && <Text style={styles.finalText}>Cancelled</Text>}
           {status.isDelayed && <Text style={styles.finalText}>Delayed</Text>}
-          {broadcasts.length > 0 && (
-            <Text style={styles.broadcast}>
-              {broadcasts
+
+          {/* ✅ Broadcasts (only first unless ESPN + ABC both exist) */}
+          {broadcasts.length > 0 &&
+            (() => {
+              const names = broadcasts
                 .map((b) =>
                   Array.isArray(b.names)
                     ? b.names.join("/")
                     : b.name || b.shortName || ""
                 )
-                .filter(Boolean)
-                .join("/")}
-            </Text>
-          )}
+                .filter(Boolean);
+
+              let display = "";
+              if (names.includes("ESPN") && names.includes("ABC")) {
+                display = "ESPN/ABC";
+              } else {
+                display = names[0]; // just the first broadcast
+              }
+
+              return <Text style={styles.broadcast}>{display}</Text>;
+            })()}
         </View>
       </View>
     </TouchableOpacity>
@@ -287,12 +298,12 @@ export const getStyles = (dark: boolean) =>
       justifyContent: "flex-start",
       alignItems: "center",
       gap: 8,
+      width: 80,
       flex: 1,
-      paddingLeft: 4,
     },
     logo: {
-      width: 28,
-      height: 28,
+      width: 32,
+      height: 32,
       resizeMode: "contain",
     },
     teamName: {
@@ -306,13 +317,14 @@ export const getStyles = (dark: boolean) =>
       fontSize: 18,
       fontFamily: Fonts.OSBOLD,
       textAlign: "right",
-      color: dark ? "#aaa" : "#888",
+      color: dark ? "#fff" : "#1d1d1d",
+      width: 40,
     },
     teamRecord: {
       fontSize: 18,
       fontFamily: Fonts.OSBOLD,
       textAlign: "right",
-      color: dark ? "#aaa" : "#888",
+      color: dark ? "#fff" : "#1d1d1d",
     },
     info: {
       alignItems: "center",
@@ -324,18 +336,19 @@ export const getStyles = (dark: boolean) =>
       fontFamily: Fonts.OSMEDIUM,
       fontSize: 16,
       color: dark ? "#ff4444" : "#cc0000",
+      fontWeight: "bold",
       textAlign: "center",
-      width: 80,
+      width: 40,
     },
     date: {
       fontSize: 12,
-      fontFamily: Fonts.OSEXTRALIGHT,
+      fontFamily: Fonts.OSMEDIUM,
       textAlign: "center",
-      color: dark ? "#fff" : "#000",
+      color: dark ? "#fff" : "#1d1d1d",
     },
     dateFinal: {
       fontFamily: Fonts.OSREGULAR,
-      color: dark ? "#fff" : "#1d1d1d",
+      color: dark ? "rgba(255,255,255, .5)" : "rgba(0, 0, 0, .5)",
       fontSize: 14,
     },
     time: {
@@ -354,6 +367,6 @@ export const getStyles = (dark: boolean) =>
       fontSize: 12,
       fontFamily: Fonts.OSREGULAR,
       textAlign: "center",
-      color: dark ? "rgba(255,255,255, .5)" : "rgba(0, 0, 0, 0.5)",
+      color: dark ? "rgba(255,255,255, .5)" : "rgba(0, 0, 0, .5)",
     },
   });

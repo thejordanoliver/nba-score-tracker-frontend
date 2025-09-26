@@ -264,7 +264,7 @@ const getStyles = (isDark: boolean) =>
     name: {
       fontSize: 16,
       fontFamily: Fonts.OSMEDIUM,
-      color: isDark ? "#fff" : "#000",
+      color: isDark ? "#fff" : "#1d1d1d",
     },
     jersey: {
       fontSize: 12,
