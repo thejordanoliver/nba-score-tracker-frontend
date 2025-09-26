@@ -1,10 +1,9 @@
 import { Fonts } from "constants/fonts";
-import { useESPNBroadcasts } from "hooks/useESPNBroadcasts";
-import { useTeamInfo } from "hooks/useTeamInfo";
-import { matchBroadcastToGame } from "utils/matchBroadcast";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { useESPNBroadcasts } from "hooks/useESPNBroadcasts";
+import { useTeamInfo } from "hooks/useTeamInfo";
 import { useMemo } from "react";
 import {
   StyleSheet,
@@ -14,6 +13,7 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import { matchBroadcastToGame } from "utils/matchBroadcast";
 
 import { teams } from "../../constants/teams";
 import { useFetchPlayoffGames } from "../../hooks/usePlayoffSeries";
@@ -754,7 +754,6 @@ export const getStyles = (dark: boolean) =>
       fontSize: 12,
       fontFamily: Fonts.OSREGULAR,
       textAlign: "center",
-      marginTop: 4,
       color: dark ? "rgba(255,255,255, .5)" : "rgba(0, 0, 0, .5)",
     },
   });

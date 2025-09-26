@@ -647,7 +647,6 @@ export const getStyles = (dark: boolean) =>
   StyleSheet.create({
     card: {
       flexDirection: "row",
-      width: "100%",
       height: 120,
       backgroundColor: dark ? "#2e2e2e" : "#eee",
       justifyContent: "space-between",
@@ -660,6 +659,7 @@ export const getStyles = (dark: boolean) =>
       justifyContent: "center",
       borderRightColor: dark ? "#444" : "#888",
       borderRightWidth: 0.5,
+      paddingRight: 12,
       gap: 8,
     },
     teamSection: {
@@ -698,17 +698,17 @@ export const getStyles = (dark: boolean) =>
     },
     teamRecord: {
       width: 40,
-      fontSize: 12,
-      fontFamily: Fonts.OSREGULAR,
-      textAlign: "center",
+      fontSize: 16,
+      fontFamily: Fonts.OSBOLD,
+      textAlign: "right",
       marginVertical: 2,
-      color: dark ? "#bbb" : "#888",
+      color: dark ? "#fff" : "#1d1d1d",
     },
     info: {
       alignItems: "center",
       justifyContent: "center",
       minHeight: 30,
-      width: 60,
+      width: 44,
     },
     finalText: {
       fontFamily: Fonts.OSMEDIUM,
@@ -720,9 +720,9 @@ export const getStyles = (dark: boolean) =>
     },
     date: {
       fontSize: 12,
-      fontFamily: Fonts.OSEXTRALIGHT,
       textAlign: "center",
-      color: dark ? "#fff" : "#000",
+      color: dark ? "#fff" : "#1d1d1d",
+      fontFamily: Fonts.OSMEDIUM,
     },
     dateFinal: {
       fontFamily: Fonts.OSREGULAR,
@@ -747,5 +747,9 @@ export const getStyles = (dark: boolean) =>
       textAlign: "center",
       marginTop: 4,
       color: dark ? "#fff" : "#1d1d1d",
+      position: "absolute",
+      top: 2,
+      left: 12,
     },
   });
+

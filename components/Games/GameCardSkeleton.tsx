@@ -113,7 +113,6 @@ const getStyles = (isDark: boolean) =>
       borderRadius: 10,
       paddingVertical: 14,
       paddingHorizontal: 20,
-      marginVertical: 8,
       alignItems: "center",
       justifyContent: "space-between",
     },

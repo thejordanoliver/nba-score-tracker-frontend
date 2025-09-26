@@ -1,13 +1,15 @@
-// components/Heading.tsx
+// components/Headings/HeadingTwo.tsx
 import { Fonts } from "constants/fonts";
 import React from "react";
-import { StyleSheet, Text, useColorScheme } from "react-native";
+import { StyleProp, StyleSheet, Text, TextStyle, useColorScheme } from "react-native";
+
 type Props = {
   children: React.ReactNode;
   lighter?: boolean; // new prop to force lighter colors
+  style?: StyleProp<TextStyle>; // allow custom styles
 };
 
-const HeadingTwo: React.FC<Props> = ({ children, lighter }) => {
+const HeadingTwo: React.FC<Props> = ({ children, lighter, style }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -19,6 +21,7 @@ const HeadingTwo: React.FC<Props> = ({ children, lighter }) => {
       style={[
         styles.heading,
         { color: textColor, borderBottomColor: borderColor },
+        style, // merge custom styles last
       ]}
     >
       {children}

@@ -62,7 +62,7 @@ const getStyles = (isDark: boolean) =>
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      marginVertical: 8,
+      marginVertical: 12,
     },
     dateNavButton: {
       paddingHorizontal: 16,

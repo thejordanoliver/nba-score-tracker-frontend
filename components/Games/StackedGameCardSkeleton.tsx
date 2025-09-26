@@ -104,7 +104,6 @@ const getStyles = (isDark: boolean) =>
       backgroundColor: isDark ? "#2e2e2e" : "#eee",
       borderRadius: 12,
       padding: 12,
-      marginVertical: 8,
       justifyContent: "space-between",
       minHeight: 100,
     },
