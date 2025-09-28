@@ -72,7 +72,7 @@ export default function SeasonLeadersList({
       renderItem={({ item: [stat, players] }) => (
         <>
           <View style={styles.categoryContainer}>
-            <HeadingTwo>{STAT_DISPLAY_NAMES[stat] || stat} Leaders</HeadingTwo>
+            <HeadingTwo style={{marginBottom: 12}}>{STAT_DISPLAY_NAMES[stat] || stat} Leaders</HeadingTwo>
             <View style={styles.playersList}>
               {players?.map((player) => {
                 const statKey = `avg_${stat}` as keyof PlayerLeader;

@@ -5,6 +5,8 @@ import HeadingTwo from "components/Headings/HeadingTwo";
 import NewsHighlightsList from "components/News/NewsHighlightsList";
 import SummerGamesList from "components/summer-league/SummerGamesList";
 import { useRouter } from "expo-router";
+import { useCombinedGames } from "hooks/useCombinedGames";
+import { useCombinedNewsAndHighlights } from "hooks/useCombinedNewsAndHighlights";
 import { useSummerLeagueGames } from "hooks/useSummerLeagueGames";
 import * as React from "react";
 import {
@@ -16,7 +18,7 @@ import {
 } from "react";
 import { Animated, Text, View, useColorScheme } from "react-native";
 import { getStyles } from "styles/indexStyles";
-import { Game, summerGame } from "types/types";
+import { summerGame } from "types/types";
 import { CustomHeaderTitle } from "../../components/CustomHeaderTitle";
 import FavoritesScroll from "../../components/FavoritesScroll";
 import FavoritesScrollSkeleton from "../../components/FavoritesScrollSkeleton";
@@ -27,54 +29,6 @@ import { useNews } from "../../hooks/useNews";
 import { useWeeklyGames } from "../../hooks/useWeeklyGames";
 
 type Tab = "scores" | "news";
-
-type NewsItem = {
-  id: string;
-  title: string;
-  source: string;
-  url: string;
-  thumbnail?: string;
-  publishedAt?: string;
-};
-
-type HighlightItem = {
-  videoId: string;
-  title: string;
-  publishedAt: string;
-  thumbnail: string;
-};
-
-type CombinedItem =
-  | (NewsItem & { itemType: "news" })
-  | (HighlightItem & { itemType: "highlight" });
-
-function mapSummerGameToGame(g: summerGame): Game {
-  return {
-    ...g,
-    status:
-      g.status.short === "FT"
-        ? "Final"
-        : g.status.short === "NS"
-        ? "Scheduled"
-        : "In Progress",
-    period: g.period !== undefined ? String(g.period) : undefined,
-  };
-}
-
-const isTodayOrTomorrow = (dateString: string) => {
-  const gameDate = new Date(dateString);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const tomorrow = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1
-  );
-  return (
-    (gameDate >= today && gameDate < new Date(today.getTime() + 86400000)) ||
-    (gameDate >= tomorrow && gameDate < new Date(tomorrow.getTime() + 86400000))
-  );
-};
 
 export default function HomeScreen() {
   const {
@@ -121,12 +75,14 @@ export default function HomeScreen() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Save news articles in store
   useEffect(() => {
     if (news && news.length > 0) {
       setArticles(news);
     }
   }, [news, setArticles]);
 
+  // Load cached favorites
   useFocusEffect(
     useCallback(() => {
       const loadFavorites = async () => {
@@ -143,10 +99,12 @@ export default function HomeScreen() {
     }, [])
   );
 
+  // Load cached news on mount
   useEffect(() => {
     useNewsStore.getState().loadCachedArticles();
   }, []);
 
+  // Set header
   useLayoutEffect(() => {
     navigation.setOptions({
       header: () => (
@@ -191,43 +149,14 @@ export default function HomeScreen() {
 
   const styles = getStyles(isDark);
 
-  const filteredWeekly = weeklyGames.filter((g) => isTodayOrTomorrow(g.date));
-  const filteredSummer: summerGame[] = summerGames.filter((g) =>
-    isTodayOrTomorrow(g.date)
+  // 🔹 Use extracted hooks
+  const { combinedGames, filteredSummer, onlySummerLeagueToday } =
+    useCombinedGames(weeklyGames, summerGames);
+
+  const combinedNewsAndHighlights = useCombinedNewsAndHighlights(
+    news,
+    highlights
   );
-
-  const onlySummerLeagueToday =
-    filteredWeekly.length === 0 && filteredSummer.length > 0;
-
-  const combinedGames = [...filteredWeekly];
-  filteredSummer.forEach((g) => {
-    if (!combinedGames.some((cg) => cg.id === g.id)) {
-      combinedGames.push(mapSummerGameToGame(g));
-    }
-  });
-
-  const combinedNewsAndHighlights: CombinedItem[] = React.useMemo(() => {
-    const taggedNews: CombinedItem[] = news.map((item) => ({
-      ...item,
-      itemType: "news",
-      publishedAt: item.publishedAt ?? item.date ?? new Date().toISOString(),
-    }));
-    const taggedHighlights: CombinedItem[] = highlights.map((item) => ({
-      ...item,
-      itemType: "highlight",
-      publishedAt: item.publishedAt ?? new Date().toISOString(),
-    }));
-
-    const combined = [...taggedNews, ...taggedHighlights];
-
-    combined.sort((a, b) => {
-      const aDate = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-      const bDate = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-      return bDate - aDate;
-    });
-
-    return combined;
-  }, [news, highlights]);
 
   return (
     <View style={styles.container}>
@@ -256,13 +185,13 @@ export default function HomeScreen() {
         />
       </View>
 
-
       {selectedTab !== "news" &&
         ((weeklyGamesLoading || summerLoading) && !favorites.length ? (
           <FavoritesScrollSkeleton />
         ) : (
           <FavoritesScroll favoriteTeamIds={favorites} />
         ))}
+
       <View style={styles.contentArea}>
         {selectedTab === "scores" ? (
           <>

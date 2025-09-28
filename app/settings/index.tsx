@@ -90,29 +90,7 @@ export default function SettingsScreen() {
           />
         </Pressable>
 
-        <Pressable
-          style={[
-            styles.optionButton,
-            {
-              borderBottomColor: isDark
-                ? "rgba(255,255,255,0.2)"
-                : "rgba(120, 120, 120, 0.5)",
-            },
-          ]}
-          onPress={() => router.push("/settings/appearance")}
-        >
-          <Text
-            style={[styles.optionText, { color: isDark ? "#fff" : "#1d1d1d" }]}
-          >
-            Appearance
-          </Text>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={isDark ? "#fff" : "#1d1d1d"}
-          />
-        </Pressable>
-
+  
         <Pressable
           style={[
             styles.optionButton,
