@@ -10,9 +10,10 @@ import GameInjuries from "./TeamInjuriesList";
 type Props = {
   injuries: TeamInjury[];
   lighter?: boolean;
+  loading?: boolean; // ✅ add this here too
 };
 
-export default function TeamInjuriesTab({ injuries, lighter = false }: Props) {
+export default function TeamInjuries({ injuries, lighter = false }: Props) {
   const isDark = useColorScheme() === "dark";
   const [selectedTeam, setSelectedTeam] = useState<string>("");
 
@@ -52,7 +53,9 @@ export default function TeamInjuriesTab({ injuries, lighter = false }: Props) {
 
   return (
     <View>
-      <HeadingTwo lighter={lighter}>Injury Report</HeadingTwo>
+      <HeadingTwo style={{ marginBottom: 12 }} lighter={lighter}>
+        Injury Report
+      </HeadingTwo>
 
       <View style={{ alignSelf: "center", marginBottom: 12 }}>
         <FixedWidthTabBar

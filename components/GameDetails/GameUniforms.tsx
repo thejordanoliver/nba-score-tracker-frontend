@@ -42,7 +42,7 @@ export default function GameUniforms({
   return (
     <>
       <View style={styles.container}>
-      <HeadingTwo lighter={lighter}>Uniform Matchup</HeadingTwo>
+      <HeadingTwo style={{ marginBottom: 12 }} lighter={lighter}>Uniform Matchup</HeadingTwo>
         <View style={styles.wrapper}>
         {/* Away Team Away uniforms */}
         <View style={styles.uniformsContainer}>

@@ -67,7 +67,7 @@ export const Weather: React.FC<Props> = ({
 
   return (
     <View style={{}}>
-      <HeadingTwo lighter={lighter}>Weather</HeadingTwo>
+      <HeadingTwo style={{ marginBottom: 12 }} lighter={lighter}>Weather</HeadingTwo>
 
       {loading && !error ? (
         <TeamLocationSkeleton />
@@ -100,12 +100,7 @@ export const Weather: React.FC<Props> = ({
               );
             })()}
 
-          <BlurView
-            intensity={30}
-            tint="systemThinMaterial"
-            style={StyleSheet.absoluteFill}
-          />
-
+       
           {/* Main weather Lottie */}
           {animation ? (
             <LottieView

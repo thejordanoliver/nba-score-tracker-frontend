@@ -105,8 +105,16 @@ export function CustomHeaderTitle({
     height: 56,
   };
 
-  const homeColor = homeTeam?.color || "#aaa";
-  const awayColor = awayTeam?.color || "#666";
+ const homeColor =
+  homeTeam?.code === "POR"
+    ? homeTeam.secondaryColor || homeTeam.color
+    : homeTeam?.color || "#aaa";
+
+const awayColor =
+  awayTeam?.code === "PHI"
+    ? awayTeam.secondaryColor || awayTeam.color
+    : awayTeam?.color || "#666";
+
 
   const GameHeader = useMemo(() => {
     if (tabName !== "Game" || !homeTeam || !awayTeam) return null;

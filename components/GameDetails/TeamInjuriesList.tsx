@@ -45,7 +45,7 @@ const TEAM_ID_MAP: Record<string, string> = {
   "27": "41",
 };
 
-export default function GameInjuries({ injuries, lighter }: Props) {
+export default function TeamInjuriesList({ injuries, lighter }: Props) {
   const isDark = useColorScheme() === "dark";
 
   if (!injuries?.length) {
@@ -166,7 +166,7 @@ export default function GameInjuries({ injuries, lighter }: Props) {
 const styles = (isDark: boolean) =>
   StyleSheet.create({
     container: {},
-    teamBlock: { marginBottom: 12 },
+    teamBlock: {},
     injuryItem: {
       flexDirection: "row",
       padding: 8,

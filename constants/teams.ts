@@ -898,7 +898,7 @@ export const teams = [
     secondaryColor: "rgb(255, 255, 255)",
     tertiaryColor: "rgba(0, 43, 92, 1)",
     arenaImage: SixersArena,
-    arenaName: "Wells Fargo Arena",
+    arenaName: "Xfinity Mobile Arena",
     coach: "Nick Nurse",
     coachImage: SixersCoach,
     championships: [1955, 1967, 1983],
@@ -909,8 +909,8 @@ export const teams = [
     conferenceChampionships: {
       Titles: [1950, 1954, 1955, 1965, 1967, 1977, 1980, 1982, 1983],
     },
-    latitude: 39.9012,
-    longitude: -75.172,
+    latitude: 39.9526,
+    longitude: -75.1652,
     address: "3601 South Broad Street, Philadelphia, PA 19148",
     arenaCapacity: "20,478",
     uniforms: {
@@ -1279,7 +1279,7 @@ export const neutralArenas: Record<string, Arena> = {
     arenaImage: require("../assets/Arenas/StanSheriffCenter.webp"),
   },
   "Accor Arena": {
-    name: "Accor Arenar",
+    name: "Accor Arena",
     address: "8 Bd de Bercy, 75012 Paris, France",
     latitude: 48.8575,
     longitude: 2.3514,
@@ -1318,7 +1318,6 @@ export const neutralArenas: Record<string, Arena> = {
     arenaCapacity: "13,295",
     arenaImage: require("../assets/Arenas/NorthCharlestonColiseum.webp"),
   },
-  // add more neutral arenas if needed here
   "Legacy Arena at BJCC": {
     name: "Legacy Arena at BJCC",
     address: "1001 19th St N, Birmingham, AL 35234",
@@ -1326,6 +1325,30 @@ export const neutralArenas: Record<string, Arena> = {
     longitude: -86.8025,
     arenaCapacity: "17,654",
     arenaImage: require("../assets/Arenas/LegacyArena.webp"),
+  },
+  "Arena CDMX": {
+    name: "Arena CDMX",
+    address: "Av. de las Granjas 800, Santa Barbara, Azcapotzalco, 02230 Ciudad de México, CDMX, Mexico",
+    latitude: 19.4326,
+    longitude: -99.1332,
+    arenaCapacity: "22,300",
+    arenaImage: require("../assets/Arenas/ArenaCDMX.webp"),
+  },
+  "Uber Arena": {
+    name: "Uber Arena",
+    address: "Uber Platz 1, 10243 Berlin, Germany",
+    latitude: 52.5243,
+    longitude: 13.4105,
+    arenaCapacity: "17,000",
+    arenaImage: require("../assets/Arenas/UberArena.webp"),
+  },
+  "The O2": {
+    name: "The O2",
+    address: "Peninsula Square, London SE10 0DX, United Kingdom",
+    latitude: 51.5072,
+    longitude: -0.1276,
+    arenaCapacity: "20,000",
+    arenaImage: require("../assets/Arenas/TheO2Arena.webp"),
   },
   // add more neutral arenas if needed here
 };

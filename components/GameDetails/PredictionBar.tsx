@@ -65,7 +65,7 @@ export default function PredictionBar({
   return (
     <>
       <View style={[styles.container]}>
-        <HeadingTwo>Win Predictor</HeadingTwo>
+        <HeadingTwo style={{ marginBottom: 12 }}>Win Predictor</HeadingTwo>
         <View style={[styles.wrapper]}>
           <View
             style={[

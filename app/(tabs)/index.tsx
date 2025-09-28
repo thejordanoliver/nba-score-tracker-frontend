@@ -256,13 +256,13 @@ export default function HomeScreen() {
         />
       </View>
 
+
       {selectedTab !== "news" &&
         ((weeklyGamesLoading || summerLoading) && !favorites.length ? (
           <FavoritesScrollSkeleton />
         ) : (
           <FavoritesScroll favoriteTeamIds={favorites} />
         ))}
-
       <View style={styles.contentArea}>
         {selectedTab === "scores" ? (
           <>

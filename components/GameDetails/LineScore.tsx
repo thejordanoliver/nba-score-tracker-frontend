@@ -64,7 +64,7 @@ export default function LineScore({
   const columnStyle: ViewStyle = { flex: 1, alignItems: "center" }; // ✅ cast as ViewStyle
   return (
     <View style={[styles.container, { borderColor }]}>
-      <HeadingTwo lighter={lighter}>Score Summary</HeadingTwo>
+      <HeadingTwo style={{ marginBottom: 12 }} lighter={lighter}>Score Summary</HeadingTwo>
 
       {/* Header */}
       <View style={styles.row}>

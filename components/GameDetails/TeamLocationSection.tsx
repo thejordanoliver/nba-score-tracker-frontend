@@ -81,9 +81,10 @@ const TeamLocationSection: React.FC<Props> = ({
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
 
+
   return (
     <View style={{ marginTop: 20 }}>
-      <HeadingTwo lighter={lighter}>Location</HeadingTwo>
+      <HeadingTwo style={{ marginBottom: 12 }} lighter={lighter}>Location</HeadingTwo>
 
       {loading && !error ? (
         <TeamLocationSkeleton />
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
   arenaTitle: {
     fontFamily: Fonts.OSBOLD,
     fontSize: 24,
-    paddingVertical: 10,
+    paddingTop: 8,
   },
   icon: {
     width: 54,
@@ -167,7 +168,8 @@ const styles = StyleSheet.create({
   addressContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 12,
+    marginTop: 8,
+    width: 380,
   },
 });
 

@@ -1,7 +1,13 @@
 // components/Headings/HeadingTwo.tsx
 import { Fonts } from "constants/fonts";
 import React from "react";
-import { StyleProp, StyleSheet, Text, TextStyle, useColorScheme } from "react-native";
+import {
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextStyle,
+  useColorScheme,
+} from "react-native";
 
 type Props = {
   children: React.ReactNode;
@@ -34,7 +40,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontFamily: Fonts.OSMEDIUM,
     paddingBottom: 4,
-    marginBottom: 12,
     borderBottomWidth: 1,
   },
 });

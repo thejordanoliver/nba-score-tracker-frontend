@@ -8,17 +8,18 @@ import {
   LastFiveGamesSwitcher,
   LineScore,
   PredictionBar,
-  TeamInjuriesTab,
+  TeamInjuriesList,
   TeamLocationSection,
   TeamRow,
   Weather,
 } from "components/GameDetails";
-import GameDetailsSkeleton from "components/GameDetails/GameDetailsSkeleton";
 import GameOddsSection from "components/GameDetails/GameOddsSection";
 import GameOfficials from "components/GameDetails/GameOfficials";
 import GameUniforms from "components/GameDetails/GameUniforms";
 import { Fonts } from "constants/fonts";
 import { arenaImages, neutralArenas, teams } from "constants/teams";
+import { useLocalSearchParams, useNavigation } from "expo-router";
+import { goBack } from "expo-router/build/global-state/routing";
 import { useESPNBroadcasts } from "hooks/useESPNBroadcasts";
 import { useGameDetails } from "hooks/useGameDetails";
 import { useGameStatistics } from "hooks/useGameStatistics";
@@ -26,20 +27,17 @@ import { useLastFiveGames } from "hooks/useLastFiveGames";
 import { useFetchPlayoffGames } from "hooks/usePlayoffSeries";
 import { useGamePrediction } from "hooks/usePredictions";
 import { useWeatherForecast } from "hooks/useWeather";
-import { useChatStore } from "store/chatStore";
-import { matchBroadcastToGame } from "utils/matchBroadcast";
-import { useLocalSearchParams, useNavigation } from "expo-router";
-import { goBack } from "expo-router/build/global-state/routing";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Easing,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from "react-native";
+import { useChatStore } from "store/chatStore";
+import { matchBroadcastToGame } from "utils/matchBroadcast";
 
 export default function GameDetailsScreen() {
   const { game } = useLocalSearchParams();
@@ -206,8 +204,8 @@ export default function GameDetailsScreen() {
   const headerTitle = isNeutralSiteByArena
     ? `${awayTeamData.code} vs ${homeTeamData.code}`
     : isHomeSiteByArena
-      ? `${awayTeamData.code} @ ${homeTeamData.code}`
-      : `${awayTeamData.code} vs ${homeTeamData.code}`;
+    ? `${awayTeamData.code} @ ${homeTeamData.code}`
+    : `${awayTeamData.code} vs ${homeTeamData.code}`;
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -322,100 +320,90 @@ export default function GameDetailsScreen() {
           {/* {isLoading || detailsLoading ? (
             <GameDetailsSkeleton />
           ) : ( */}
-            <>
-              {linescore && (
-                <LineScore
-                  linescore={linescore}
-                  homeCode={homeTeamData.code}
-                  awayCode={awayTeamData.code}
-                />
-              )}
-              
-              {/* --- Odds Section (Upcoming + Historical) --- */}
-              <GameOddsSection
-                date={date}
-                gameDate={gameDate}
-                homeCode={homeCode}
-                awayCode={awayCode}
-                gameId={stableGameId}
+          <>
+            {linescore && (
+              <LineScore
+                linescore={linescore}
+                homeCode={homeTeamData.code}
+                awayCode={awayTeamData.code}
               />
+            )}
 
-            
+            {/* --- Odds Section (Upcoming + Historical) --- */}
+            <GameOddsSection
+              date={date}
+              gameDate={gameDate}
+              homeCode={homeCode}
+              awayCode={awayCode}
+              gameId={stableGameId}
+            />
 
-              {/* --- Prediction --- */}
-              {prediction && !predictionLoading && !predictionError && (
-                <PredictionBar
-                  homeWinProbability={prediction.homeWinProbability * 100}
-                  awayWinProbability={prediction.awayWinProbability * 100}
-                  homeColor={homeColor}
-                  awayColor={awayColor}
-                  homeSecondaryColor={homeTeamData.secondaryColor}
-                  awaySecondaryColor={awayTeamData.secondaryColor}
-                  homeTeamId={homeTeamData.id}
-                  awayTeamId={awayTeamData.id}
-                />
-              )}
-              {predictionError && (
-                <Text style={{ color: "red" }}>{predictionError}</Text>
-              )}
+            <PredictionBar
+              homeWinProbability={(prediction?.homeWinProbability ?? 0) * 100}
+              awayWinProbability={(prediction?.awayWinProbability ?? 0) * 100}
+              homeColor={homeColor}
+              awayColor={awayColor}
+              homeSecondaryColor={homeTeamData.secondaryColor}
+              awaySecondaryColor={awayTeamData.secondaryColor}
+              homeTeamId={homeTeamData.id}
+              awayTeamId={awayTeamData.id}
+            />
 
-              <GameLeaders
-                gameId={gameId.toString()}
-                awayTeamId={awayTeamIdNum}
-                homeTeamId={homeTeamIdNum}
-              />
+            <GameLeaders
+              gameId={gameId.toString()}
+              awayTeamId={awayTeamIdNum}
+              homeTeamId={homeTeamIdNum}
+            />
 
-              <BoxScore
-                gameId={gameId.toString()}
-                homeTeamId={homeTeamIdNum}
-                awayTeamId={awayTeamIdNum}
-              />
-              {!statsLoading && gameStats && (
-                <GameTeamStats stats={gameStats} />
-              )}
+            <BoxScore
+              gameId={gameId.toString()}
+              homeTeamId={homeTeamIdNum}
+              awayTeamId={awayTeamIdNum}
+            />
 
-              <GameOfficials officials={data?.officials ?? []} />
-              <TeamInjuriesTab injuries={data?.injuries ?? []} />
+            <GameTeamStats stats={gameStats ?? []} />
 
-              <LastFiveGamesSwitcher
-                isDark={isDark}
-                home={{
-                  teamCode: homeTeamData.code,
-                  teamLogo: homeTeamData.logo,
-                  teamLogoLight: homeTeamData.logoLight,
-                  games: homeLastGames.games,
-                }}
-                away={{
-                  teamCode: awayTeamData.code,
-                  teamLogo: awayTeamData.logo,
-                  teamLogoLight: awayTeamData.logoLight,
-                  games: awayLastGames.games,
-                }}
-              />
+            <GameOfficials officials={data?.officials ?? []} />
+            <TeamInjuriesList injuries={data?.injuries ?? []} />
 
-              <GameUniforms
-                homeTeamId={homeTeamData.id}
-                awayTeamId={awayTeamData.id}
-              />
+            <LastFiveGamesSwitcher
+              isDark={isDark}
+              home={{
+                teamCode: homeTeamData.code,
+                teamLogo: homeTeamData.logo,
+                teamLogoLight: homeTeamData.logoLight,
+                games: homeLastGames.games,
+              }}
+              away={{
+                teamCode: awayTeamData.code,
+                teamLogo: awayTeamData.logo,
+                teamLogoLight: awayTeamData.logoLight,
+                games: awayLastGames.games,
+              }}
+            />
 
-              <TeamLocationSection
-                arenaImage={resolvedArenaImage}
-                arenaName={resolvedArenaName}
-                location={resolvedArenaCity}
-                address={resolvedArenaAddress}
-                arenaCapacity={resolvedArenaCapacity}
-                weather={weather}
-                loading={loading}
-                error={error}
-              />
-              <Weather
-                address={resolvedArenaAddress}
-                weather={weather}
-                loading={loading}
-                error={error}
-              />
-            </>
-          
+            <GameUniforms
+              homeTeamId={homeTeamData.id}
+              awayTeamId={awayTeamData.id}
+            />
+
+            <TeamLocationSection
+              arenaImage={resolvedArenaImage}
+              arenaName={resolvedArenaName}
+              location={resolvedArenaCity}
+              address={resolvedArenaAddress}
+              arenaCapacity={resolvedArenaCapacity}
+              weather={weather}
+              loading={loading}
+              error={error}
+            />
+            <Weather
+              address={resolvedArenaAddress}
+              weather={weather}
+              loading={loading}
+              error={error}
+            />
+          </>
         </View>
       </ScrollView>
 

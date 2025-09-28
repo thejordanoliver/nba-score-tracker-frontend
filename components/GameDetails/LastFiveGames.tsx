@@ -108,7 +108,7 @@ export default function LastFiveGamesSwitcher({
 
   return (
     <View style={styles.container}>
-      <HeadingTwo lighter={lighter}>Last Five Games</HeadingTwo>
+      <HeadingTwo style={{ marginBottom: 12 }} lighter={lighter}>Last Five Games</HeadingTwo>
       <View style={{ alignSelf: "center" }}>
         <FixedWidthTabBar
           tabs={tabs}
