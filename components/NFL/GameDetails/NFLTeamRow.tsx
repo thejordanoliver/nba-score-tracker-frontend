@@ -75,23 +75,23 @@ export const NFLTeamRow = ({
 
   const renderTimeouts = (remaining: number) => {
     const totalTimeouts = 3;
-    const dots = [];
-    for (let i = 0; i < totalTimeouts; i++) {
-      dots.push(
-        <View
-          key={i}
-          style={{
-            width: 8,
-            height: 2,
-            borderRadius: 4,
-            backgroundColor: isDark ? "#fff" : "#000",
-            opacity: i < remaining ? 1 : 0.3,
-            marginHorizontal: 2,
-          }}
-        />
-      );
-    }
-    return <View style={{ flexDirection: "row", marginTop: 2 }}>{dots}</View>;
+    return (
+      <View style={{ flexDirection: "row", marginTop: 2 }}>
+        {Array.from({ length: totalTimeouts }).map((_, i) => (
+          <View
+            key={i}
+            style={{
+              width: 8,
+              height: 2,
+              borderRadius: 4,
+              backgroundColor: isDark ? "#fff" : "#000",
+              opacity: i < remaining ? 1 : 0.5,
+              marginHorizontal: 2,
+            }}
+          />
+        ))}
+      </View>
+    );
   };
 
   // Determine what to display in the score box
@@ -113,11 +113,19 @@ export const NFLTeamRow = ({
               isScheduled
                 ? [
                     styles.preGameRecord,
-                    { color: colors.record, fontSize: size * 0.5, width: size + 10 },
+                    {
+                      color: colors.record,
+                      fontSize: size * 0.5,
+                      width: size + 10,
+                    },
                   ]
                 : [
                     styles.score,
-                    { ...getScoreStyle(), fontSize: size * 0.7, width: size + 10 },
+                    {
+                      ...getScoreStyle(),
+                      fontSize: size * 0.7,
+                      width: size + 10,
+                    },
                   ],
             ]}
           >
@@ -161,12 +169,10 @@ export const NFLTeamRow = ({
             </Text>
           </View>
 
-          {/* Timeouts */}
-          {timeouts > 0 && (
-            <View style={{ alignItems: "center", marginTop: 2 }}>
-              {renderTimeouts(timeouts)}
-            </View>
-          )}
+          {/* Timeouts - always show 3 */}
+          <View style={{ alignItems: "center", marginTop: 2 }}>
+            {renderTimeouts(timeouts)}
+          </View>
 
           {/* Record (only show final record if game finished) */}
           {isFinal && (
@@ -190,11 +196,19 @@ export const NFLTeamRow = ({
               isScheduled
                 ? [
                     styles.preGameRecord,
-                    { color: colors.record, fontSize: size * 0.5, width: size + 10 },
+                    {
+                      color: colors.record,
+                      fontSize: size * 0.5,
+                      width: size + 10,
+                    },
                   ]
                 : [
                     styles.score,
-                    { ...getScoreStyle(), fontSize: size * 0.7, width: size + 10 },
+                    {
+                      ...getScoreStyle(),
+                      fontSize: size * 0.7,
+                      width: size + 10,
+                    },
                   ],
             ]}
           >
