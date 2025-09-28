@@ -99,36 +99,46 @@ export default function CombinedGamesList({
     setModalVisible(true);
   };
 
-const transformNFLGame = (nflGame: NFLGameExtended): Game => ({
-  game: {
-    id: String(nflGame.game?.id ?? "0"),
-    stage: nflGame.game?.stage ?? "regular",
-    week: nflGame.game?.week ?? "1",
-    date: {
-      timezone: nflGame.game?.date?.timezone ?? "UTC",
-      date: nflGame.game?.date?.date ?? "",
-      time: nflGame.game?.date?.time ?? "",
-      timestamp: nflGame.game?.date?.timestamp ?? 0,
+const transformNFLGame = (nflGame: NFLGameExtended): Game => {
+  const gameId = String(nflGame.game?.id ?? "0");
+  const gameDate = nflGame.game?.date?.date ?? "";
+  const gameTime = nflGame.game?.date?.time ?? "";
+  const timestamp = nflGame.game?.date?.timestamp ?? 0;
+
+  console.log("NFL Game:", gameId, "Date:", gameDate, "Time:", gameTime, "Timestamp:", timestamp);
+
+  return {
+    game: {
+      id: gameId,
+      stage: nflGame.game?.stage ?? "regular",
+      week: nflGame.game?.week ?? "1",
+      date: {
+        timezone: nflGame.game?.date?.timezone ?? "UTC",
+        date: gameDate,
+        time: gameTime,
+        timestamp,
+      },
+      venue: nflGame.game?.venue || { name: "Unknown", city: "Unknown" },
+      status: {
+        short: nflGame.game?.status?.short ?? "",
+        long: nflGame.game?.status?.long ?? "",
+        timer: nflGame.game?.status?.timer ?? undefined,
+      },
     },
-    venue: nflGame.game?.venue || { name: "Unknown", city: "Unknown" },
-    status: {
-      short: nflGame.game?.status?.short ?? "",
-      long: nflGame.game?.status?.long ?? "",
-      timer: nflGame.game?.status?.timer ?? undefined, // ✅ fixed
+    league: {
+      id: Number(nflGame.league?.id ?? 0),
+      name: nflGame.league?.name ?? "NFL",
+      season: nflGame.league?.season ?? "2025",
+      logo: nflGame.league?.logo ?? "",
     },
-  },
-  league: {
-    id: Number(nflGame.league?.id ?? 0),
-    name: nflGame.league?.name ?? "NFL",
-    season: nflGame.league?.season ?? "2025",
-    logo: nflGame.league?.logo ?? "",
-  },
-  teams: nflGame.teams,
-  scores: {
-    home: nflGame.scores?.home || {},
-    away: nflGame.scores?.away || {},
-  },
-});
+    teams: nflGame.teams,
+    scores: {
+      home: nflGame.scores?.home || {},
+      away: nflGame.scores?.away || {},
+    },
+  };
+};
+
 
 
   const renderGameCard = (

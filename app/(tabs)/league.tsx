@@ -156,8 +156,12 @@ export default function ScoresScreen() {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   };
 
-  const filterByDate = (games: any[], date: Date) =>
-    games.filter((game) => localDateOnly(game.date).getTime() === localDateOnly(date).getTime());
+const filterByDate = (games: any[], date: Date) =>
+  games.filter((game) =>
+    dayjs(game.date).isSame(dayjs(date).startOf("day"), "day")
+  );
+
+
 
   const hasIdAndName = (team: any): team is TeamLike =>
     team && typeof team.id === "string" && typeof team.name === "string";
@@ -199,29 +203,42 @@ export default function ScoresScreen() {
     away: normalizeTeam(game.away),
   }));
 
-  // --- Normalize NFL games to Eastern Time ---
-  const normalizedNFLGames = nflGames.map((g) => {
-    const utcDateString = g.game.date.date;
-    const easternDate = utcDateString
-      ? dayjs.utc(utcDateString).tz("America/New_York").toDate()
-      : new Date();
+const normalizedNFLGames = nflGames.map((g) => {
+  const ts = g.game.date?.timestamp;
 
-    return {
-      ...g,
-      home: {
-        id: g.teams.home?.id ?? "unknown",
-        name: g.teams.home?.nickname ?? "Unknown",
-        fullName: g.teams.home?.name ?? "Unknown Team",
-      },
-      away: {
-        id: g.teams.away?.id ?? "unknown",
-        name: g.teams.away?.nickname ?? "Unknown",
-        fullName: g.teams.away?.name ?? "Unknown Team",
-      },
-      date: easternDate,
-      status: g.game.status,
-    };
-  });
+  // Convert once to Eastern Time
+  let eastern = ts
+    ? dayjs.unix(ts).tz("America/New_York")
+    : dayjs().tz("America/New_York");
+
+  // 🛠 Special case: if kickoff shows as 00:00–00:29 ET, shift back to previous evening
+  const hhmm = eastern.format("HH:mm");
+  if (hhmm >= "00:00" && hhmm <= "00:29") {
+    eastern = eastern.subtract(4, "hour");
+  }
+
+  console.log("UTC:", dayjs.unix(ts).utc().format("YYYY-MM-DD HH:mm"));
+  console.log("ET:", eastern.format("YYYY-MM-DD HH:mm"));
+
+  return {
+    ...g,
+    home: {
+      id: g.teams.home?.id ?? "unknown",
+      name: g.teams.home?.nickname ?? "Unknown",
+      fullName: g.teams.home?.name ?? "Unknown Team",
+    },
+    away: {
+      id: g.teams.away?.id ?? "unknown",
+      name: g.teams.away?.nickname ?? "Unknown",
+      fullName: g.teams.away?.name ?? "Unknown Team",
+    },
+    date: eastern, // ✅ always stored in ET
+    status: g.game.status,
+  };
+});
+
+
+
 
   const filteredNFLGames = filterByDate(normalizedNFLGames, selectedDate);
 

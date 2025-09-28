@@ -126,6 +126,23 @@ function NFLStackedGameCard({ game, isDark }: Props) {
       })
     : "";
 
+  const formatQuarter = (short?: string): string => {
+    if (!short) return ""; // <--- guard
+
+    const q = short.toLowerCase();
+
+    if (q.includes("1")) return "1st";
+    if (q.includes("2")) return "2nd";
+    if (q.includes("3")) return "3rd";
+    if (q.includes("4")) return "4th";
+
+    if (q.includes("ot")) return "OT"; // handle overtime
+    if (q.includes("half")) return "Halftime";
+    if (q.includes("end")) return "End";
+
+    return short; // fallback
+  };
+
   const getTeamStyle = useMemo(
     () =>
       (isHome: boolean): TextStyle => {
@@ -205,6 +222,7 @@ function NFLStackedGameCard({ game, isDark }: Props) {
 
         {/* Game Info */}
         <View style={styles.info}>
+          
           {status.isScheduled && (
             <>
               <Text style={styles.date}>{formattedDate}</Text>
@@ -222,8 +240,20 @@ function NFLStackedGameCard({ game, isDark }: Props) {
           )}
           {status.isLive && (
             <>
-              <Text style={styles.date}>{status.short}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={[styles.date, { fontSize: 14 }]}>
+                {formatQuarter(status.short)}
+              </Text>
+              <View
+                style={{
+                  height: 14,
+                  width: 1,
+                  backgroundColor: isDark ? "#ccc" : "#ccc",
+                  marginHorizontal: 4,
+                }}
+              />
               <Text style={styles.clock}>{status.timer}</Text>
+            </View>
             </>
           )}
           {status.isHalftime && <Text style={styles.date}>{status.long}</Text>}

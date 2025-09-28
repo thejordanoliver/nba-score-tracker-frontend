@@ -147,6 +147,23 @@ function NFLGameSquareCard({ game, isDark }: Props) {
     [dark, status, game.scores]
   );
 
+  const formatQuarter = (short?: string): string => {
+    if (!short) return ""; // <--- guard
+
+    const q = short.toLowerCase();
+
+    if (q.includes("1")) return "1st";
+    if (q.includes("2")) return "2nd";
+    if (q.includes("3")) return "3rd";
+    if (q.includes("4")) return "4th";
+
+    if (q.includes("ot")) return "OT"; // handle overtime
+    if (q.includes("half")) return "Halftime";
+    if (q.includes("end")) return "End";
+
+    return short; // fallback
+  };
+
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -225,7 +242,9 @@ function NFLGameSquareCard({ game, isDark }: Props) {
           )}
           {status.isLive && (
             <>
-              <Text style={styles.date}>{status.short}</Text>
+              <Text style={[styles.date, { fontSize: 14 }]}>
+                {formatQuarter(status.short)}
+              </Text>
               <Text style={styles.clock}>{status.timer}</Text>
             </>
           )}

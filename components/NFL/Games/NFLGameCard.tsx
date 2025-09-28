@@ -173,6 +173,8 @@ const { possessionTeamId, displayClock } = possession;
     [dark, status, game.scores]
   );
 
+
+
   return (
     <TouchableOpacity
       activeOpacity={0.85}

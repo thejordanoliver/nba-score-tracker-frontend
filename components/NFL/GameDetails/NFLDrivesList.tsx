@@ -57,8 +57,7 @@ export default function NFLDrivesList({
 
   return (
     <View>
-     <ScrollView style={{ maxHeight: 400 }}>
-
+      <ScrollView style={{ maxHeight: 400 }}>
         <FlatList
           data={drives}
           keyExtractor={(item) => item.id}
@@ -70,29 +69,35 @@ export default function NFLDrivesList({
             const resultUpper = (item.result ?? "").toUpperCase();
 
             let resultColor = isDark ? "#aaa" : "#444";
-            if (resultUpper.includes("PUNT"))
-              resultColor = lighter
-                ? "#ff9100ff"
-                : isDark
-                  ? "#ff9100ff"
-                  : "#de7e00ff";
-            else if (
+
+            if (
               resultUpper.includes("INT") ||
               resultUpper.includes("FUMBLE") ||
               resultUpper.includes("MISSED FG") ||
+              resultUpper.includes("BLOCKED PUNT TD") ||
               resultUpper.includes("DOWNS")
-            )
+            ) {
               resultColor = lighter
                 ? "#ff4444"
                 : isDark
-                  ? "#ff4444"
-                  : "#cc0000";
-            else if (resultUpper.includes("TD") || resultUpper.includes("FG"))
+                ? "#ff4444"
+                : "#cc0000";
+            } else if (
+              resultUpper.includes("TD") ||
+              resultUpper.includes("FG")
+            ) {
               resultColor = lighter
                 ? "#00ff00"
                 : isDark
-                  ? "#00ff00"
-                  : "#008800";
+                ? "#00ff00"
+                : "#008800";
+            } else if (resultUpper.includes("PUNT")) {
+              resultColor = lighter
+                ? "#ff9100ff"
+                : isDark
+                ? "#ff9100ff"
+                : "#de7e00ff";
+            }
 
             return (
               <View
