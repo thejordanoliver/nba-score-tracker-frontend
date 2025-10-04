@@ -8,14 +8,13 @@ type TeamRecord = {
 export function useNFLTeamRecord(teamId?: string) {
   const [record, setRecord] = useState<TeamRecord>({ overall: null });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!teamId) return;
 
     const teamAbbr = getTeamAbbreviation(teamId);
     if (!teamAbbr) {
-      console.warn("⚠️ No abbreviation found for teamId:", teamId);
+      // No record if unknown team
       setRecord({ overall: null });
       return;
     }
@@ -23,11 +22,13 @@ export function useNFLTeamRecord(teamId?: string) {
     const fetchRecord = async () => {
       try {
         setLoading(true);
-        setError(null);
 
         const url = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${teamAbbr.toLowerCase()}`;
         const res = await fetch(url);
-        if (!res.ok) throw new Error("Failed to fetch team record");
+        if (!res.ok) {
+          setRecord({ overall: null }); // fail silently
+          return;
+        }
 
         const data = await res.json();
         const recordSummary =
@@ -36,9 +37,8 @@ export function useNFLTeamRecord(teamId?: string) {
           )?.summary ?? null;
 
         setRecord({ overall: recordSummary });
-      } catch (err: any) {
-        console.error("❌ Error fetching team record:", err.message);
-        setError(err.message);
+      } catch {
+        setRecord({ overall: null }); // silently fail
       } finally {
         setLoading(false);
       }
@@ -47,5 +47,5 @@ export function useNFLTeamRecord(teamId?: string) {
     fetchRecord();
   }, [teamId]);
 
-  return { record, loading, error };
+  return { record, loading };
 }

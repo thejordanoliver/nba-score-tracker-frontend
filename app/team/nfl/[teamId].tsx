@@ -2,18 +2,26 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import NFLGamesList from "components/NFL/Games/NFLGamesList";
 import NFLRoster from "components/NFL/Team/Roster";
+import TeamInfoBottomSheetNFL from "components/NFL/Team/TeamInfoModal";
 import { teams } from "constants/teamsNFL";
 import { useLocalSearchParams } from "expo-router";
 import { goBack } from "expo-router/build/global-state/routing";
 import { useNFLTeamGames } from "hooks/NFLHooks/useNFLTeamGames";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Text, View, useColorScheme } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  View,
+  useColorScheme,
+} from "react-native";
 import PagerView from "react-native-pager-view";
 import { Game } from "types/nfl";
 import { User } from "types/types";
 import { CustomHeaderTitle } from "../../../components/CustomHeaderTitle";
 import TabBar from "../../../components/TabBar";
 import { style } from "../../../styles/TeamDetails.styles";
+
 export default function TeamDetailScreen() {
   const navigation = useNavigation();
   const { teamId } = useLocalSearchParams();
@@ -22,12 +30,13 @@ export default function TeamDetailScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const styles = style(isDark);
 
-  const tabs = ["schedule", "news", "roster", "forum", "stats"] as const;
+  const tabs = ["schedule", "news", "roster", "stats", "forum"] as const;
   const [selectedTab, setSelectedTab] =
     useState<(typeof tabs)[number]>("schedule");
   const rosterRef = useRef<{ refresh: () => void }>(null);
@@ -133,20 +142,20 @@ export default function TeamDetailScreen() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      header: () =>
-        team && (
-          <CustomHeaderTitle
-            logo={team.logo}
-            logoLight={team.logoLight}
-            teamColor={team.color}
-            onBack={goBack}
-            isTeamScreen
-            teamCode={team.code}
-            isFavorite={isFavorite}
-            onToggleFavorite={toggleFavorite}
-            league="NFL"
-          />
-        ),
+      header: () => (
+        <CustomHeaderTitle
+          logo={team?.logo}
+          logoLight={team?.logoLight}
+          teamColor={team?.color}
+          onBack={goBack}
+          isTeamScreen={true}
+          teamCode={team?.code}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+          onOpenInfo={() => setModalVisible(true)}
+          league="NFL"
+        />
+      ),
     });
   }, [navigation, isDark, team, isFavorite]);
 
@@ -179,15 +188,19 @@ export default function TeamDetailScreen() {
         }}
       >
         {/* Schedule Page */}
-        <View key="schedule" style={{ flex: 1 }}>
+        <ScrollView
+          key="schedule"
+          contentContainerStyle={{ paddingBottom: 100 }}
+        >
           <NFLGamesList
             games={rawTeamGames}
             loading={gamesLoading}
             refreshing={refreshing}
             onRefresh={handleRefresh}
             showHeaders={true}
+            scrollEnabled={false}
           />
-        </View>
+        </ScrollView>
 
         {/* News Page */}
         <View
@@ -211,20 +224,28 @@ export default function TeamDetailScreen() {
 
         {/* Forum Page */}
         <View
-          key="forum"
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        >
-          <Text style={{ color: isDark ? "#fff" : "#000" }}>Forum (TODO)</Text>
-        </View>
-
-        {/* Stats Page */}
-        <View
           key="stats"
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
           <Text style={{ color: isDark ? "#fff" : "#000" }}>Stats (TODO)</Text>
         </View>
+
+        {/* Forum Page */}
+        <View
+          key="forum"
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <Text style={{ color: isDark ? "#fff" : "#000" }}>Forum (TODO)</Text>
+        </View>
       </PagerView>
+      {/* --- Bottom Sheet --- */}
+      {team && (
+        <TeamInfoBottomSheetNFL
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          teamId={team.id}
+        />
+      )}
     </View>
   );
 }

@@ -4,7 +4,7 @@ import { Fonts } from "constants/fonts";
 
 const ROW_HEIGHT = 60; // or whatever fits your design
 const RANK_WIDTH = 40;
-const TEAM_COL_WIDTH = 120; // Increased to fit badge
+const TEAM_COL_WIDTH = 80; // Increased to fit badge
 const STAT_COL_WIDTH = 70;
 
 export const getStyles = (isDark: boolean) =>

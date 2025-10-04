@@ -1,8 +1,6 @@
 // components/Forum/TeamForum.tsx
-
 import { Fonts } from "constants/fonts";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useFocusEffect, useRouter } from "expo-router";
 import { jwtDecode } from "jwt-decode";
@@ -17,6 +15,7 @@ import {
 } from "react-native";
 import { useImagePreviewStore } from "../../store/imagePreviewStore";
 import { Post, PostItem, getStyles as getPostItemStyles } from "./PostItem";
+import { getAccessToken } from "utils/authStorage"; // ✅ central token getter
 
 interface TeamForumProps {
   teamId: string;
@@ -43,15 +42,18 @@ export default function TeamForum({ teamId }: TeamForumProps) {
 
   // Load token and decode user ID
   useEffect(() => {
-    AsyncStorage.getItem("token")
-      .then((storedToken) => {
+    (async () => {
+      try {
+        const storedToken = await getAccessToken(); // ✅ centralized call
         setToken(storedToken);
         if (storedToken) {
           const decoded: { id: number } = jwtDecode(storedToken);
           setCurrentUserId(decoded.id);
         }
-      })
-      .catch(console.error);
+      } catch (err) {
+        console.error("Error loading token:", err);
+      }
+    })();
   }, []);
 
   // Fetch posts

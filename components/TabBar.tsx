@@ -12,7 +12,7 @@ import {
   ViewStyle,
   StyleProp,
 } from "react-native";
-
+import { Fonts } from "constants/fonts";
 export interface TabBarProps<T extends string> {
   tabs: readonly T[];
   selected: T;
@@ -103,7 +103,7 @@ export default function TabBar<T extends string>({
       : isDark
         ? "#888"
         : "rgba(0, 0, 0, 0.5)",
-    fontFamily: "Oswald_400Regular",
+    fontFamily: Fonts.OSREGULAR,
   });
 
   const underlineStyle: ViewStyle = {

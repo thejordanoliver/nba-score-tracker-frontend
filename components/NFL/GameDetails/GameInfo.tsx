@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { NFLTeam } from "types/nfl";
 
 type NFLGameCenterInfoProps = {
-  status: string; // <- allow any string now
+  status: string;
   date: string;
   time: string;
   period?: string;
@@ -13,11 +13,10 @@ type NFLGameCenterInfoProps = {
   downAndDistance?: string;
   colors: Record<string, string>;
   isDark: boolean;
-  playoffInfo?: string | string[];
+  playoffInfo?: string | string[]; // 👈 accepted but not used yet
   homeTeam: NFLTeam;
   awayTeam: NFLTeam;
 };
-
 
 export function NFLGameCenterInfo({
   status,
@@ -28,6 +27,7 @@ export function NFLGameCenterInfo({
   downAndDistance,
   colors,
   isDark,
+  playoffInfo,
   homeTeam,
   awayTeam,
 }: NFLGameCenterInfoProps) {
@@ -37,13 +37,12 @@ export function NFLGameCenterInfo({
     date
   );
 
-  // ⏱ force refresh trigger every 30 seconds
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
     if (status === "In Progress" || status === "Halftime") {
       const interval = setInterval(() => {
-        setTick((t) => t + 1); // triggers re-render
+        setTick((t) => t + 1);
       }, 30000);
       return () => clearInterval(interval);
     }
@@ -81,8 +80,37 @@ export function NFLGameCenterInfo({
 
   const styles = getStyles(isDark);
 
+  // 👇 helper for playoff stage display
+  const renderPlayoffInfo = () => {
+    if (!playoffInfo) return null;
+
+    const validStages = ["Wild Card", "Divisional", "Conference", "Super Bowl"];
+
+    // normalize input into array
+    const stages = Array.isArray(playoffInfo) ? playoffInfo : [playoffInfo];
+
+    const filtered = stages.filter((stage) =>
+      validStages.some((valid) =>
+        stage.toLowerCase().includes(valid.toLowerCase())
+      )
+    );
+
+    if (filtered.length === 0) return null;
+
+    return (
+      <View style={styles.playoffContainer}>
+        {filtered.map((stage, i) => (
+          <Text key={i} style={styles.playoffText}>
+            {stage}
+          </Text>
+        ))}
+      </View>
+    );
+  };
+ 
   return (
     <View style={styles.container}>
+      {renderPlayoffInfo()}
       {/* Scheduled */}
       {status === "Scheduled" && (
         <>
@@ -105,7 +133,7 @@ export function NFLGameCenterInfo({
             <Text style={styles.date}>
               {period ? formatQuarter(period) : ""}
             </Text>
-            <View style={styles.divider}/>
+            <View style={styles.divider} />
             {clock && <Text style={styles.clock}>{clock}</Text>}
           </View>
           {downAndDistance && (
@@ -115,12 +143,20 @@ export function NFLGameCenterInfo({
       )}
 
       {/* Halftime */}
-      {status === "Halftime" && <Text style={styles.date}>Halftime</Text>}
+      {status === "Halftime" && (
+        <>
+          <Text style={styles.date}>Halftime</Text>
+        </>
+      )}
 
       {/* Final */}
       {status === "Final" && (
         <>
-          <Text style={styles.finalText}>Final</Text>
+          <Text style={styles.finalText}>
+            {period && period.toUpperCase().includes("OT")
+              ? "Final/OT"
+              : "Final"}
+          </Text>
           <Text style={styles.dateFinal}>{date || ""}</Text>
         </>
       )}
@@ -131,7 +167,9 @@ export function NFLGameCenterInfo({
         status === "Delayed") && <Text style={styles.finalText}>{status}</Text>}
 
       {/* Broadcasts */}
-      {(status === "In Progress" || status === "Halftime") &&
+      {(status === "In Progress" ||
+        status === "Scheduled" ||
+        status === "Halftime") &&
         displayBroadcasts.length > 0 && (
           <View>
             {displayBroadcasts.map((b, i) => (
@@ -197,5 +235,16 @@ export const getStyles = (isDark: boolean) =>
       height: 14,
       width: 1,
       backgroundColor: isDark ? "rgba(255,255,255, 1)" : "rgba(0, 0, 0, .5)",
+    },
+    playoffContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 6,
+    },
+    playoffText: {
+      fontSize: 13,
+      color: isDark ? "#fff" : "#1d1d1d",
+      fontFamily: Fonts.OSEXTRALIGHT,
+      textAlign: "center",
     },
   });

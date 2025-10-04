@@ -18,6 +18,7 @@ type Props = {
   refreshing: boolean;
   onRefresh: () => void;
   expectedCount?: number;
+  scrollEnabled?: boolean; // new prop
 };
 
 const SummerGamesList: React.FC<Props> = ({
@@ -26,6 +27,7 @@ const SummerGamesList: React.FC<Props> = ({
   refreshing,
   onRefresh,
   expectedCount,
+  scrollEnabled = true, // default to true
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -62,7 +64,7 @@ const SummerGamesList: React.FC<Props> = ({
         ) : viewMode === "grid" ? (
           <SummerLeagueGameSquareCard game={item} isDark={isDark} />
         ) : (
-          <SummerLeagueStackedGameCard game={item} isDark={isDark} /> // new stacked card
+          <SummerLeagueStackedGameCard game={item} isDark={isDark} />
         )}
       </View>
     </LongPressGestureHandler>
@@ -98,6 +100,7 @@ const SummerGamesList: React.FC<Props> = ({
         }
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={scrollEnabled} // <--- added here
         ListEmptyComponent={
           <Text style={[styles.emptyText, { color: isDark ? "#aaa" : "#888" }]}>
             No games found for this date.
@@ -116,18 +119,18 @@ const SummerGamesList: React.FC<Props> = ({
   );
 };
 
+
 const styles = StyleSheet.create({
   skeletonWrapper: {
     paddingTop: 10,
-    paddingHorizontal: 16,
     paddingBottom: 100,
+    paddingHorizontal: 12,
+    gap: 12,
   },
   skeletonGridWrapper: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    paddingTop: 10,
-    paddingHorizontal: 12,
+    paddingBottom: 20,
+  },
+  gridListContainer: {
     paddingBottom: 100,
     gap: 12,
   },
@@ -135,7 +138,10 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 100,
     paddingHorizontal: 12,
-    gap: 12,
+  },
+  gridRow: {
+    justifyContent: "space-between",
+    marginBottom: 12,
   },
   emptyText: {
     textAlign: "center",
@@ -144,10 +150,11 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.OSLIGHT,
   },
   gridItem: {
-    width: "48%",
+    flex: 1,
+    marginLeft: 14,
   },
   stackedItem: {
-    width: "100%", // full width for stacked layout
+    marginHorizontal: 12,
   },
 });
 

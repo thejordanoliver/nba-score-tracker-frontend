@@ -167,6 +167,7 @@ import WizardsHome from "../assets/Uniforms/WizardsHome.png";
 
 export type Team = {
   id: string;
+  espnID: string;
   fullName: string;
   name: string;
   code: string;
@@ -196,6 +197,7 @@ export type Team = {
 export const teams = [
   {
     id: "1",
+    espnID: "1",
     name: "Hawks",
     fullName: "Atlanta Hawks",
     code: "ATL",
@@ -226,6 +228,7 @@ export const teams = [
   },
   {
     id: "2",
+    espnID: "2",
     name: "Celtics",
     fullName: "Boston Celtics",
     code: "BOS",
@@ -263,6 +266,7 @@ export const teams = [
   },
   {
     id: "4",
+    espnID: "17",
     name: "Nets",
     fullName: "Brooklyn Nets",
     code: "BKN",
@@ -293,6 +297,7 @@ export const teams = [
   },
   {
     id: "5",
+    espnID: "30",
     name: "Hornets",
     fullName: "Charlotte Hornets",
     code: "CHA",
@@ -323,6 +328,7 @@ export const teams = [
   },
   {
     id: "6",
+    espnID: "4",
     name: "Bulls",
     fullName: "Chicago Bulls",
     code: "CHI",
@@ -353,6 +359,7 @@ export const teams = [
   },
   {
     id: "7",
+    espnID: "5",
     name: "Cavaliers",
     fullName: "Cleveland Cavaliers",
     code: "CLE",
@@ -383,6 +390,7 @@ export const teams = [
   },
   {
     id: "8",
+    espnID: "6",
     name: "Mavericks",
     fullName: "Dallas Mavericks",
     code: "DAL",
@@ -413,6 +421,7 @@ export const teams = [
   },
   {
     id: "9",
+    espnID: "7",
     name: "Nuggets",
     fullName: "Denver Nuggets",
     code: "DEN",
@@ -443,6 +452,7 @@ export const teams = [
   },
   {
     id: "10",
+    espnID: "8",
     name: "Pistons",
     fullName: "Detroit Pistons",
     code: "DET",
@@ -475,6 +485,7 @@ export const teams = [
   },
   {
     id: "11",
+    espnID: "9",
     name: "Warriors",
     fullName: "Golden State Warriors",
     code: "GSW",
@@ -509,6 +520,7 @@ export const teams = [
   },
   {
     id: "14",
+    espnID: "10",
     name: "Rockets",
     fullName: "Houston Rockets",
     code: "HOU",
@@ -540,6 +552,7 @@ export const teams = [
   },
   {
     id: "15",
+    espnID: "11",
     name: "Pacers",
     fullName: "Indiana Pacers",
     code: "IND",
@@ -570,6 +583,7 @@ export const teams = [
   },
   {
     id: "16",
+    espnID: "12",
     name: "Clippers",
     fullName: "Los Angeles Clippers",
     code: "LAC",
@@ -600,6 +614,7 @@ export const teams = [
   },
   {
     id: "17",
+    espnID: "13",
     name: "Lakers",
     fullName: "Los Angeles Lakers",
     code: "LAL",
@@ -639,17 +654,16 @@ export const teams = [
   },
   {
     id: "19",
+    espnID: "29",
     name: "Grizzlies",
     fullName: "Memphis Grizzlies",
     code: "MEM",
     location: "Memphis, TN",
     logo: GrizzliesLogo,
-
     color: "rgba(18, 23, 63, 1)",
     transparentColor: "rgba(93, 118, 169, .8)",
     secondaryColor: "#5d76a9",
     tertiaryColor: "rgba(255, 187, 34, 1)",
-
     arenaImage: GrizzliesArena,
     arenaName: "FedExForum",
     coach: "Tuomas Iisalo",
@@ -671,6 +685,7 @@ export const teams = [
   },
   {
     id: "20",
+    espnID: "14",
     name: "Heat",
     fullName: "Miami Heat",
     code: "MIA",
@@ -703,6 +718,7 @@ export const teams = [
   },
   {
     id: "21",
+    espnID: "15",
     name: "Bucks",
     fullName: "Milwaukee Bucks",
     code: "MIL",
@@ -733,6 +749,7 @@ export const teams = [
   },
   {
     id: "22",
+    espnID: "16",
     name: "Timberwolves",
     fullName: "Minnesota Timberwolves",
     code: "MIN",
@@ -764,6 +781,7 @@ export const teams = [
 
   {
     id: "23",
+    espnID: "3",
     name: "Pelicans",
     fullName: "New Orleans Pelicans",
     code: "NOP",
@@ -794,6 +812,7 @@ export const teams = [
   },
   {
     id: "24",
+    espnID: "18",
     name: "Knicks",
     fullName: "New York Knicks",
     code: "NYK",
@@ -826,6 +845,7 @@ export const teams = [
   },
   {
     id: "25",
+    espnID: "25",
     name: "Thunder",
     fullName: "Oklahoma City Thunder",
     code: "OKC",
@@ -857,6 +877,7 @@ export const teams = [
 
   {
     id: "26",
+    espnID: "19",
     name: "Magic",
     fullName: "Orlando Magic",
     code: "ORL",
@@ -887,6 +908,7 @@ export const teams = [
   },
   {
     id: "27",
+    espnID: "20",
     name: "76ers",
     fullName: "Philadelphia 76ers",
     code: "PHI",
@@ -921,6 +943,7 @@ export const teams = [
 
   {
     id: "28",
+    espnID: "21",
     name: "Suns",
     fullName: "Phoenix Suns",
     code: "PHX",
@@ -951,6 +974,7 @@ export const teams = [
   },
   {
     id: "29",
+    espnID: "22",
     name: "Trail Blazers",
     fullName: "Portland Trail Blazers",
     code: "POR",
@@ -981,6 +1005,7 @@ export const teams = [
   },
   {
     id: "30",
+    espnID: "23",
     name: "Kings",
     fullName: "Sacramento Kings",
     code: "SAC",
@@ -1011,6 +1036,7 @@ export const teams = [
   },
   {
     id: "31",
+    espnID: "24",
     name: "Spurs",
     fullName: "San Antonio Spurs",
     code: "SAS",
@@ -1041,6 +1067,7 @@ export const teams = [
   },
   {
     id: "38",
+    espnID: "28",
     name: "Raptors",
     fullName: "Toronto Raptors",
     code: "TOR",
@@ -1072,6 +1099,7 @@ export const teams = [
   },
   {
     id: "40",
+    espnID: "26",
     name: "Jazz",
     fullName: "Utah Jazz",
     code: "UTA",
@@ -1103,6 +1131,7 @@ export const teams = [
   },
   {
     id: "41",
+    espnID: "27",
     name: "Wizards",
     fullName: "Washington Wizards",
     code: "WAS",
@@ -1132,7 +1161,6 @@ export const teams = [
     },
   },
 ];
-
 
 export const coachImages: { [key: string]: any } = {
   BucksCoach,
@@ -1204,13 +1232,10 @@ export const logoMap: Record<string, any> = {
   WizardsLogo,
 };
 
-export const teamsById: Record<string, Team> = teams.reduce(
-  (map, team) => {
-    map[team.id] = team;
-    return map;
-  },
-  {} as Record<string, Team>
-);
+export const teamsById: Record<string, Team> = teams.reduce((map, team) => {
+  map[team.id] = team;
+  return map;
+}, {} as Record<string, Team>);
 
 export const arenaImages: Record<string, any> = {
   // Map team codes or arena names to images

@@ -730,7 +730,7 @@ export const getStyles = (dark: boolean) =>
       fontSize: 14,
     },
     time: {
-      fontSize: 12,
+      fontSize: 10,
       fontFamily: Fonts.OSREGULAR,
       textAlign: "center",
       color: dark ? "#ff4444" : "#cc0000",

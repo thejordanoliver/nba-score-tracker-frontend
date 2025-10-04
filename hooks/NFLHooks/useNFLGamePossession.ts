@@ -40,8 +40,8 @@ export type NFLScore = {
 };
 
 export const useNFLGamePossession = (
-  home: string,
-  away: string,
+  home: string | null | undefined,
+  away: string | null | undefined,
   date: string | { date?: string; utc?: string; timestamp?: number } | undefined
 ) => {
   const [possessionTeamId, setPossessionTeamId] = useState<number | undefined>();
@@ -55,20 +55,21 @@ export const useNFLGamePossession = (
   const [score, setScore] = useState<NFLScore | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const [gameStatusDescription, setGameStatusDescription] = useState<string | undefined>();
   const [gameStatusDetail, setGameStatusDetail] = useState<string | undefined>();
   const [gameStatusShortDetail, setGameStatusShortDetail] = useState<string | undefined>();
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const skipFetch = !home || !away || !date;
 
   const fetchData = useCallback(
     async (isPolling = false) => {
+      if (skipFetch) return;
       if (!isPolling) setLoading(true);
       setError(null);
 
       try {
-        // Normalize target date
+        // Convert date to Date object
         let targetDate: Date | null = null;
         if (typeof date === "string") targetDate = new Date(date);
         else if (typeof date === "object") {
@@ -82,7 +83,6 @@ export const useNFLGamePossession = (
         }
         if (!targetDate) return;
 
-        // Format YYYYMMDD in US Eastern Time
         const makeYMD = (d: Date) => {
           const usDate = d.toLocaleDateString("en-US", { timeZone: "America/New_York" });
           const [month, day, year] = usDate.split("/");
@@ -94,7 +94,6 @@ export const useNFLGamePossession = (
         const { data } = await axios.get(url);
         const games = data.events || [];
 
-        // Find the matching game by home & away
         const game = games.find((g: any) => {
           const competitors = g.competitions?.[0]?.competitors || [];
           const teamNames = competitors.flatMap((c: any) => [
@@ -110,64 +109,44 @@ export const useNFLGamePossession = (
           );
         });
 
-        if (!game) {
-          console.warn(`[NFL Possession] Game not found for ${home} vs ${away}`);
-          throw new Error("Game not found on ESPN");
-        }
+if (!game) {
+  console.warn(`[NFL Possession] Game not found on ESPN for ${home} vs ${away}`);
+  return;
+}
 
         const competition = game.competitions[0];
         if (!competition) throw new Error("No competition data found");
 
-        const gameState = competition.status?.type?.state; // "pre", "in", "post"
+        const gameState = competition.status?.type?.state;
 
-        // Only update possession if the game is in-progress
-        if (gameState !== "in") {
-          console.log(`[NFL Possession] Game is not live (state = ${gameState}), skipping updates`);
-          return;
-        }
+        // Only fetch possession info if game is live
+        if (gameState !== "in") return;
 
-        // --- Extract in-progress status description ---
         const statusObj = competition.status?.type;
         setGameStatusDescription(statusObj?.description);
         setGameStatusDetail(statusObj?.detail);
         setGameStatusShortDetail(statusObj?.shortDetail);
 
-        // Extract possession
         const espnPossessionId: string | undefined = competition.situation?.possession;
         setPossessionTeamId(espnPossessionId ? espnToInternal[espnPossessionId] : undefined);
 
-        // Down & distance
         setShortDownDistanceText(competition.situation?.shortDownDistanceText);
         setDownDistanceText(competition.situation?.downDistanceText);
-
-        // Timeouts
         setHomeTimeouts(competition.situation?.homeTimeouts);
         setAwayTimeouts(competition.situation?.awayTimeouts);
-
-        // Display clock & period
         setDisplayClock(competition.status?.displayClock);
         setPeriod(competition.status?.period);
 
-        // Last play
-        if (competition.situation?.lastPlay) {
-          setLastPlay(competition.situation.lastPlay as PlayObject);
-        } else if (competition.status?.lastPlay) {
-          setLastPlay(competition.status.lastPlay as string);
-        } else {
-          setLastPlay(undefined);
-        }
+        if (competition.situation?.lastPlay) setLastPlay(competition.situation.lastPlay as PlayObject);
+        else if (competition.status?.lastPlay) setLastPlay(competition.status.lastPlay as string);
+        else setLastPlay(undefined);
 
-        // --- Extract scores including period/line scores ---
         const competitors = competition.competitors || [];
         const homeComp = competitors.find((c: any) => c.homeAway === "home");
         const awayComp = competitors.find((c: any) => c.homeAway === "away");
 
         if (homeComp && awayComp) {
-          const maxPeriods = Math.max(
-            homeComp.linescores?.length ?? 0,
-            awayComp.linescores?.length ?? 0
-          );
-
+          const maxPeriods = Math.max(homeComp.linescores?.length ?? 0, awayComp.linescores?.length ?? 0);
           const periodScores = Array.from({ length: maxPeriods }, (_, idx) => ({
             period: idx + 1,
             home: homeComp.linescores?.[idx]?.value ?? 0,
@@ -201,28 +180,20 @@ export const useNFLGamePossession = (
         setLoading(false);
       }
     },
-    [home, away, date]
+    [home, away, date, skipFetch]
   );
 
-  // Initial fetch & setup polling
   useEffect(() => {
-    if (!home || !away || !date) return;
+    if (skipFetch) return;
 
-    fetchData(); // fetch immediately on mount
-
-    intervalRef.current = setInterval(() => {
-      fetchData(true);
-    }, 30000); // every 1 minute
-
+    fetchData();
+    intervalRef.current = setInterval(() => fetchData(true), 30000); // poll every 30s
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [home, away, date, fetchData]);
+  }, [fetchData, skipFetch]);
 
-  // Pull-to-refresh function
-  const refresh = useCallback(() => {
-    fetchData(false);
-  }, [fetchData]);
+  const refresh = useCallback(() => fetchData(false), [fetchData]);
 
   return {
     possessionTeamId,
@@ -239,6 +210,6 @@ export const useNFLGamePossession = (
     gameStatusDescription,
     gameStatusDetail,
     gameStatusShortDetail,
-    refresh, // 👈 expose refresh for pull-to-refresh
+    refresh,
   };
 };

@@ -30,6 +30,17 @@ export const Weather: React.FC<Props> = ({
   const isDark = useColorScheme() === "dark";
   const textColor = lighter ? "#fff" : isDark ? "#fff" : "#1d1d1d";
 
+  // ✅ Don't render if weather is missing or marked "Unknown"
+  if (
+    !weather ||
+    !weather.description ||
+    weather.description === "Unknown" ||
+    weather.main === "Unknown" ||
+    weather.cityName === "Unknown"
+  ) {
+    return null;
+  }
+
   const getWeatherAnimation = () => {
     if (!weather?.description) return null;
     const desc = weather.description.toLowerCase();
@@ -42,12 +53,10 @@ export const Weather: React.FC<Props> = ({
     const isNight = localHour < 6 || localHour >= 18;
 
     if (desc.includes("rain")) {
-      return isNight
-        ? ClearNight /* ⬅️ replace with RainNight asset if you have one */
-        : Rain;
+      return isNight ? ClearNight /* fallback */ : Rain;
     }
     if (desc.includes("cloud")) {
-      return isNight ? ClearNight /* ⬅️ CloudyNight if available */ : Cloudy;
+      return isNight ? ClearNight : Cloudy;
     }
     if (desc.includes("clear") || desc.includes("sun")) {
       return isNight ? ClearNight : ClearDay;
@@ -65,14 +74,14 @@ export const Weather: React.FC<Props> = ({
   const animation = getWeatherAnimation();
 
   return (
-    <View style={{}}>
+    <View>
       <HeadingTwo lighter={lighter}>Weather</HeadingTwo>
 
       {loading && !error ? (
         <TeamLocationSkeleton />
       ) : (
         <View style={{ flex: 1, borderRadius: 10, overflow: "hidden" }}>
-          {/* Rain background Lottie */}
+          {/* Rain background animation */}
           {weather?.description.toLowerCase().includes("rain") &&
             (() => {
               const localHour = weather.localTime
@@ -87,23 +96,16 @@ export const Weather: React.FC<Props> = ({
                   autoPlay
                   loop
                   style={{
-                    ...StyleSheet.absoluteFillObject, // ⬅️ makes it fill the container
+                    ...StyleSheet.absoluteFillObject,
                     zIndex: 0,
                   }}
-                  resizeMode="cover" // ⬅️ ensures it scales to fill
+                  resizeMode="cover"
                 />
               );
             })()}
 
-          {/* 
-          <BlurView
-            intensity={30}
-            tint="systemThinMaterial"
-            style={StyleSheet.absoluteFill}
-          /> */}
-
-          {/* Main weather Lottie */}
-          {animation ? (
+          {/* Main weather animation */}
+          {animation && (
             <LottieView
               source={animation}
               autoPlay
@@ -115,13 +117,9 @@ export const Weather: React.FC<Props> = ({
                 top: "50%",
                 left: "50%",
                 transform: [{ translateX: -100 }, { translateY: -100 }],
-                zIndex: 1, // above the rain background
+                zIndex: 1,
               }}
             />
-          ) : (
-            <Text style={[styles.subText, { color: textColor }]}>
-              Unknown Weather
-            </Text>
           )}
 
           <View
@@ -129,14 +127,14 @@ export const Weather: React.FC<Props> = ({
               alignItems: "center",
               justifyContent: "center",
               height: 200,
-              zIndex: 2, // above blur + animations
+              zIndex: 2,
             }}
           >
             {error ? (
               <Text style={[styles.text, { color: textColor }]}>
                 Error loading weather: {error}
               </Text>
-            ) : weather ? (
+            ) : (
               <>
                 <Text
                   style={[
@@ -167,7 +165,7 @@ export const Weather: React.FC<Props> = ({
                   {titleCase(weather.main)}
                 </Text>
               </>
-            ) : null}
+            )}
           </View>
         </View>
       )}

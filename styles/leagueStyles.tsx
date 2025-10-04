@@ -18,7 +18,16 @@ export const getScoresStyles = (isDark: boolean) =>
       alignItems: "center",
       marginVertical: 8,
     },
-   
+    monthText: {
+      fontFamily: Fonts.OSREGULAR,
+      fontSize: 16,
+      color: isDark ? "#aaa" : "#777",
+    },
+    monthTextSelected: {
+      fontSize: 16,
+      fontFamily: Fonts.OSBOLD,
+      color: isDark ? "#fff" : "#000",
+    },
     dateNavButton: {
       paddingHorizontal: 16,
       paddingVertical: 8,

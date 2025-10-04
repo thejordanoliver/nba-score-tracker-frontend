@@ -27,6 +27,7 @@ type GamesListProps = {
   onRefresh: () => void;
   expectedCount?: number;
   day?: "todayTomorrow";
+  scrollEnabled?: boolean;
 };
 
 export default function GamesList({
@@ -36,6 +37,7 @@ export default function GamesList({
   onRefresh,
   expectedCount,
   day,
+  scrollEnabled = true,
 }: GamesListProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -119,14 +121,12 @@ export default function GamesList({
           numColumns={2}
           columnWrapperStyle={styles.gridRow}
           renderItem={({ item, index }) => {
-            const isLastOdd = count % 2 === 1 && index === count - 1;
-
             const itemStyle: ViewStyle = {
-              flex: 1,
-              marginLeft: isLastOdd ? 12 : index % 2 === 0 ? 12 : 6,
-              marginRight: isLastOdd ? 12 : index % 2 === 0 ? 6 : 12,
+              width: "48%", // half width
+              marginLeft: index % 2 === 0 ? 0 : 4,
+              marginRight: index % 2 === 0 ? 4 : 0,
+              marginBottom: 12,
             };
-
             return <GameSquareCardSkeleton key={item._id} style={itemStyle} />;
           }}
           scrollEnabled={false}
@@ -162,7 +162,6 @@ export default function GamesList({
   }
 
   if (viewMode === "grid") {
-    // Add placeholder for odd count
     const dataWithPlaceholder =
       games.length % 2 === 1
         ? [...games, { _isPlaceholder: true } as any]
@@ -183,6 +182,7 @@ export default function GamesList({
           onRefresh={onRefresh}
           contentContainerStyle={styles.gridListContainer}
           showsVerticalScrollIndicator={false}
+          scrollEnabled={scrollEnabled}
         />
         {modalVisible && previewGame && (
           <GamePreviewModal
@@ -206,6 +206,7 @@ export default function GamesList({
         onRefresh={onRefresh}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={scrollEnabled}
       />
       {modalVisible && previewGame && (
         <GamePreviewModal
@@ -227,6 +228,7 @@ const styles = StyleSheet.create({
   },
   skeletonGridWrapper: {
     paddingBottom: 20,
+    paddingHorizontal: 12,
   },
   gridListContainer: {
     paddingBottom: 100,

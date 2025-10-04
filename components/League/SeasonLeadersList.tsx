@@ -1,6 +1,5 @@
 import { Fonts } from "constants/fonts";
 import { teams } from "constants/teams"; // import your teams list
-import { PlayerLeader } from "types/stats";
 import { useRouter } from "expo-router";
 import {
   FlatList,
@@ -10,7 +9,8 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import HeadingTwo from "./Headings/HeadingTwo";
+import { PlayerLeader } from "types/stats";
+import HeadingTwo from "../Headings/HeadingTwo";
 import PlayerStatRow from "./SeasonLeaderCard";
 
 interface SeasonLeadersListProps {
@@ -142,10 +142,10 @@ const getStyles = (isDark: boolean) =>
       justifyContent: "center",
     },
     infoText: {
-        fontFamily: Fonts.OSLIGHT,
-                     fontSize: 16,
-                     textAlign: "center",
-                     marginTop: 20,
-                     color: isDark ? "#aaa" : "#888"
+      fontFamily: Fonts.OSLIGHT,
+      fontSize: 16,
+      textAlign: "center",
+      marginTop: 20,
+      color: isDark ? "#aaa" : "#888",
     },
   });

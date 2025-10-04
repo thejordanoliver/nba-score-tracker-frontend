@@ -20,6 +20,7 @@ import {
   View,
 } from "react-native";
 import PostButton from "../components/Forum/PostButton";
+import { getAccessToken } from "utils/authStorage";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -40,7 +41,7 @@ export default function CreatePost() {
 
   const router = useRouter();
   const navigation = useNavigation();
-  const { teamId } = useLocalSearchParams<{ teamId: string }>();
+const { teamId, league } = useLocalSearchParams<{ teamId?: string; league?: "NBA" | "NFL" }>();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const styles = getStyles(isDark);
@@ -53,20 +54,17 @@ export default function CreatePost() {
     });
   }, [navigation]);
 
-  useEffect(() => {
-    AsyncStorage.getItem("token")
-      .then((t) => {
-        setToken(t);
-        if (!t) {
-          Alert.alert(
-            "Not Logged In",
-            "You must be logged in to create a post.",
-            [{ text: "OK", onPress: () => router.back() }]
-          );
-        }
-      })
-      .catch(console.error);
-  }, []);
+useEffect(() => {
+  AsyncStorage.getItem("accessToken")
+    .then((t) => {
+      setToken(t);
+      console.log("Loaded accessToken:", t);
+      if (!t) {
+        Alert.alert("Not Logged In", "You must be logged in to create a post.");
+      }
+    })
+}, []);
+
 
   const pickMedia = async () => {
     if (media.length >= 8) {
@@ -90,6 +88,8 @@ export default function CreatePost() {
       setMedia((prev) => [...prev, ...selected]);
     }
   };
+
+  
 
   const onMediaPress = (item: MediaItem, index: number) => {
     if (item.type === "image") {
@@ -118,8 +118,6 @@ const createPost = async () => {
     return;
   }
 
-  const isLeaguePost = !teamId;
-
   setLoading(true);
   const formData = new FormData();
   formData.append("text", newPostText);
@@ -136,10 +134,15 @@ const createPost = async () => {
     } as any);
   });
 
+  // Include league if this is a league post
+  if (league && !teamId) {
+    formData.append("league", league);
+  }
+
   try {
-    const endpoint = isLeaguePost
-      ? `${BASE_URL}/api/forum/league`
-      : `${BASE_URL}/api/forum/team/${teamId}`;
+   const endpoint = teamId
+  ? `${BASE_URL}/api/forum/team/${teamId}`
+  : `${BASE_URL}/api/forum/league/${league}`; // league post
 
     await axios.post(endpoint, formData, {
       headers: {
@@ -160,6 +163,7 @@ const createPost = async () => {
     setLoading(false);
   }
 };
+
 
   return (
     <ScrollView

@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { teams } from "constants/teams";
-import type { summerGame, GameStatus } from "types/types";
+import { useEffect, useRef, useState } from "react";
+import type { GameStatus, summerGame } from "types/types";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const RATE_LIMIT_MS = 30 * 1000;
@@ -175,8 +174,14 @@ function transformGames(data: ApiGame[]): summerGame[] {
         logoLight: awayTeam?.logoLight,
         fullName: awayTeam?.fullName,
       },
-      currentHomeScore: getQuarterScore(game.scores.home, currentQuarterNum ?? 0),
-      currentAwayScore: getQuarterScore(game.scores.away, currentQuarterNum ?? 0),
+      currentHomeScore: getQuarterScore(
+        game.scores.home,
+        currentQuarterNum ?? 0
+      ),
+      currentAwayScore: getQuarterScore(
+        game.scores.away,
+        currentQuarterNum ?? 0
+      ),
       scores: {
         home: {
           q1: game.scores.home.quarter_1 ?? undefined,
@@ -222,15 +227,9 @@ export function useSummerLeagueGames() {
       setLoading(true);
       lastFetchTimeRef.current = now;
 
-      const token = await AsyncStorage.getItem("token");
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
-
-const apiKey = process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
+      const apiKey = process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
 
       const headers = {
-        Authorization: `Bearer ${token}`,
         "x-api-key": apiKey,
       };
 
@@ -239,8 +238,12 @@ const apiKey = process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
         axios.get(`${API_URL}/api/summer-league/utah/games`, { headers }),
       ]);
 
-    const mainGames: ApiGame[] = Array.isArray(mainRes.data) ? mainRes.data : [];
-const utahGames: ApiGame[] = Array.isArray(utahRes.data) ? utahRes.data : [];
+      const mainGames: ApiGame[] = Array.isArray(mainRes.data)
+        ? mainRes.data
+        : [];
+      const utahGames: ApiGame[] = Array.isArray(utahRes.data)
+        ? utahRes.data
+        : [];
 
       const allGames = [...mainGames, ...utahGames];
       const transformed = transformGames(allGames);

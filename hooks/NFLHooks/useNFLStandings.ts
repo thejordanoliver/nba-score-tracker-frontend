@@ -1,92 +1,77 @@
 // hooks/useNFLStandings.ts
-import { useEffect, useState } from "react";
 import axios from "axios";
+import { useEffect, useState } from "react";
 
-type TeamRecord = {
-  id: number;
-  code: string;   // 👈 added
+export type NFLTeamRankings = {
+  id: string;
   name: string;
+  abbreviation: string;
   logo: string;
   conference: string;
   division: string;
-  position: number;
-  won: number;
-  lost: number;
-  ties: number;
-  pointsFor: number;
-  pointsAgainst: number;
-  pointDifference: number;
-  homeRecord: string;
-  roadRecord: string;
-  conferenceRecord: string;
-  divisionRecord: string;
+  vsDiv: string;
+  vsConf: string;
+  home: string;
+  road: string;
+  wins: string;
+  losses: string;
+  ties: string;
+  winPct: string;
+  pointsFor: string;
+  pointsAgainst: string;
   streak: string;
+  seed: string | null;
+  
 };
 
+export type NFLStandingsResponse = {
+  fullViewLink: string | null;
+  teams: NFLTeamRankings[];
+};
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
-
-
-export function useNFLStandings(season = "2025", league = "1") {
-  const [standings, setStandings] = useState<TeamRecord[]>([]);
+export const useNFLStandings = () => {
+  const [standings, setStandings] = useState<NFLTeamRankings[]>([]);
+  const [fullViewLink, setFullViewLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const fetchStandings = async () => {
+    // console.log("Fetching NFL standings...");
+    try {
+      setLoading(true);
+      const { data } = await axios.get(`${BASE_URL}/api/standingsNFL`);
 
-    async function fetchStandings() {
-      try {
-        setLoading(true);
-        const res = await axios.get(
-          `${BASE_URL}/api/nfl/standingsNFL`,
-          {
-            params: { season, league },
-          }
-        );
+      // console.log("Raw API response:", data);
 
-        if (!isMounted) return;
+      // Handle direct array
+      const teamsArray = Array.isArray(data) ? data : data.teams || [];
 
-      const data: TeamRecord[] = res.data.response.map((item: any) => ({
-  id: item.team.id,
-  code: item.team.code,   // 👈 add this line
-  name: item.team.name,
-  logo: item.team.logo,
-  conference: item.conference,
-  division: item.division,
-  position: item.position,
-  won: item.won,
-  lost: item.lost,
-  ties: item.ties,
-  pointsFor: item.points.for,
-  pointsAgainst: item.points.against,
-  pointDifference: item.points.difference,
-  homeRecord: item.records.home,
-  roadRecord: item.records.road,
-  conferenceRecord: item.records.conference,
-  divisionRecord: item.records.division,
-  streak: item.streak,
-}));
-
-
-        setStandings(data);
-        setError(null);
-      } catch (err: any) {
-        if (!isMounted) return;
-        console.error("Error fetching NFL standings:", err.message);
-        setError(err.message || "Failed to fetch standings");
-      } finally {
-        if (isMounted) setLoading(false);
+      if (teamsArray.length > 0) {
+        // console.log("Number of teams fetched:", teamsArray.length);
+        setStandings(teamsArray);
+      } else {
+        console.warn("No teams found in API response");
+        setStandings([]);
       }
+
+      setFullViewLink(data.fullViewLink || null);
+      setError(null);
+    } catch (err: any) {
+      console.error("Failed to fetch NFL standings:", err);
+      setError(err.message || "Something went wrong");
+      setStandings([]);
+    } finally {
+      setLoading(false);
+      // console.log("Finished fetching NFL standings. Loading:", false);
     }
+  };
 
+  
+  useEffect(() => {
     fetchStandings();
+  }, []);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [season, league]);
-
-  return { standings, loading, error };
-}
+  return { standings, fullViewLink, loading, error, refetch: fetchStandings };
+};

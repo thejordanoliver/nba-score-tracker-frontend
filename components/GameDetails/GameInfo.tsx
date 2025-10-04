@@ -1,7 +1,5 @@
 // components/GameDetails/GameInfo.tsx
 import { Fonts } from "constants/fonts";
-import { useESPNBroadcasts } from "hooks/useESPNBroadcasts";
-import { matchBroadcastToGame } from "utils/matchBroadcast";
 import { StyleSheet, Text, View } from "react-native";
 
 type GameInfoProps = {
@@ -15,7 +13,7 @@ type GameInfoProps = {
   playoffInfo?: string | string[];
   homeTeam: string;
   awayTeam: string;
-  broadcastNetworks?: string
+  broadcastNetworks?: string;
 };
 
 export function GameInfo({
@@ -29,31 +27,27 @@ export function GameInfo({
   playoffInfo,
   homeTeam,
   awayTeam,
-  broadcastNetworks
+  broadcastNetworks,
 }: GameInfoProps) {
-  const getStyles = styles(isDark); // 👈 call function here
+  const styles = getStyles(isDark); // 👈 call function here
 
   const renderPlayoffInfo = () => {
     if (!playoffInfo) return null;
 
     if (Array.isArray(playoffInfo)) {
       return playoffInfo.map((line, index) => (
-        <Text
-          key={index}
-          style={[getStyles.playoffText, { color: colors.text }]}
-        >
+        <Text key={index} style={[styles.playoffText, { color: colors.text }]}>
           {line}
         </Text>
       ));
     }
 
     return (
-      <Text style={[getStyles.playoffText, { color: colors.text }]}>
+      <Text style={[styles.playoffText, { color: colors.text }]}>
         {playoffInfo}
       </Text>
     );
   };
-
 
   const formattedDate = new Date(date).toLocaleDateString("en-US", {
     month: "numeric",
@@ -61,11 +55,11 @@ export function GameInfo({
   });
 
   return (
-    <View style={getStyles.container}>
+    <View style={styles.container}>
       {status === "Scheduled" && (
         <>
-          <Text style={[getStyles.date]}>{date}</Text>
-          <Text style={[getStyles.time, { color: colors.secondaryText }]}>
+          <Text style={[styles.date]}>{date}</Text>
+          <Text style={[styles.time, { color: colors.secondaryText }]}>
             {time}
           </Text>
         </>
@@ -73,13 +67,13 @@ export function GameInfo({
 
       {status === "In Progress" && (
         <>
-          <Text style={[getStyles.period, { color: isDark ? "#fff" : "#000" }]}>
+          <Text style={[styles.date, { color: isDark ? "#fff" : "#000" }]}>
             {period}
           </Text>
           {clock && (
             <Text
               style={[
-                getStyles.clock,
+                styles.clock,
                 {
                   color: isDark ? "#ff6b00" : "#d35400",
                 },
@@ -93,28 +87,28 @@ export function GameInfo({
 
       {status === "Final" && (
         <>
-          <Text style={[getStyles.final, { color: colors.finalText }]}>
+          <Text style={[styles.finalText, { color: colors.finalText }]}>
             Final
           </Text>
-          <Text style={[getStyles.date, { color: colors.secondaryText }]}>
+          <Text style={[styles.dateFinal, { color: colors.secondaryText }]}>
             {formattedDate}
           </Text>
         </>
       )}
       {status === "Canceled" && (
         <>
-          <Text style={[getStyles.final, { color: colors.finalText }]}>
+          <Text style={[styles.finalText, { color: colors.finalText }]}>
             Canceled
           </Text>
-          <Text style={[getStyles.date]}>{date}</Text>
+          <Text style={[styles.date]}>{date}</Text>
         </>
       )}
       {status === "Postponed" && (
         <>
-          <Text style={[getStyles.final, { color: colors.finalText }]}>
+          <Text style={[styles.finalText, { color: colors.finalText }]}>
             Postponed
           </Text>
-          <Text style={[getStyles.date, { color: colors.secondaryText }]}>
+          <Text style={[styles.date, { color: colors.secondaryText }]}>
             {new Date(date).toLocaleDateString("en-US", {
               month: "numeric",
               day: "numeric",
@@ -123,24 +117,14 @@ export function GameInfo({
         </>
       )}
 
-        <Text
-          style={{
-            fontSize: 10,
-            fontFamily: Fonts.OSREGULAR,
-            color: colors.secondaryText,
-            textAlign: "center",
-            marginTop: 2,
-          }}
-        >
-     {broadcastNetworks}
-        </Text>
-   
+      <Text style={styles.broadcasts}>{broadcastNetworks}</Text>
+
       {renderPlayoffInfo()}
     </View>
   );
 }
 
-const styles = (isDark: boolean) =>
+export const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     container: {
       justifyContent: "center",
@@ -154,29 +138,54 @@ const styles = (isDark: boolean) =>
       fontSize: 14,
     },
     time: {
-      fontSize: 14,
       fontFamily: Fonts.OSREGULAR,
+      color: isDark ? "#aaa" : "#555",
+      fontSize: 12,
     },
-    period: {
-      fontFamily: Fonts.OSMEDIUM,
-      fontSize: 14,
-    },
-    clock: {
-      fontSize: 14,
-      fontFamily: Fonts.OSMEDIUM,
-
-      marginTop: 4,
+    broadcasts: {
+      fontSize: 10,
+      fontFamily: Fonts.OSREGULAR,
+      color: isDark ? "#aaa" : "#555",
       textAlign: "center",
     },
-    final: {
+    clock: {
+      fontFamily: Fonts.OSMEDIUM,
       fontSize: 14,
-
-      fontFamily: Fonts.OSBOLD,
+      color: isDark ? "#ff4444" : "#cc0000",
+      textAlign: "center",
+    },
+    downAndDistance: {
+      fontFamily: Fonts.OSMEDIUM,
+      fontSize: 12,
+      color: isDark ? "#aaa" : "#555",
+      marginTop: 2,
+      textAlign: "center",
+    },
+    dateFinal: {
+      fontFamily: Fonts.OSREGULAR,
+      color: isDark ? "rgba(255,255,255, 1)" : "rgba(0, 0, 0, .5)",
+      fontSize: 14,
+    },
+    finalText: {
+      fontFamily: Fonts.OSMEDIUM,
+      fontSize: 16,
+      color: isDark ? "#ff4444" : "#cc0000",
+      textAlign: "center",
+    },
+    divider: {
+      height: 14,
+      width: 1,
+      backgroundColor: isDark ? "rgba(255,255,255, 1)" : "rgba(0, 0, 0, .5)",
+    },
+    playoffContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 6,
     },
     playoffText: {
-      marginTop: 6,
       fontSize: 13,
-      fontFamily: Fonts.OSSEMIBOLD,
+      color: isDark ? "#fff" : "#1d1d1d",
+      fontFamily: Fonts.OSEXTRALIGHT,
       textAlign: "center",
     },
   });

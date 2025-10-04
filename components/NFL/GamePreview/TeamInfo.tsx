@@ -4,38 +4,43 @@ import FootballLight from "assets/icons8/FootballLight.png";
 import { Fonts } from "constants/fonts";
 import { teams } from "constants/teamsNFL";
 import { Image, ImageSourcePropType, Text, View } from "react-native";
-
+import { getNFLTeamsLogo } from "constants/teamsNFL";
+import { NFLTeam } from "types/nfl";
 type TeamInfoProps = {
-  team?: (typeof teams)[number];
+  team: NFLTeam;
   teamName: string;
-  score?: number;
-  record?: string;
-  isWinner: boolean;
+  score: number;
+  opponentScore: number;
+  record: string;
   isDark: boolean;
   isGameOver: boolean;
   hasStarted: boolean;
   possessionTeamId?: string;
-  side?: "home" | "away";
-  timeouts: number; // number of remaining timeouts (0-3)
+  side: "home" | "away";
+  timeouts: number;
 };
+
 
 export default function TeamInfo({
   team,
   teamName,
   score,
+  opponentScore,
   record,
-  isWinner,
   isDark,
   isGameOver,
   hasStarted,
   possessionTeamId,
-  side = "home",
+  side,
   timeouts,
 }: TeamInfoProps) {
-  const scoreOpacity = !isGameOver ? 1 : isWinner ? 1 : 0.5;
+  const isTie = isGameOver && score === opponentScore;
+  const isWinner = isGameOver && !isTie && score > opponentScore;
 
-  const logo: ImageSourcePropType =
-    (isDark && team?.logoLight ? team.logoLight : team?.logo) || NFLLogo;
+
+  const scoreOpacity = !isGameOver ? 1 : isTie ? 1 : isWinner ? 1 : 0.5;
+
+const logo = getNFLTeamsLogo(team?.id, isDark);
 
   const displayValue = !hasStarted ? record ?? "-" : score ?? "-";
 
@@ -62,6 +67,8 @@ export default function TeamInfo({
     }
     return <View style={{ flexDirection: "row", marginTop: 2 }}>{dots}</View>;
   };
+
+  
 
   return (
     <View style={{ alignItems: "center", position: "relative" }}>
@@ -104,7 +111,7 @@ export default function TeamInfo({
 
           <Text
             style={{
-              fontSize: 40,
+              fontSize: 30,
               fontFamily: Fonts.OSBOLD,
               color: "#fff",
               opacity: hasStarted ? scoreOpacity : 1,
@@ -141,20 +148,18 @@ export default function TeamInfo({
           </Text>
         )}
 
-{/* Timeouts dots (only show if game started and not over) */}
-{hasStarted && !isGameOver && (
-  <View
-    style={{
-      width: "100%",
-      alignItems: "center",
-      marginTop: 4,
-    }}
-  >
-    {renderTimeouts(timeouts)}
-  </View>
-)}
-
-
+        {/* Timeouts dots (only show if game started and not over) */}
+        {hasStarted && !isGameOver && (
+          <View
+            style={{
+              width: "100%",
+              alignItems: "center",
+              marginTop: 4,
+            }}
+          >
+            {renderTimeouts(timeouts)}
+          </View>
+        )}
       </View>
     </View>
   );

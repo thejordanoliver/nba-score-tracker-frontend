@@ -23,6 +23,7 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import { getAccessToken } from "utils/authStorage"; // <-- use your helper
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -75,20 +76,22 @@ export default function CommentThreadScreen() {
   const [loading, setLoading] = useState(true);
   const [inputHeight, setInputHeight] = useState(40); // default height
 
-  // Load token and current user ID
-  useEffect(() => {
-    AsyncStorage.getItem("token").then((storedToken) => {
-      if (storedToken) {
-        setToken(storedToken);
-        try {
-          const decoded = jwtDecode<JwtPayload>(storedToken);
-          setCurrentUserId(decoded.id);
-        } catch (e) {
-          console.error("Failed to decode token", e);
-        }
+useEffect(() => {
+  const loadToken = async () => {
+    const storedToken = await getAccessToken();
+    if (storedToken) {
+      setToken(storedToken);
+      try {
+        const decoded = jwtDecode<JwtPayload>(storedToken);
+        setCurrentUserId(decoded.id);
+      } catch (e) {
+        console.error("Failed to decode token", e);
       }
-    });
-  }, []);
+    }
+  };
+  loadToken();
+}, []);
+
 
   useLayoutEffect(() => {
     navigation.setOptions({

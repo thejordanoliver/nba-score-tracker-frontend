@@ -1,6 +1,5 @@
 import { Fonts } from "constants/fonts";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useFocusEffect, useRouter } from "expo-router";
 import { jwtDecode } from "jwt-decode";
@@ -15,10 +14,15 @@ import {
 } from "react-native";
 import { useImagePreviewStore } from "../../store/imagePreviewStore";
 import { Post, PostItem, getStyles as getPostItemStyles } from "./PostItem";
+import { getAccessToken } from "utils/authStorage";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:4000";
 
-export default function LeagueForum() {
+type LeagueForumProps = {
+  league?: "NBA" | "NFL"; // extendable if more leagues later
+};
+
+export default function LeagueForum({ league = "NBA" }: LeagueForumProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -35,25 +39,30 @@ export default function LeagueForum() {
   const isDark = colorScheme === "dark";
   const styles = getPostItemStyles(isDark);
 
+  // 🔑 Load token + decode user
   useEffect(() => {
-    AsyncStorage.getItem("token")
-      .then((storedToken) => {
+    (async () => {
+      try {
+        const storedToken = await getAccessToken();
         setToken(storedToken);
         if (storedToken) {
           const decoded: { id: number } = jwtDecode(storedToken);
           setCurrentUserId(decoded.id);
         }
-      })
-      .catch(console.error);
+      } catch (err) {
+        console.error("Error loading token:", err);
+      }
+    })();
   }, []);
 
+  // 🔑 Fetch league posts
   const fetchPosts = useCallback(
     async (pageNumber = 1) => {
       pageNumber === 1 ? setLoading(true) : setRefreshing(true);
       setError(null);
 
       try {
-        const res = await axios.get(`${BASE_URL}/api/forum/league`, {
+        const res = await axios.get(`${BASE_URL}/api/forum/league/${league}`, {
           params: { page: pageNumber, limit: 10 },
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
@@ -74,7 +83,6 @@ export default function LeagueForum() {
             .filter((post: Post) => post.liked_by_current_user)
             .map((post: Post) => String(post.id))
         );
-
         setLikedPosts(likedSet);
       } catch (err: any) {
         setError(
@@ -85,7 +93,7 @@ export default function LeagueForum() {
         setRefreshing(false);
       }
     },
-    [token]
+    [token, league]
   );
 
   useEffect(() => {
@@ -115,12 +123,11 @@ export default function LeagueForum() {
       alert("You must be logged in to delete posts.");
       return;
     }
-
     try {
       await axios.delete(`${BASE_URL}/api/forum/post/${postId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      setPosts((prev) => prev.filter((p) => String(p.id) !== postId));
       alert("Post deleted.");
     } catch (err: any) {
       alert(
@@ -134,7 +141,6 @@ export default function LeagueForum() {
       alert("You must be logged in to edit posts.");
       return;
     }
-
     try {
       const res = await axios.patch(
         `${BASE_URL}/api/forum/post/${postId}`,
@@ -142,7 +148,7 @@ export default function LeagueForum() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setPosts((prev) =>
-        prev.map((p) => (p.id === postId ? res.data.post : p))
+        prev.map((p) => (String(p.id) === postId ? res.data.post : p))
       );
       alert("Post updated.");
     } catch (err: any) {
@@ -162,7 +168,7 @@ export default function LeagueForum() {
 
       <FlatList
         data={posts}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => String(item.id)}
         contentContainerStyle={{ paddingBottom: 120 }}
         renderItem={({ item }) => (
           <PostItem
@@ -202,10 +208,14 @@ export default function LeagueForum() {
         }
       />
 
+      {/* 🔑 Floating action button to create post */}
       <TouchableOpacity
         style={styles.floatingButton}
         onPress={() =>
-          router.push({ pathname: "/create-post", params: { league: "true" } })
+          router.push({
+            pathname: "/create-post",
+            params: { league }, // ✅ pass correct league
+          })
         }
         activeOpacity={0.8}
       >

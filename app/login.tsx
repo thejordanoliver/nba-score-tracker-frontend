@@ -1,8 +1,7 @@
 // login.tsx
-import { CustomHeaderTitle } from "components/CustomHeaderTitle";
-import { getSignupStepsStyles } from "styles/signupStepStyles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { CustomHeaderTitle } from "components/CustomHeaderTitle";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation, useRouter } from "expo-router";
 import { goBack } from "expo-router/build/global-state/routing";
@@ -21,6 +20,7 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import { getSignupStepsStyles } from "styles/signupStepStyles";
 import CropEditorModal from "../components/CropEditorModal";
 import SignInForm from "../components/SignInForm";
 import SignupSteps from "../components/SignUpSteps";
@@ -106,16 +106,16 @@ export default function LoginScreen() {
       return;
     }
     try {
-      const res = await axios.post<{ user: User; token: string }>(
-        `${BASE_URL}/api/login`,
-        {
-          username: trimmedUsername,
-          password,
-        }
-      );
-      const { user, token } = res.data;
+      const res = await axios.post<{
+        user: User;
+        accessToken: string;
+        refreshToken: string;
+      }>(`${BASE_URL}/api/login`, { username: trimmedUsername, password });
 
-      await safeSetItem("token", token);
+      const { user, accessToken, refreshToken } = res.data;
+
+      await safeSetItem("accessToken", accessToken);
+      await safeSetItem("refreshToken", refreshToken);
       await safeSetItem("userId", user.id?.toString() || null);
       await safeSetItem("username", user.username);
       await safeSetItem("fullName", user.full_name);

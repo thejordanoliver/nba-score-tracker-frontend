@@ -6,6 +6,7 @@ import {
 } from "constants/teamsNFL";
 import { useRouter } from "expo-router";
 import { useNFLGameBroadcasts } from "hooks/NFLHooks/useNFLGameBroadcasts";
+import { useNFLGamePossession } from "hooks/NFLHooks/useNFLGamePossession";
 import { useNFLTeamRecord } from "hooks/NFLHooks/useNFLTeamRecord";
 import { memo, useMemo } from "react";
 import {
@@ -31,10 +32,7 @@ function NFLGameSquareCard({ game, isDark }: Props) {
 
   const homeId = String(game?.teams?.home?.id);
   const awayId = String(game?.teams?.away?.id);
-
   const gameId = game?.game?.id;
-
-  // console.log(`Game ID: ${gameId}`);
 
   // Compute game date
   const gameDate = useMemo(() => {
@@ -44,35 +42,11 @@ function NFLGameSquareCard({ game, isDark }: Props) {
   }, [game?.game?.date?.timestamp]);
   const gameDateStr = gameDate?.toISOString();
 
-  // ✅ Fetch dynamic records for both teams (now from team endpoint)
+  // ✅ Fetch dynamic records for both teams
   const { record: awayRecord } = useNFLTeamRecord(awayId);
   const { record: homeRecord } = useNFLTeamRecord(homeId);
 
-  const awayTeam = useMemo(() => {
-    return {
-      logo: getNFLTeamsLogo(awayId, dark),
-      name: getTeamName(awayId),
-      code: getTeamAbbreviation(awayId),
-      record: awayRecord.overall ?? "0-0",
-    };
-  }, [awayId, awayRecord.overall, dark]);
-
-  const homeTeam = useMemo(() => {
-    return {
-      logo: getNFLTeamsLogo(homeId, dark),
-      name: getTeamName(homeId),
-      code: getTeamAbbreviation(homeId),
-      record: homeRecord.overall ?? "0-0",
-    };
-  }, [homeId, homeRecord.overall, dark]);
-
-  // Fetch broadcasts
-  const { broadcasts } = useNFLGameBroadcasts(
-    homeTeam.name,
-    awayTeam.name,
-    gameDateStr
-  );
-
+  // ✅ Status builder with OT handling
   const status = useMemo(() => {
     const long = game.game.status.long ?? "";
     const short = game.game.status.short?.toLowerCase() ?? "";
@@ -81,6 +55,8 @@ function NFLGameSquareCard({ game, isDark }: Props) {
     const wentOT =
       longLower.includes("ot") ||
       longLower.includes("over time") ||
+      longLower.includes("after over") ||
+      longLower.includes("aot") ||
       short.includes("ot");
 
     const isFinal =
@@ -114,6 +90,59 @@ function NFLGameSquareCard({ game, isDark }: Props) {
     };
   }, [game.game.status]);
 
+
+
+    const possession = status.isLive
+      ? useNFLGamePossession(
+          getTeamName(homeId, "Home"),
+          getTeamName(awayId, "Away"),
+          gameDateStr
+        )
+      : {
+          possessionTeamId: undefined,
+          displayClock: undefined,
+          shortDownDistanceText: undefined,
+          downDistanceText: undefined,
+          period: undefined,
+          refresh: () => {},
+        };
+  
+    const { possessionTeamId, displayClock, shortDownDistanceText } = possession;
+  
+
+const awayTeam = useMemo(
+    () => ({
+      logo: getNFLTeamsLogo(awayId, dark),
+      code: getTeamAbbreviation(awayId, "AWY"),
+      name: getTeamName(awayId, "Away"),
+      record: awayRecord?.overall ?? "0-0",
+      id: awayId,
+      hasPossession: String(possessionTeamId) === String(awayId),
+    }),
+    [awayId, awayRecord?.overall, dark, possessionTeamId]
+  );
+
+  const homeTeam = useMemo(
+    () => ({
+      logo: getNFLTeamsLogo(homeId, dark),
+      code: getTeamAbbreviation(homeId, "HME"),
+      name: getTeamName(homeId, "Home"),
+      record: homeRecord?.overall ?? "0-0",
+      id: homeId,
+      hasPossession: String(possessionTeamId) === String(homeId),
+    }),
+    [homeId, homeRecord?.overall, dark, possessionTeamId]
+  );
+
+
+  // Fetch broadcasts
+  const { broadcasts } = useNFLGameBroadcasts(
+    homeTeam.name,
+    awayTeam.name,
+    gameDateStr
+  );
+
+
   const formattedDate = gameDate
     ? gameDate.toLocaleDateString("en-US", { month: "numeric", day: "numeric" })
     : "";
@@ -125,6 +154,31 @@ function NFLGameSquareCard({ game, isDark }: Props) {
         hour12: true,
       })
     : "";
+
+  // ✅ Quarter formatter with live OT handling
+  const formatQuarter = (short?: string | null, long?: string | null): string => {
+    const val = short && short.trim() !== "" ? short : long ?? "";
+    if (!val) return "";
+
+    const q = val.toLowerCase();
+
+    if (q.includes("1")) return "1st";
+    if (q.includes("2")) return "2nd";
+    if (q.includes("3")) return "3rd";
+    if (q.includes("4")) return "4th";
+
+    if (q.includes("ot") || q.includes("overtime")) return "OT";
+    if (q.includes("half")) return "Halftime";
+    if (q.includes("end")) return "End";
+
+    const asNumber = Number(val);
+    if (!isNaN(asNumber)) {
+      if (asNumber === 5) return "OT";
+      if (asNumber > 5) return `${asNumber - 4}OT`;
+    }
+
+    return val; // fallback
+  };
 
   const getTeamStyle = useMemo(
     () =>
@@ -147,23 +201,6 @@ function NFLGameSquareCard({ game, isDark }: Props) {
     [dark, status, game.scores]
   );
 
-  const formatQuarter = (short?: string): string => {
-    if (!short) return ""; // <--- guard
-
-    const q = short.toLowerCase();
-
-    if (q.includes("1")) return "1st";
-    if (q.includes("2")) return "2nd";
-    if (q.includes("3")) return "3rd";
-    if (q.includes("4")) return "4th";
-
-    if (q.includes("ot")) return "OT"; // handle overtime
-    if (q.includes("half")) return "Halftime";
-    if (q.includes("end")) return "End";
-
-    return short; // fallback
-  };
-
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -182,8 +219,6 @@ function NFLGameSquareCard({ game, isDark }: Props) {
               <Image source={awayTeam.logo} style={styles.logo} />
               <Text style={styles.teamName}>{awayTeam.code}</Text>
             </View>
-
-            {/* Away record / score */}
             <Text
               style={[
                 status.isScheduled || status.isCanceled || status.isPostponed
@@ -198,10 +233,9 @@ function NFLGameSquareCard({ game, isDark }: Props) {
             </Text>
           </View>
 
+          {/* Home Team */}
           <View style={styles.teamSection}>
-            {/* Home record / score */}
             <View style={styles.teamWrapper}>
-              {/* Home Team */}
               <Image source={homeTeam.logo} style={styles.logo} />
               <Text style={styles.teamName}>{homeTeam.code}</Text>
             </View>
@@ -243,12 +277,14 @@ function NFLGameSquareCard({ game, isDark }: Props) {
           {status.isLive && (
             <>
               <Text style={[styles.date, { fontSize: 14 }]}>
-                {formatQuarter(status.short)}
+                {formatQuarter(status.short, status.long)}
               </Text>
               <Text style={styles.clock}>{status.timer}</Text>
             </>
           )}
-          {status.isHalftime && <Text style={styles.date}>{status.long}</Text>}
+          {status.isHalftime && (
+            <Text style={[styles.date, { fontSize: 14 }]}>{status.short}</Text>
+          )}
           {status.isFinal && (
             <>
               <Text style={styles.finalText}>
@@ -260,6 +296,8 @@ function NFLGameSquareCard({ game, isDark }: Props) {
           {status.isCanceled && <Text style={styles.finalText}>Cancelled</Text>}
           {status.isDelayed && <Text style={styles.finalText}>Delayed</Text>}
         </View>
+
+        {/* Broadcasts */}
         {broadcasts.length > 0 &&
           (() => {
             const names = broadcasts
@@ -274,7 +312,7 @@ function NFLGameSquareCard({ game, isDark }: Props) {
             if (names.includes("ESPN") && names.includes("ABC")) {
               display = "ESPN/ABC";
             } else {
-              display = names[0]; // just the first broadcast
+              display = names[0];
             }
 
             return <Text style={styles.broadcast}>{display}</Text>;
@@ -311,7 +349,6 @@ export const getStyles = (dark: boolean) =>
       alignItems: "center",
       gap: 4,
     },
-
     teamWrapper: {
       flexDirection: "row",
       justifyContent: "flex-start",
@@ -319,7 +356,6 @@ export const getStyles = (dark: boolean) =>
       gap: 8,
       width: 80,
     },
-
     logo: {
       width: 28,
       height: 28,
@@ -373,7 +409,7 @@ export const getStyles = (dark: boolean) =>
       fontSize: 14,
     },
     time: {
-      fontSize: 12,
+     fontSize: 10,
       fontFamily: Fonts.OSREGULAR,
       textAlign: "center",
       color: dark ? "#ff4444" : "#cc0000",

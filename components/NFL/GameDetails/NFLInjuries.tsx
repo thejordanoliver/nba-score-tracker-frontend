@@ -11,7 +11,7 @@ import {
   useColorScheme,
 } from "react-native";
 import HeadingTwo from "../../Headings/HeadingTwo";
-import FixedWidthTabBar from "../FixedWidthTabBar";
+import FixedWidthTabBar from "../TabBars/FixedWidthTabBar";
 
 type Injury = {
   status: string;
@@ -195,9 +195,8 @@ export default function NFLInjuries({
               <Image
                 source={teamLogo}
                 style={{
-                  width: 24,
-                  height: 24,
-                  marginBottom: 2,
+                  width: 28,
+                  height: 28,
                   opacity: isSelected ? 1 : 0.5,
                 }}
                 resizeMode="contain"
@@ -206,8 +205,7 @@ export default function NFLInjuries({
                 style={{
                   color: textColor,
                   fontFamily: Fonts.OSMEDIUM,
-                              opacity: isSelected ? 1 : 0.5, // ← added text opacity
-
+                  opacity: isSelected ? 1 : 0.5, // ← added text opacity
                 }}
               >
                 {team?.team.abbreviation ?? tab}
@@ -237,7 +235,7 @@ export default function NFLInjuries({
 
 const getStyles = (isDark: boolean) =>
   StyleSheet.create({
-    container: { marginBottom: 16 },
+    container: {},
     card: {
       paddingHorizontal: 12,
       borderBottomColor: isDark ? "#444" : "#ccc",

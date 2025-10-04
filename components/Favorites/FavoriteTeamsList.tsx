@@ -1,5 +1,4 @@
 // components/FavoriteTeamsList.tsx
-import type { Team } from "types/types"; // adjust the import path as needed
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
@@ -8,17 +7,19 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, Pressable, Text, useColorScheme, View } from "react-native";
 import { LongPressGestureHandler, State } from "react-native-gesture-handler";
+import type { Team } from "types/types"; // Team type should include `league: "NBA" | "NFL"`
 import TeamPreviewModal from "./../Team/TeamPreviewModal";
-import { Fonts } from "constants/fonts";
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
+type TeamWithLeague = Team & { league: "NBA" | "NFL" };
 
 type Props = {
-  favoriteTeams: Team[];
+  favoriteTeams: TeamWithLeague[];
   isGridView: boolean;
   styles: any;
   itemWidth?: number;
   isCurrentUser: boolean;
-  username?: string; // add username prop
+  username?: string;
 };
 
 const FavoriteTeamsList = ({
@@ -26,16 +27,18 @@ const FavoriteTeamsList = ({
   isGridView,
   styles,
   isCurrentUser,
-  username, // <-- new prop
+  username,
 }: Props) => {
   const router = useRouter();
   const isDark = useColorScheme() === "dark";
-  const [favorites, setFavorites] = useState<Team[]>(favoriteTeams);
+  const [favorites, setFavorites] = useState<TeamWithLeague[]>(
+    favoriteTeams.map((t) => ({ ...t, league: (t as any).league || "NBA" })) // default to NBA if missing
+  );
+  const [previewTeam, setPreviewTeam] = useState<TeamWithLeague | null>(null);
 
-  const [previewTeam, setPreviewTeam] = useState<Team | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleLongPress = (team: Team) => {
+  const handleLongPress = (team: TeamWithLeague) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     setPreviewTeam(team);
     setModalVisible(true);
@@ -47,26 +50,26 @@ const FavoriteTeamsList = ({
       setModalVisible(false);
     }
   };
-  const handleRemoveFavorite = async (teamId: string) => {
+
+  const handleRemoveFavorite = async (team: TeamWithLeague) => {
     try {
+      const key = `${team.league}:${team.id}`;
       // Update local favorites list immediately
-      const updated = favorites.filter((team) => team.id !== teamId);
+      const updated = favorites.filter((t) => `${t.league}:${t.id}` !== key);
       setFavorites(updated);
       setModalVisible(false);
       setPreviewTeam(null);
 
       // Save updated favorites IDs to AsyncStorage
-      const idsOnly = updated.map((team) => team.id);
-      await AsyncStorage.setItem("favorites", JSON.stringify(idsOnly));
+      const keysOnly = updated.map((t) => `${t.league}:${t.id}`);
+      await AsyncStorage.setItem("favorites", JSON.stringify(keysOnly));
 
       // Update backend if username available
       if (username) {
         try {
           const response = await axios.patch(
             `${API_URL}/api/users/${username}/favorites`,
-            {
-              favorites: idsOnly,
-            }
+            { favorites: keysOnly }
           );
           console.log("Backend favorites update response:", response.data);
         } catch (error: unknown) {
@@ -99,7 +102,7 @@ const FavoriteTeamsList = ({
           team={previewTeam}
           onClose={() => setModalVisible(false)}
           onGo={handleGoToTeam}
-          onRemove={handleRemoveFavorite}
+          onRemove={() => handleRemoveFavorite(previewTeam)}
         />
       )}
 
@@ -118,7 +121,7 @@ const FavoriteTeamsList = ({
 
           return (
             <LongPressGestureHandler
-              key={team.id}
+              key={`${team.league}:${team.id}`}
               minDurationMs={300}
               onHandlerStateChange={({ nativeEvent }) => {
                 if (nativeEvent.state === State.ACTIVE) {
@@ -127,11 +130,24 @@ const FavoriteTeamsList = ({
               }}
             >
               <Pressable
-                onPress={() => router.push(`/team/${team.id}`)}
+                key={`${team?.league}-${team?.id}`}
                 style={({ pressed }) => [
                   pressed && { opacity: 0.6 },
                   isGridView ? { width: "32%" } : { width: "100%" },
                 ]}
+                onPress={() => {
+                  if (!team) return;
+
+                  const route =
+                    team.league === "NFL"
+                      ? "/team/nfl/[teamId]"
+                      : "/team/[teamId]";
+
+                  router.push({
+                    pathname: route,
+                    params: { teamId: team.id.toString() },
+                  });
+                }}
               >
                 <View style={{ width: "100%" }}>
                   <View
@@ -146,7 +162,6 @@ const FavoriteTeamsList = ({
                         marginBottom: isGridView ? 0 : 8,
                         paddingHorizontal: 12,
                         paddingVertical: isGridView ? 20 : 12,
-                        
                       },
                     ]}
                   >
@@ -174,11 +189,7 @@ const FavoriteTeamsList = ({
                         <Text
                           style={[
                             styles.teamName,
-                            {
-                              fontSize: 12,
-                              textAlign: "center",
-                              marginTop: 2,
-                            },
+                            { fontSize: 12, textAlign: "center", marginTop: 2 },
                           ]}
                         >
                           {nickname}
@@ -188,11 +199,7 @@ const FavoriteTeamsList = ({
                       <Text
                         style={[
                           styles.teamName,
-                          {
-                            textAlign: "left",
-                            fontSize: 14,
-                            marginLeft: 10,
-                          },
+                          { textAlign: "left", fontSize: 14, marginLeft: 10 },
                         ]}
                       >
                         {team.fullName}

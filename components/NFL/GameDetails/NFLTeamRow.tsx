@@ -25,6 +25,7 @@ type Props = {
   possessionTeamId?: string;
   size?: number;
   timeouts: number;
+  opponentScore?: number | null; // 👈 NEW: needed to detect ties
 };
 
 export const NFLTeamRow = ({
@@ -38,6 +39,7 @@ export const NFLTeamRow = ({
   possessionTeamId,
   size = 50,
   timeouts,
+  opponentScore,
 }: Props) => {
   const router = useRouter();
 
@@ -56,21 +58,30 @@ export const NFLTeamRow = ({
 
   const hasPossession = isLive && String(possessionTeamId) === String(team.id);
 
+  const isTie =
+    isFinal &&
+    score != null &&
+    opponentScore != null &&
+    score === opponentScore;
+
   const getScoreStyle = () => {
     if (score == null) return { color: colors.score, opacity: 0.5 };
 
     if (isLive) {
-      return { color: isDark ? "#fff" : "#000", opacity: 1 };
+      return { color: isDark ? "#fff" : "#1d1d1d" }; // full bright
     }
 
     if (isFinal) {
+      if (isTie) {
+        return { color: isDark ? "#fff" : "#1d1d1d", opacity: 1 }; // force full opacity
+      }
       return {
         color: isWinner ? colors.winnerScore : colors.score,
         opacity: isWinner ? 1 : 0.5,
       };
     }
 
-    return { color: colors.score, opacity: 1 };
+    return { color: colors.score }; // default
   };
 
   const renderTimeouts = (remaining: number) => {
@@ -84,7 +95,7 @@ export const NFLTeamRow = ({
               width: 8,
               height: 2,
               borderRadius: 4,
-              backgroundColor: isDark ? "#fff" : "#000",
+              backgroundColor: isDark ? "#fff" : "#1d1d1d",
               opacity: i < remaining ? 1 : 0.5,
               marginHorizontal: 2,
             }}
@@ -169,17 +180,24 @@ export const NFLTeamRow = ({
             </Text>
           </View>
 
-          {/* Timeouts - always show 3 */}
-          <View style={{ alignItems: "center", marginTop: 2 }}>
-            {renderTimeouts(timeouts)}
-          </View>
+          {/* Timeouts */}
+          {isLive && (
+            <View style={{ alignItems: "center", marginTop: 2 }}>
+              {renderTimeouts(timeouts)}
+            </View>
+          )}
 
           {/* Record (only show final record if game finished) */}
           {isFinal && (
             <Text
               style={[
                 styles.record,
-                { color: colors.record, fontSize: size * 0.24 },
+                {
+                  color: isTie
+                    ? colors.text // neutral color for ties
+                    : colors.record,
+                  fontSize: size * 0.24,
+                },
               ]}
             >
               {team.record ?? "0-0"}

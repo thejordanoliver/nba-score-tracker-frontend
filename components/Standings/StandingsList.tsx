@@ -316,20 +316,7 @@ export function StandingsList() {
             {winStreak ? `W${streak}` : `L${streak}`}
           </Text>
         </View>
-        <View style={styles.statCell}>
-          <Text
-            style={[styles.statText, { color: isDark ? "#fff" : "#1d1d1d" }]}
-          >
-            {division.name}
-          </Text>
-        </View>
-        <View style={styles.statCell}>
-          <Text
-            style={[styles.statText, { color: isDark ? "#fff" : "#1d1d1d" }]}
-          >
-            {division.rank}
-          </Text>
-        </View>
+
         <View style={styles.statCell}>
           <Text
             style={[styles.statText, { color: isDark ? "#fff" : "#1d1d1d" }]}
@@ -477,8 +464,6 @@ export function StandingsList() {
         "W-L",
         "Conf GB",
         "Streak",
-        "Div Name",
-        "Div Rank",
         "Div W-L",
         "Div GB",
         "Home W",
@@ -535,13 +520,12 @@ export function StandingsList() {
             scrollEnabled={false}
             ListHeaderComponent={renderFixedHeader}
             stickyHeaderIndices={[0]}
-            style={{ flex: 1 }}
           />
           {/* Right side horizontal scroll with FlatList and sticky header */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            style={{ flex: 1 }}
+             style={{ width: 220 }} // increased
           >
             <FlatList
               data={data}

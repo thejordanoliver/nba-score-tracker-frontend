@@ -11,6 +11,7 @@ type Props = {
     code?: string;
     id?: string;
   };
+  size?: number;
   isDark: boolean;
   isHome?: boolean;
   score?: number;
@@ -23,6 +24,7 @@ export const TeamRow = ({
   isDark,
   isHome = false,
   score,
+  size = 50,
   isWinner,
   colors,
 }: Props) => {
@@ -61,6 +63,7 @@ export const TeamRow = ({
             showRecordInsteadOfScore
               ? { color: colors.record } // record color
               : { color: isWinner ? colors.winnerScore : colors.score }, // score color
+            { fontSize: size * 0.5, width: size + 10 },
           ]}
         >
           {showRecordInsteadOfScore ? displayRecord : score ?? ""}
@@ -69,10 +72,18 @@ export const TeamRow = ({
 
       <View style={styles.teamInfoContainer}>
         <Pressable onPress={handleTeamPress}>
-          <Image source={team.logo} style={styles.logo} />
+          <Image
+            source={team.logo}
+            style={{ width: size, height: size, resizeMode: "contain" }}
+          />
         </Pressable>
         <View style={styles.teamInfo}>
-          <Text style={[styles.teamName, { color: colors.text }]}>
+          <Text
+            style={[
+              styles.teamName,
+              { color: colors.text, fontSize: size * 0.25 },
+            ]}
+          >
             {team.name}
           </Text>
           {/* Only show record under team name if scores are visible */}
@@ -91,6 +102,7 @@ export const TeamRow = ({
             showRecordInsteadOfScore
               ? { color: colors.record } // record color
               : { color: isWinner ? colors.winnerScore : colors.score }, // score color
+            { fontSize: size * 0.5, width: size + 10 },
           ]}
         >
           {showRecordInsteadOfScore ? displayRecord : score ?? ""}
@@ -105,6 +117,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    marginVertical: 4,
   },
   teamInfoContainer: {
     flexDirection: "column",
@@ -114,26 +127,32 @@ const styles = StyleSheet.create({
   teamInfo: {
     justifyContent: "center",
   },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   teamName: {
-    fontSize: 12,
     fontFamily: Fonts.OSREGULAR,
     textAlign: "center",
   },
   record: {
-    fontSize: 12,
     fontFamily: Fonts.OSREGULAR,
     textAlign: "center",
   },
-  logo: {
-    width: 50,
-    height: 50,
-    resizeMode: "contain",
-  },
   score: {
-    fontSize: 24,
     fontFamily: Fonts.OSBOLD,
-    width: 60,
     textAlign: "center",
     marginHorizontal: 16,
+  },
+  preGameRecord: {
+    fontFamily: Fonts.OSBOLD,
+    textAlign: "center",
+    marginHorizontal: 16,
+  },
+  scoreWrapper: {
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
   },
 });

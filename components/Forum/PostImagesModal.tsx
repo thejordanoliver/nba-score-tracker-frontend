@@ -1,5 +1,5 @@
-import { Fonts } from "constants/fonts";
 import { Ionicons } from "@expo/vector-icons";
+import { Fonts } from "constants/fonts";
 import { BlurView } from "expo-blur";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -18,7 +18,6 @@ import {
 } from "react-native";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-
 const screenWidth = Dimensions.get("window").width;
 
 type PostImagesModalProps = {
@@ -26,7 +25,7 @@ type PostImagesModalProps = {
   images: string[];
   initialIndex: number;
   onClose: () => void;
-  postText?: string; // ← optional caption text
+  postText?: string;
   likesCount?: number;
   commentsCount?: number;
   profileImage?: string | null;
@@ -46,12 +45,25 @@ export default function PostImagesModal({
 }: PostImagesModalProps) {
   const isDark = useColorScheme() === "dark";
   const styles = getStyles(isDark);
-  const [imageHeight, setImageHeight] = useState<number>((screenWidth * 3) / 4); // default 4:3
+
+  const [expanded, setExpanded] = useState(false);
+  const [textHeight, setTextHeight] = useState(0);
+  const [fullHeight, setFullHeight] = useState(0);
+  const animatedHeight = useRef(new Animated.Value(0)).current;
+
+  const [imageDimensions, setImageDimensions] = useState<{
+    [key: string]: number;
+  }>({});
+
+  const handleImageLoad = (uri: string, width: number, height: number) => {
+    const calculatedHeight = (height / width) * screenWidth;
+    setImageDimensions((prev) => ({ ...prev, [uri]: calculatedHeight }));
+  };
 
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.85)).current;
   const flatListRef = useRef<FlatList<string>>(null);
-  // Before rendering the profile image, normalize its URL:
+
   const fullProfileImageUri =
     profileImage && !profileImage.startsWith("http")
       ? `${BASE_URL}${profileImage}`
@@ -98,6 +110,15 @@ export default function PostImagesModal({
     }
   }, [visible, opacity, scale, initialIndex]);
 
+  useEffect(() => {
+    Animated.timing(animatedHeight, {
+      toValue: expanded ? fullHeight : textHeight,
+      duration: 300,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: false,
+    }).start();
+  }, [expanded, textHeight, fullHeight]);
+
   return (
     <Modal
       visible={visible}
@@ -106,40 +127,32 @@ export default function PostImagesModal({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.modalContainer}>
-        <BlurView
-          intensity={90}
-          tint={"dark"}
-          style={StyleSheet.absoluteFill}
-        />
+        <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFill} />
         <View style={styles.modalBackground} />
-        <View style={styles.header}>
-          <View style={styles.user}>
-            {fullProfileImageUri ? (
-              <Image
-                source={{ uri: fullProfileImageUri }}
-                style={styles.profileImage}
-              />
-            ) : null}
-            <Text style={styles.username}>{username}</Text>
-          </View>
+        {/* Image Gallery */}
 
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={onClose}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close" size={28} color={"#fff"}></Ionicons>
-          </TouchableOpacity>
-        </View>
         <Animated.View
-          style={[
-            styles.galleryWrapper,
-            {
-              opacity: opacity,
-              transform: [{ scale: scale }],
-            },
-          ]}
+          style={[styles.galleryWrapper, { opacity, transform: [{ scale }] }]}
         >
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.user}>
+              {fullProfileImageUri && (
+                <Image
+                  source={{ uri: fullProfileImageUri }}
+                  style={styles.profileImage}
+                />
+              )}
+              <Text style={styles.username}>{username}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={onClose}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="close" size={28} color="#fff" />
+            </TouchableOpacity>
+          </View>
           <FlatList
             ref={flatListRef}
             data={images}
@@ -147,17 +160,42 @@ export default function PostImagesModal({
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             keyExtractor={(uri, idx) => `${uri}_${idx}`}
-            renderItem={({ item }) => (
-              <View style={styles.fullImageWrapper}>
-                <View style={styles.imageContainer}>
-                  <Image
-                    source={{ uri: item }}
-                    style={styles.fullImage}
-                    resizeMode="contain"
-                  />
+            renderItem={({ item }) => {
+              const dynamicHeight =
+                imageDimensions[item] || (screenWidth * 3) / 4;
+              return (
+                <View
+                  style={{
+                    width: screenWidth,
+                    justifyContent: "center",
+                    alignItems: "flex-start",
+                    paddingHorizontal: 16,
+                    paddingBottom: 80,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: screenWidth - 32,
+                      height: dynamicHeight,
+                      borderRadius: 12,
+                      overflow: "hidden",
+                      backgroundColor: "#1d1d1d",
+                    }}
+                  >
+                    <Image
+                      source={{ uri: item }}
+                      style={{ width: "100%", height: "100%" }}
+                      resizeMode="cover"
+                      onLoad={() =>
+                        Image.getSize(item, (w, h) =>
+                          handleImageLoad(item, w, h)
+                        )
+                      }
+                    />
+                  </View>
                 </View>
-              </View>
-            )}
+              );
+            }}
             getItemLayout={(_, index) => ({
               length: screenWidth,
               offset: screenWidth * index,
@@ -167,23 +205,65 @@ export default function PostImagesModal({
           />
         </Animated.View>
 
-        <View style={styles.captionContainer}>
-          <View style={styles.captionWrapper}>
-            {postText ? (
-              <Text style={styles.captionText}>{postText}</Text>
-            ) : null}
-            <View style={styles.engagementRow}>
-              <View style={styles.iconWithText}>
-                <Ionicons name="heart-outline" size={28} color="#fff" />
-                <Text style={styles.engagementText}>{likesCount}</Text>
-              </View>
-              <View style={styles.iconWithText}>
-                <Ionicons name="chatbubble-outline" size={28} color="#fff" />
-                <Text style={styles.engagementText}>{commentsCount}</Text>
+        {/* Caption Overlay */}
+        {postText && (
+          <>
+            <View style={styles.captionOverlay}>
+              <BlurView
+                intensity={80}
+                tint="systemMaterialDark"
+                style={StyleSheet.absoluteFill}
+              />
+              <Animated.View
+                style={{ height: animatedHeight, overflow: "hidden" }}
+              >
+                <Text
+                  style={styles.captionText}
+                  numberOfLines={expanded ? undefined : 3}
+                  onLayout={(e) => {
+                    if (!textHeight && !expanded)
+                      setTextHeight(e.nativeEvent.layout.height);
+                  }}
+                >
+                  {postText}
+                </Text>
+
+                {/* Hidden full text for measuring */}
+                <Text
+                  style={[
+                    styles.captionText,
+                    { position: "absolute", opacity: 0 },
+                  ]}
+                  onLayout={(e) => {
+                    if (!fullHeight) setFullHeight(e.nativeEvent.layout.height);
+                  }}
+                >
+                  {postText}
+                </Text>
+              </Animated.View>
+
+              {fullHeight > textHeight + 5 && (
+                <Text
+                  style={styles.readMoreText}
+                  onPress={() => setExpanded((prev) => !prev)}
+                >
+                  {expanded ? "Show less" : "Read more"}
+                </Text>
+              )}
+
+              <View style={styles.engagementRow}>
+                <View style={styles.iconWithText}>
+                  <Ionicons name="heart-outline" size={28} color="#fff" />
+                  <Text style={styles.engagementText}>{likesCount}</Text>
+                </View>
+                <View style={styles.iconWithText}>
+                  <Ionicons name="chatbubble-outline" size={28} color="#fff" />
+                  <Text style={styles.engagementText}>{commentsCount}</Text>
+                </View>
               </View>
             </View>
-          </View>
-        </View>
+          </>
+        )}
       </SafeAreaView>
     </Modal>
   );
@@ -194,7 +274,7 @@ function getStyles(isDark: boolean) {
     modalContainer: {
       flex: 1,
       backgroundColor: "transparent",
-      justifyContent: "space-between",
+      justifyContent: "center",
       alignItems: "center",
       position: "relative",
     },
@@ -204,49 +284,26 @@ function getStyles(isDark: boolean) {
       zIndex: 0,
     },
     galleryWrapper: {
-      flex: 1, // take remaining vertical space between header & caption
-      width: screenWidth,
-      backgroundColor: "transparent",
-    },
-    fullImageWrapper: {
-      width: screenWidth,
-      flex: 1, // make each slide fill available space
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 16,
-    },
-    imageContainer: {
       flex: 1,
-      width: "100%",
-      borderRadius: 16,
-      overflow: "hidden",
-      backgroundColor: "#000",
-      justifyContent: "center",
-      alignItems: "center",
+      width: screenWidth,
     },
-
-    fullImage: {
+    captionOverlay: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
       width: "100%",
-      height: "100%",
-      resizeMode: "contain", // contain ensures no stretching
-    },
-    captionContainer: {
-      width: "100%",
-      height: 140,
-      paddingHorizontal: 24,
+      padding: 12,
+      paddingBottom: 24,
       borderTopColor: "#888",
-      borderTopWidth: 1,
-    },
-    captionWrapper: {
-      flex: 1,
-      justifyContent: "center",
+      borderTopWidth: 0.5,
     },
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
+      alignItems: "center",
       width: "100%",
       paddingHorizontal: 12,
-      paddingTop: 40,
+      paddingTop: 20,
     },
     user: {
       flexDirection: "row",
@@ -264,22 +321,22 @@ function getStyles(isDark: boolean) {
       color: "#fff",
     },
     captionText: {
-      fontSize: 16, // larger for better readability
+      fontSize: 14,
       color: "#fff",
       textAlign: "left",
       fontFamily: Fonts.OSREGULAR,
-      flexShrink: 1, // allow text to shrink to fit container
       marginBottom: 10,
     },
-    closeButton: {
-      padding: 10,
-      borderRadius: 8,
-      zIndex: 10,
+    readMoreText: {
+      color: "#aaa",
+      fontFamily: Fonts.OSREGULAR,
+      fontSize: 13,
     },
     engagementRow: {
       flexDirection: "row",
       justifyContent: "flex-start",
       gap: 16,
+      marginTop: 8,
     },
     iconWithText: {
       flexDirection: "row",
@@ -290,6 +347,11 @@ function getStyles(isDark: boolean) {
       fontSize: 16,
       color: "#fff",
       fontFamily: Fonts.OSREGULAR,
+    },
+    closeButton: {
+      padding: 10,
+      borderRadius: 8,
+      zIndex: 10,
     },
   });
 }

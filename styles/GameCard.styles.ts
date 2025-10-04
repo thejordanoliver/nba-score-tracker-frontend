@@ -74,16 +74,17 @@ export const getStyles = (isDark: boolean) =>
       fontFamily: Fonts.OSMEDIUM,
       fontSize: 14,
       color: isDark ? "#ff4444" : "#cc0000",
-    
+
       textAlign: "center",
     },
 
     broadcast: {
       position: "absolute",
-      bottom: -16,
+      bottom: -14,
       fontFamily: Fonts.OSREGULAR,
       color: isDark ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, .5)",
       fontSize: 10,
+      textAlign: "center",
     },
 
     seriesStatus: {
@@ -98,5 +99,12 @@ export const getStyles = (isDark: boolean) =>
       height: 10,
       width: 0.5,
       backgroundColor: isDark ? "#ccc" : "#555",
+    },
+
+    downDistance: {
+      fontFamily: Fonts.OSMEDIUM,
+      fontSize: 12,
+      color: isDark ? "#aaa" : "#555",
+      textAlign: "center",
     },
   });

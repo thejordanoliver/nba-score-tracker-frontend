@@ -1,8 +1,27 @@
 // types/nfl.ts
 
+export interface NFLPlayer {
+  id: number;
+  name: string;
+  birth_date?: string;
+  age?: number | null;
+  height?: string;
+  weight?: string;
+  college?: string | null;
+  group?: string;
+  position?: string;
+  number?: number;
+  salary?: string | null;
+  experience?: number | null;
+  image?: string;
+  teamId: number;
+}
+
 export type NFLTeam = {
   id: number | string;
+  espnID: string;
   name: string;
+  fullName: string;
   code: string;
   city: string;
   location: string;
@@ -21,8 +40,8 @@ export type NFLTeam = {
     code: string;
     flag: string;
   };
-  nickname: string;
-  color?: string;
+  color: string;
+  secondaryColor: string;
   latitude: number;
   longitude: number;
   stadiumImage: any;
@@ -142,3 +161,30 @@ export interface RawNFLGame {
     logo?: string;
   };
 }
+
+export const emptyTeam: NFLTeam = {
+  id: 0,
+  espnID: "0",
+  name: "Unknown",
+  code: "UNK",
+  city: "Unknown",
+  location: "Unknown",
+  coach: "Unknown",
+  owner: "Unknown",
+  stadium: "Unknown",
+  established: 0,
+  logo: "",
+  logo500x500: "",
+  country: {
+    name: "Unknown",
+    code: "UNK",
+    flag: "",
+  },
+  fullName: "Unknown",
+  color: "#000000",
+  secondaryColor: "#FFFFFF",
+  latitude: 0,
+  longitude: 0,
+  stadiumImage: null,
+  stadiumCapacity: "",
+};

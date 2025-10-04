@@ -1,6 +1,6 @@
+import { Fonts } from "constants/fonts";
 import { StyleSheet, Text, View, useColorScheme } from "react-native";
 import HeadingTwo from "../Headings/HeadingTwo";
-import { Fonts } from "constants/fonts";
 
 type Props = {
   homeWinProbability: number;
@@ -27,9 +27,9 @@ export default function PredictionBar({
 
   const homePercent = Math.min(Math.max(homeWinProbability, 0), 100);
   const awayPercent = Math.min(Math.max(awayWinProbability, 0), 100);
-  const alwaysPrimary = ["25", "5", "26", "27", "6", "38", "2", "11", "8" ]; // OKC
+  const alwaysPrimary = ["25", "5", "26", "27", "6", "38", "2", "11", "8"]; // OKC
 
-  const contrast = ["29", "20", "11",  ];
+  const contrast = ["29", "20", "11"];
 
   // Use secondary color in dark mode if it exists, else primary color
   const resolveColor = (
@@ -44,7 +44,7 @@ export default function PredictionBar({
     }
 
     if (contrast.includes(id)) {
-      return isDark ? primary : (secondary ?? primary);
+      return isDark ? primary : secondary ?? primary;
     }
 
     return isDark && secondary ? secondary : primary;
@@ -63,13 +63,10 @@ export default function PredictionBar({
   const textColor = isDark ? "#fff" : "#1d1d1d";
 
   return (
-    <>
+    <View>
       <HeadingTwo>Win Predictor</HeadingTwo>
       <View
-        style={[
-          styles.container,
-          { backgroundColor: isDark ? "#333" : "#eee" },
-        ]}
+        style={[styles.wrapper, { backgroundColor: isDark ? "#333" : "#eee" }]}
       >
         <View
           style={[
@@ -96,12 +93,13 @@ export default function PredictionBar({
           </Text>
         )}
       </View>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  container: {},
+  wrapper: {
     flexDirection: "row",
     height: 8,
     borderRadius: 100,

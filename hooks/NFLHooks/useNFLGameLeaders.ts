@@ -9,16 +9,16 @@ export type NFLPlayerStat = {
 export interface NFLPlayer {
   id: string;
   name: string;
-  group: string;
-  stats: { name: string; value: string | number }[];
-  team?: { id: number; name: string }; // 👈 instead of teamId
+  group: string; // Passing, Rushing, Receiving, etc.
+  stats: NFLPlayerStat[];
+  team?: { id: number; name: string };
+  image?: string;
 }
-
 
 const KEY = process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
 
 export function useNFLGameLeaders(gameId: string, teamId: string) {
-  const [players, setPlayers] = useState<NFLPlayer[]>([]);
+  const [leaders, setLeaders] = useState<NFLPlayer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
@@ -45,33 +45,38 @@ export function useNFLGameLeaders(gameId: string, teamId: string) {
 
         const raw = response.data?.response?.[0];
         if (!raw?.groups) {
-          setPlayers([]);
+          setLeaders([]);
           return;
         }
 
-        // Flatten groups into players with stats
-const formatted: NFLPlayer[] = raw.groups.flatMap((group: any) =>
-  group.players.map((p: any) => ({
-    id: Number(p.player?.id) || Math.random(),
-    name: p.player?.name ?? "Unknown",
-    image: p.player?.image ?? undefined,
-    group: group.name,
-    stats: (p.statistics || []).map((s: any) => ({
-      name: s.name,
-      value: s.value,
-    })),
-    team: p.team
-      ? {
-          id: Number(p.team.id),
-          name: p.team.name, // ← often abbreviation like "GB"
-        }
-      : undefined,
-  }))
-);
+        // For each group (Passing, Rushing, Receiving...), pick the "top" player only
+        const formatted: NFLPlayer[] = raw.groups.flatMap((group: any) => {
+          if (!group.players?.length) return [];
 
-// console.log(JSON.stringify(raw.groups, null, 1));
+          // take first player (API often orders by performance already)
+          const p = group.players[0];
 
-        setPlayers(formatted);
+          return [
+            {
+              id: Number(p.player?.id) || Math.random(),
+              name: p.player?.name ?? "Unknown",
+              image: p.player?.image ?? undefined,
+              group: group.name,
+              stats: (p.statistics || []).map((s: any) => ({
+                name: s.name,
+                value: s.value,
+              })),
+              team: p.team
+                ? {
+                    id: Number(p.team.id),
+                    name: p.team.name,
+                  }
+                : undefined,
+            },
+          ];
+        });
+
+        setLeaders(formatted);
       } catch (err) {
         console.error("Error fetching NFL game leaders", err);
         setIsError(true);
@@ -86,5 +91,5 @@ const formatted: NFLPlayer[] = raw.groups.flatMap((group: any) =>
     };
   }, [gameId, teamId]);
 
-  return { players, isLoading, isError };
+  return { leaders, isLoading, isError };
 }

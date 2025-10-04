@@ -81,6 +81,8 @@ function NFLStackedGameCard({ game, isDark }: Props) {
     const wentOT =
       longLower.includes("ot") ||
       longLower.includes("over time") ||
+      longLower.includes("after over") ||
+      longLower.includes("aot") ||
       short.includes("ot");
 
     const isFinal =
@@ -103,6 +105,7 @@ function NFLStackedGameCard({ game, isDark }: Props) {
       isScheduled: long === "Not Started",
       isFinal,
       wentOT,
+      isOvertime: wentOT, // ✅ explicit OT flag
       isCanceled: long === "Canceled",
       isDelayed: long === "Delayed",
       isPostponed: long === "Postponed",
@@ -126,23 +129,6 @@ function NFLStackedGameCard({ game, isDark }: Props) {
       })
     : "";
 
-  const formatQuarter = (short?: string): string => {
-    if (!short) return ""; // <--- guard
-
-    const q = short.toLowerCase();
-
-    if (q.includes("1")) return "1st";
-    if (q.includes("2")) return "2nd";
-    if (q.includes("3")) return "3rd";
-    if (q.includes("4")) return "4th";
-
-    if (q.includes("ot")) return "OT"; // handle overtime
-    if (q.includes("half")) return "Halftime";
-    if (q.includes("end")) return "End";
-
-    return short; // fallback
-  };
-
   const getTeamStyle = useMemo(
     () =>
       (isHome: boolean): TextStyle => {
@@ -163,6 +149,33 @@ function NFLStackedGameCard({ game, isDark }: Props) {
       },
     [dark, status, game.scores]
   );
+
+  const formatQuarter = (
+    short?: string | null,
+    long?: string | null
+  ): string => {
+    const val = short && short.trim() !== "" ? short : long ?? "";
+    if (!val) return "";
+
+    const q = val.toLowerCase();
+
+    if (q.includes("1")) return "1st";
+    if (q.includes("2")) return "2nd";
+    if (q.includes("3")) return "3rd";
+    if (q.includes("4")) return "4th";
+
+    if (q.includes("ot") || q.includes("overtime")) return "OT";
+    if (q.includes("half")) return "Halftime";
+    if (q.includes("end")) return "End";
+
+    const asNumber = Number(val);
+    if (!isNaN(asNumber)) {
+      if (asNumber === 5) return "OT";
+      if (asNumber > 5) return `${asNumber - 4}OT`;
+    }
+
+    return val; // fallback
+  };
 
   return (
     <TouchableOpacity
@@ -201,7 +214,6 @@ function NFLStackedGameCard({ game, isDark }: Props) {
           <View style={styles.teamSection}>
             {/* Home record / score */}
             <View style={styles.teamWrapper}>
-              {/* Home Team */}
               <Image source={homeTeam.logo} style={styles.logo} />
               <Text style={styles.teamName}>{homeTeam.name}</Text>
             </View>
@@ -222,7 +234,6 @@ function NFLStackedGameCard({ game, isDark }: Props) {
 
         {/* Game Info */}
         <View style={styles.info}>
-          
           {status.isScheduled && (
             <>
               <Text style={styles.date}>{formattedDate}</Text>
@@ -238,11 +249,11 @@ function NFLStackedGameCard({ game, isDark }: Props) {
               </Text>
             </>
           )}
+
           {status.isLive && (
-            <>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text style={[styles.date, { fontSize: 14 }]}>
-                {formatQuarter(status.short)}
+                {formatQuarter(status.short, status.long)}
               </Text>
               <View
                 style={{
@@ -254,13 +265,14 @@ function NFLStackedGameCard({ game, isDark }: Props) {
               />
               <Text style={styles.clock}>{status.timer}</Text>
             </View>
-            </>
           )}
+
           {status.isHalftime && <Text style={styles.date}>{status.long}</Text>}
+
           {status.isFinal && (
             <>
               <Text style={styles.finalText}>
-                {status.wentOT ? "Final/OT" : "Final"}
+                {status.isOvertime ? "Final/OT" : "Final"}
               </Text>
               <Text style={styles.dateFinal}>{formattedDate}</Text>
             </>
@@ -294,6 +306,7 @@ function NFLStackedGameCard({ game, isDark }: Props) {
     </TouchableOpacity>
   );
 }
+
 export default memo(NFLStackedGameCard);
 
 export const getStyles = (dark: boolean) =>
@@ -368,7 +381,7 @@ export const getStyles = (dark: boolean) =>
       color: dark ? "#ff4444" : "#cc0000",
       fontWeight: "bold",
       textAlign: "center",
-      width: 40,
+      width: 60,
     },
     date: {
       fontSize: 12,

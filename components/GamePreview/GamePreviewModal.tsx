@@ -9,7 +9,6 @@ import { Fonts } from "constants/fonts";
 import { arenaImages, neutralArenas, teams } from "constants/teams";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-
 import { useESPNBroadcasts } from "hooks/useESPNBroadcasts";
 import { useGameDetails } from "hooks/useGameDetails";
 import { useGameStatistics } from "hooks/useGameStatistics";
@@ -359,7 +358,7 @@ export default function GamePreviewModal({ visible, game, onClose }: Props) {
 
               {data?.officials && data.officials.length > 0 && (
                 <View style={{ marginBottom: 24 }}>
-                  <GameOfficials officials={data.officials} />
+                  <GameOfficials officials={data.officials} lighter />
                 </View>
               )}
 

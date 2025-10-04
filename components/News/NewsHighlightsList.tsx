@@ -66,6 +66,7 @@ const NewsHighlightsList: React.FC<NewsHighlightsListProps> = ({
       }
       refreshing={refreshing}
       onRefresh={onRefresh}
+      scrollEnabled={false} // ✅ Disable scrolling
       contentContainerStyle={{
         paddingBottom: 100,
         paddingHorizontal: 12,

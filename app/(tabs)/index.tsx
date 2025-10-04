@@ -3,7 +3,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import CombinedGamesList from "components/CombinedGamesList";
 import NewsHighlightsList from "components/News/NewsHighlightsList";
 import { useRouter } from "expo-router";
-import { useNFLWeeklyGames } from "hooks/NFLHooks/useWeeklyNFLGames";
+import { usetodayYesterday } from "hooks/NFLHooks/usetodayYesterday";
 import { useSummerLeagueGames } from "hooks/useSummerLeagueGames";
 import * as React from "react";
 import {
@@ -13,23 +13,15 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  Animated,
-  FlatList,
-  RefreshControl,
-  Text,
-  View,
-  useColorScheme,
-} from "react-native";
+import { Animated, ScrollView, Text, View, useColorScheme } from "react-native";
 import type { summerGame } from "types/types";
 import { Game } from "types/types";
 import { CustomHeaderTitle } from "../../components/CustomHeaderTitle";
-import FavoritesScroll from "../../components/FavoritesScroll";
-import FavoritesScrollSkeleton from "../../components/FavoritesScrollSkeleton";
+import FavoritesScroll from "../../components/Favorites/FavoritesScroll";
+import FavoritesScrollSkeleton from "../../components/Favorites/FavoritesScrollSkeleton";
 import TabBar from "../../components/TabBar";
 import { useNewsStore } from "../../hooks/newsStore";
 import { useHighlights } from "../../hooks/useHighlights";
-import { useLiveGames } from "../../hooks/useLiveGames";
 import { useNews } from "../../hooks/useNews";
 import { useWeeklyGames } from "../../hooks/useWeeklyGames";
 import { getStyles } from "../../styles/indexStyles";
@@ -92,12 +84,6 @@ export default function HomeScreen() {
   } = useWeeklyGames();
 
   const {
-    games: liveGames,
-    loading: liveGamesLoading,
-    refreshGames: refreshLiveGames,
-  } = useLiveGames();
-
-  const {
     games: summerGames,
     loading: summerLoading,
     refreshGames: refreshSummerGames,
@@ -125,7 +111,7 @@ export default function HomeScreen() {
     loading: nflLoading,
     error: nflError,
     refetch: refreshNFLGames,
-  } = useNFLWeeklyGames();
+  } = usetodayYesterday();
 
   const navigation = useNavigation();
   const router = useRouter();
@@ -199,11 +185,7 @@ export default function HomeScreen() {
     setRefreshing(true);
     try {
       if (selectedTab === "scores") {
-        await Promise.all([
-          refreshLiveGames?.(),
-          refreshWeeklyGames?.(),
-          refreshSummerGames?.(),
-        ]);
+        await Promise.all([refreshWeeklyGames?.(), refreshSummerGames?.()]);
       } else if (selectedTab === "news") {
         await refreshNews?.();
       }
@@ -216,20 +198,19 @@ export default function HomeScreen() {
 
   const styles = getStyles(isDark);
 
-  const filteredLive = liveGames.filter((g) => isTodayOrTomorrow(g.date));
   const filteredWeekly = weeklyGames.filter((g) => isTodayOrTomorrow(g.date));
   const filteredSummer: summerGame[] = summerGames.filter((g) =>
     isTodayOrTomorrow(g.date)
   );
 
   const onlySummerLeagueToday =
-    filteredLive.length === 0 &&
-    filteredWeekly.length === 0 &&
-    filteredSummer.length > 0;
+    filteredWeekly.length === 0 && filteredSummer.length > 0;
 
-  const combinedGames = [...filteredLive];
-  filteredWeekly.forEach((g) => {
-    if (!combinedGames.some((cg) => cg.id === g.id)) combinedGames.push(g);
+  const combinedGames = [...filteredWeekly];
+  filteredSummer.forEach((g) => {
+    if (!combinedGames.some((cg) => cg.id === g.id)) {
+      combinedGames.push(mapSummerGameToGame(g));
+    }
   });
   filteredSummer.forEach((g) => {
     if (!combinedGames.some((cg) => cg.id === g.id)) {
@@ -260,82 +241,53 @@ export default function HomeScreen() {
     return combined;
   }, [news, highlights]);
 
-  // useEffect(() => {
-  //   if (selectedTab !== "scores") return;
-  //   const interval = setInterval(() => {
-  //     refreshLiveGames?.();
-  //   }, 100_000);
-  //   return () => clearInterval(interval);
-  // }, [selectedTab, refreshLiveGames]);
-
   return (
     <View style={styles.container}>
-      <View style={styles.tabBarWrapper}>
-        <TabBar
-          tabs={tabs}
-          selected={selectedTab}
-          onTabPress={handleTabPress}
-          renderLabel={(tab, isSelected) => (
-            <Text
-              style={{
-                fontSize: 20, // <- Larger font for Home screen
-                color: isSelected
-                  ? isDark
-                    ? "#fff"
-                    : "#1d1d1d"
-                  : isDark
-                  ? "#888"
-                  : "rgba(0, 0, 0, 0.5)",
-                fontFamily: "Oswald_400Regular",
-              }}
-            >
-              {tab.toUpperCase()}
-            </Text>
-          )}
-        />
-      </View>
-
       <View style={styles.contentArea}>
-        {(weeklyGamesLoading || liveGamesLoading || summerLoading) &&
-        !favorites.length ? (
-          <FavoritesScrollSkeleton />
-        ) : (
-          <FavoritesScroll favoriteTeamIds={favorites} />
-        )}
-        {selectedTab === "scores" ? (
-          <CombinedGamesList
-                  gamesByCategory={[
-                    { category: "NFL", data: nflGames },
-                    { category: "NBA", data: combinedGames },
-                    { category: "NBA Summer League", data: filteredSummer },
-                  ]}
-                  loading={
-                    nflLoading ||
-                    liveGamesLoading ||
-                    weeklyGamesLoading ||
-                    summerLoading
-                  }
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                />
-        ) : (
-          <>
-            {newsError ? (
-              <Text style={styles.emptyText}>{newsError}</Text>
-            ) : combinedNewsAndHighlights.length === 0 && !refreshing ? (
-              <Text style={styles.emptyText}>
-                No news or highlights available.
-              </Text>
-            ) : (
-              <NewsHighlightsList
-                items={combinedNewsAndHighlights}
-                loading={newsLoading}
+        <View style={styles.tabBarWrapper}>
+          <TabBar
+            tabs={tabs}
+            selected={selectedTab}
+            onTabPress={handleTabPress}
+          />
+        </View>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 100 }} // optional bottom padding
+        >
+          {selectedTab === "scores" ? (
+            <>
+              {weeklyGamesLoading || summerLoading ? (
+                <FavoritesScrollSkeleton />
+              ) : (
+                <FavoritesScroll favoriteTeamIds={favorites} />
+              )}
+
+              <CombinedGamesList
+                gamesByCategory={[
+                  { category: "NFL", data: nflGames },
+                  { category: "NBA", data: combinedGames },
+                  { category: "NBA Summer League", data: filteredSummer },
+                ]}
+                loading={nflLoading || weeklyGamesLoading || summerLoading}
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
               />
-            )}
-          </>
-        )}
+            </>
+          ) : newsError ? (
+            <Text style={styles.emptyText}>{newsError}</Text>
+          ) : combinedNewsAndHighlights.length === 0 && !refreshing ? (
+            <Text style={styles.emptyText}>
+              No news or highlights available.
+            </Text>
+          ) : (
+            <NewsHighlightsList
+              items={combinedNewsAndHighlights}
+              loading={newsLoading}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+            />
+          )}
+        </ScrollView>
       </View>
     </View>
   );

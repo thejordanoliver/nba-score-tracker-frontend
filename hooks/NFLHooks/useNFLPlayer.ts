@@ -1,26 +1,7 @@
 // hooks/NFLHooks/useNFLPlayer.ts
 import { useEffect, useState } from "react";
 import axios from "axios";
-
-export interface NFLPlayer {
-  id: number;
-  name: string;
-  age?: number;
-  height?: string;
-  weight?: string;
-  college?: string;
-  group?: string;
-  position?: string;
-  number?: number;
-  salary?: string;
-  experience?: number;
-  image?: string;
-  team?: {
-    id: number;
-    name: string;
-    logo: string;
-  };
-}
+import { NFLPlayer } from "types/nfl";
 
 const KEY = process.env.EXPO_PUBLIC_RAPIDAPI_KEY;
 const HOST = process.env.EXPO_PUBLIC_FOOTBALL_RAPIDAPI_HOST;

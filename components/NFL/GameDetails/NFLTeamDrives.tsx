@@ -2,9 +2,8 @@ import { getNFLTeamsLogo } from "constants/teamsNFL";
 import { useEffect, useMemo, useState } from "react";
 import { Image, StyleSheet, Text, useColorScheme, View } from "react-native";
 import HeadingTwo from "../../Headings/HeadingTwo";
-import FixedWidthTabBar, { getLabelStyle } from "../FixedWidthTabBar";
+import FixedWidthTabBar, { getLabelStyle } from "../TabBars/FixedWidthTabBar";
 import NFLDrivesList, { Drive } from "./NFLDrivesList";
-
 type Props = {
   previousDrives?: Drive[] | null;
   currentDrives?: Drive[] | null;
@@ -90,7 +89,6 @@ export default function NFLTeamDrives({
               )}
               <Text
                 style={getLabelStyle(isDark, isSelected, lighter, {
-                  fontSize: 12,
                   opacity: isSelected ? 1 : 0.5, // ← added text opacity
                 })}
               >

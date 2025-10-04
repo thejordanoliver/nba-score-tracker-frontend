@@ -1,5 +1,5 @@
 import GameLeadersSkeleton from "components/GameDetails/GameLeadersSkeleton";
-import FixedWidthTabBar from "components/GameDetails/GameLeadersTabBar"; // adjust path as needed
+import FixedWidthTabBar from "components/NFL/TabBars/GameLeadersTabBar"; // adjust path as needed
 import { Fonts } from "constants/fonts";
 import { teamsById } from "constants/teams";
 import { useGameLeaders } from "hooks/useGameLeaders";

@@ -31,6 +31,8 @@ type Props = {
   expectedCount?: number;
   day?: "todayTomorrow";
   showHeaders?: boolean;
+    scrollEnabled?: boolean; // ✅ new prop
+
 };
 
 type NFLGameSection = {
@@ -47,6 +49,7 @@ export default function NFLGamesList({
   expectedCount,
   day,
   showHeaders,
+  scrollEnabled
 }: Props) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -242,59 +245,59 @@ if (loading) {
 
   return (
     <>
-      <SectionList<any, NFLGameSection>
-        sections={sections as SectionListData<any, NFLGameSection>[]}
-        keyExtractor={(item, index) => `${item?.game?.id ?? "game"}-${index}`}
-        renderItem={({ item, index }) =>
-          viewMode === "grid" ? null : renderGameCard(item, index)
-        }
-        renderSectionHeader={({ section }) =>
-          showHeaders && section.data.length > 0 ? (
-            <View style={styles.headerWrapper}>
-              <HeadingTwo>{section.title}</HeadingTwo>
-            </View>
-          ) : null
-        }
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        contentContainerStyle={styles.contentContainer}
-        stickySectionHeadersEnabled={false}
-        ListEmptyComponent={
-          <View style={{ marginTop: 10 }}>
-            <Text
-              style={[styles.emptyText, { color: isDark ? "#aaa" : "#888" }]}
-            >
-              {day === "todayTomorrow"
-                ? "No NFL games found for today or tomorrow."
-                : "No NFL games found."}
-            </Text>
-          </View>
-        }
-        renderSectionFooter={({ section }) => {
-          if (viewMode === "grid" && section.data.length > 0) {
-            const dataWithPlaceholder =
-              section.data.length % 2 === 1
-                ? [...section.data, { _isPlaceholder: true } as any]
-                : section.data;
+   <SectionList<any, NFLGameSection>
+  sections={sections as SectionListData<any, NFLGameSection>[]}
+  keyExtractor={(item, index) => `${item?.game?.id ?? "game"}-${index}`}
+  renderItem={({ item, index }) =>
+    viewMode === "grid" ? null : renderGameCard(item, index)
+  }
+  renderSectionHeader={({ section }) =>
+    showHeaders && section.data.length > 0 ? (
+      <View style={styles.headerWrapper}>
+        <HeadingTwo>{section.title}</HeadingTwo>
+      </View>
+    ) : null
+  }
+  refreshing={refreshing}
+  onRefresh={onRefresh}
+  contentContainerStyle={styles.contentContainer}
+  stickySectionHeadersEnabled={false}
+  scrollEnabled={scrollEnabled ?? true} // ✅ default to true
+  ListEmptyComponent={
+    <View style={{ marginTop: 10 }}>
+      <Text style={[styles.emptyText, { color: isDark ? "#aaa" : "#888" }]}>
+        {day === "todayTomorrow"
+          ? "No NFL games found for today or tomorrow."
+          : "No NFL games found."}
+      </Text>
+    </View>
+  }
+  renderSectionFooter={({ section }) => {
+    if (viewMode === "grid" && section.data.length > 0) {
+      const dataWithPlaceholder =
+        section.data.length % 2 === 1
+          ? [...section.data, { _isPlaceholder: true } as any]
+          : section.data;
 
-            return (
-              <FlatList
-                data={dataWithPlaceholder}
-                keyExtractor={(item, index) =>
-                  (item as any)?._isPlaceholder
-                    ? `placeholder-${index}`
-                    : `game-${item?.game?.id ?? index}`
-                }
-                numColumns={2}
-                renderItem={({ item, index }) => renderGameCard(item, index)}
-                scrollEnabled={false}
-                contentContainerStyle={styles.gridListContainer}
-              />
-            );
+      return (
+        <FlatList
+          data={dataWithPlaceholder}
+          keyExtractor={(item, index) =>
+            (item as any)?._isPlaceholder
+              ? `placeholder-${index}`
+              : `game-${item?.game?.id ?? index}`
           }
-          return null;
-        }}
-      />
+          numColumns={2}
+          renderItem={({ item, index }) => renderGameCard(item, index)}
+          scrollEnabled={scrollEnabled ?? false} // ✅ grid scroll control
+          contentContainerStyle={styles.gridListContainer}
+        />
+      );
+    }
+    return null;
+  }}
+/>
+
 
       {modalVisible && previewGame && (
         <NFLGamePreviewModal
@@ -309,6 +312,7 @@ if (loading) {
 
 const styles = StyleSheet.create({
   skeletonWrapper: {
+    paddingTop: 10,
     paddingHorizontal: 12,
     gap: 12,
   },
@@ -323,7 +327,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingTop: 10,
-    paddingBottom: 100,
   },
   gridRow: {
     justifyContent: "space-between",

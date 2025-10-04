@@ -1,5 +1,5 @@
-import { Image, StyleSheet, Text, View } from "react-native";
 import { Fonts } from "constants/fonts";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 type Props = {
   player: {
@@ -79,10 +79,11 @@ export default function PlayerHeader({
     return "#000"; // light mode
   };
 
-  const secondaryTextColor = getSecondaryTextColor(isDark, team_name, teamSecondaryColor);
-
-
-
+  const secondaryTextColor = getSecondaryTextColor(
+    isDark,
+    team_name,
+    teamSecondaryColor
+  );
 
   const dividerColor = isDark ? "#444" : "#ddd";
   const avatarBg = isDark ? "#444" : "#ddd";
@@ -104,37 +105,88 @@ export default function PlayerHeader({
           </View>
         )}
         <View style={styles.jerseyNumber}>
-          <Text style={[styles.jersey, { color: isDark?  secondaryTextColor : primaryTextColor }]}>
+          <Text
+            style={[
+              styles.jersey,
+              { color: isDark ? secondaryTextColor : primaryTextColor },
+            ]}
+          >
             {player.position?.charAt(0) ?? "N"} #{player.jersey_number ?? "?"}
           </Text>
         </View>
       </View>
 
       <View style={styles.infoContainer}>
-        <Text style={[styles.name,{ color: isDark?  secondaryTextColor : primaryTextColor }]}>
+        <Text
+          style={[
+            styles.name,
+            { color: isDark ? secondaryTextColor : primaryTextColor },
+          ]}
+        >
           {player.first_name}
         </Text>
-        <Text style={[styles.name, { color: isDark?  secondaryTextColor : primaryTextColor }]}>
+        <Text
+          style={[
+            styles.name,
+            { color: isDark ? secondaryTextColor : primaryTextColor },
+          ]}
+        >
           {player.last_name}
         </Text>
 
-        <Text style={[styles.playerInfo, {color: isDark?  "#fff" : "#1d1d1d"} ]}>
-          <Text style={{ fontFamily: Fonts.OSMEDIUM,  color: isDark?  secondaryTextColor : primaryTextColor }}>School: </Text>
+        <Text
+          style={[styles.playerInfo, { color: isDark ? "#fff" : "#1d1d1d" }]}
+        >
+          <Text
+            style={{
+              fontFamily: Fonts.OSMEDIUM,
+              color: isDark ? secondaryTextColor : primaryTextColor,
+            }}
+          >
+            School:{" "}
+          </Text>
           {player.college || "Unknown"}
         </Text>
 
-        <Text style={[styles.playerInfo, {color: isDark?  "#fff" : "#1d1d1d"} ]}>
-             <Text style={{ fontFamily: Fonts.OSMEDIUM,  color: isDark?  secondaryTextColor : primaryTextColor }}>Height: </Text>
+        <Text
+          style={[styles.playerInfo, { color: isDark ? "#fff" : "#1d1d1d" }]}
+        >
+          <Text
+            style={{
+              fontFamily: Fonts.OSMEDIUM,
+              color: isDark ? secondaryTextColor : primaryTextColor,
+            }}
+          >
+            Height:{" "}
+          </Text>
           {player.height ?? "?"}
         </Text>
 
-        <Text style={[styles.playerInfo, {color: isDark?  "#fff" : "#1d1d1d"} ]}>
-                <Text style={{ fontFamily: Fonts.OSMEDIUM,  color: isDark?  secondaryTextColor : primaryTextColor }}>Weight: </Text>
+        <Text
+          style={[styles.playerInfo, { color: isDark ? "#fff" : "#1d1d1d" }]}
+        >
+          <Text
+            style={{
+              fontFamily: Fonts.OSMEDIUM,
+              color: isDark ? secondaryTextColor : primaryTextColor,
+            }}
+          >
+            Weight:{" "}
+          </Text>
           {player.weight ?? "?"} lbs
         </Text>
 
-        <Text style={[styles.playerInfo, {color: isDark?  "#fff" : "#1d1d1d"} ]}>
-                   <Text style={{ fontFamily: Fonts.OSMEDIUM,  color: isDark?  secondaryTextColor : primaryTextColor }}>Birth: </Text>
+        <Text
+          style={[styles.playerInfo, { color: isDark ? "#fff" : "#1d1d1d" }]}
+        >
+          <Text
+            style={{
+              fontFamily: Fonts.OSMEDIUM,
+              color: isDark ? secondaryTextColor : primaryTextColor,
+            }}
+          >
+            Birth:{" "}
+          </Text>
           {player.birth_date
             ? `${new Date(player.birth_date).toLocaleDateString("en-US", {
                 year: "numeric",

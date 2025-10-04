@@ -1,13 +1,12 @@
-import TeamInfoBottomSheetNFL from "components/NFL/Team/TeamInfoModal"; // NFL
-import TeamInfoBottomSheet from "components/Team/TeamInfoModal"; // NBA
+import { Ionicons } from "@expo/vector-icons";
+import { HeaderTitle } from "@react-navigation/elements";
 import { Fonts } from "constants/fonts";
 import { teams as nbaTeams } from "constants/teams";
 import { teams as nflTeams } from "constants/teamsNFL";
-import { Ionicons } from "@expo/vector-icons";
-import { HeaderTitle } from "@react-navigation/elements";
 import { LinearGradient } from "expo-linear-gradient";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
+  Animated,
   Dimensions,
   Image,
   StyleSheet,
@@ -30,6 +29,9 @@ type CustomHeaderTitleProps = {
   onSettings?: () => void;
   onBack?: () => void;
   onCalendarPress?: () => void;
+  onOpenLeagueModal?: () => void;
+  modalVisible?: boolean;
+  setModalVisible?: (v: boolean) => void;
   onToggleLayout?: () => void;
   isGrid?: boolean;
   logo?: any;
@@ -45,9 +47,11 @@ type CustomHeaderTitleProps = {
   teamHistory?: string;
   isPlayerScreen?: boolean;
   showBackButton?: boolean;
-  league?: "NBA" | "NFL";
+  league?: "NBA" | "NFL" | "Leagues";
   isNeutralSite?: boolean;
   isFavorite?: boolean;
+  onOpenInfo?: () => void; // <-- add this
+
   onToggleFavorite?: () => void;
 };
 
@@ -59,30 +63,52 @@ export function CustomHeaderTitle({
   onSettings,
   onBack,
   onCalendarPress,
+  onOpenLeagueModal,
   onToggleLayout,
   isGrid,
-  logo,
-  logoLight,
   teamColor,
   isTeamScreen = false,
-  transparentColor,
   onSearchToggle,
   teamCode,
   homeTeamCode,
   awayTeamCode,
   teamCoach,
-  teamHistory,
   isFavorite,
   onToggleFavorite,
   isPlayerScreen,
   showBackButton = true,
   isNeutralSite = false,
-  league = "NBA",
+  modalVisible = false,
+  onOpenInfo,
+  setModalVisible = () => {},
+  league = "Leagues",
+  logo, // ✅ add this
+  logoLight, // ✅ add this
 }: CustomHeaderTitleProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
-  const [modalVisible, setModalVisible] = useState(false);
+
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  // Whenever modalVisible changes, animate rotation
+  useEffect(() => {
+    Animated.timing(rotateAnim, {
+      toValue: modalVisible ? 1 : 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [modalVisible]);
+
+  // Interpolate rotation from 0 -> 180deg
+  const rotate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  });
+
+  function hasLogoLight(team: any): team is { logoLight?: any } {
+    return team?.logoLight !== undefined;
+  }
 
   const selectedTeam =
     league === "NFL"
@@ -91,18 +117,38 @@ export function CustomHeaderTitle({
 
   const homeTeam =
     league === "NFL"
-      ? nflTeams.find((t) => t.code === homeTeamCode)
-      : nbaTeams.find((t) => t.code === homeTeamCode);
+      ? nflTeams.find((t) => t.code === homeTeamCode) ?? {
+          code: homeTeamCode ?? "HOM",
+          name: "Home",
+          color: "#aaa",
+          logo: null,
+        }
+      : nbaTeams.find((t) => t.code === homeTeamCode) ?? {
+          code: homeTeamCode ?? "HOM",
+          name: "Home",
+          color: "#aaa",
+          logo: null,
+        };
 
   const awayTeam =
     league === "NFL"
-      ? nflTeams.find((t) => t.code === awayTeamCode)
-      : nbaTeams.find((t) => t.code === awayTeamCode);
+      ? nflTeams.find((t) => t.code === awayTeamCode) ?? {
+          code: awayTeamCode ?? "AWY",
+          name: "Away",
+          color: "#666",
+          logo: null,
+        }
+      : nbaTeams.find((t) => t.code === awayTeamCode) ?? {
+          code: awayTeamCode ?? "AWY",
+          name: "Away",
+          color: "#666",
+          logo: null,
+        };
 
   const defaultBgColor = isDark ? "#1d1d1d" : "#fff";
 
   const textStyle: TextStyle = {
-    fontFamily: "Oswald_400Regular",
+    fontFamily: Fonts.OSREGULAR,
     fontSize: 20,
     color: isDark ? "#fff" : "#1d1d1d",
     textAlign: "center",
@@ -132,31 +178,18 @@ export function CustomHeaderTitle({
           { flexDirection: "row", zIndex: -10 },
         ]}
       >
-        {/* Gradient background */}
         <LinearGradient
           colors={[awayColor, awayColor, homeColor, homeColor]}
           locations={[0, 0.5, 0.5, 1]}
-          start={{ x: 0, y: -2 }} // top-left
-          end={{ x: 1.08, y: 1.2 }} // more vertical slope, still spans width
-          style={{ ...StyleSheet.absoluteFillObject }}
+          start={{ x: 0, y: -2 }}
+          end={{ x: 1.08, y: 1.2 }}
+          style={StyleSheet.absoluteFillObject}
         />
-
-        {/* Away Team Content */}
         <View style={styles.teamHalfWrapper}>
           <View style={styles.teamHalfContent}>
             <Image
               source={
-                league === "NFL"
-                  ? ["NYG", "NYJ"].includes(awayTeam.code) // Giants/Jets always light
-                    ? ((awayTeam as any).logoLight ?? awayTeam.logo)
-                    : isDark
-                      ? ((awayTeam as any).logoLight500x500 ??
-                        (awayTeam as any).logoLight ??
-                        awayTeam.logo)
-                      : ((awayTeam as any).logo500x500 ?? awayTeam.logo)
-                  : isDark
-                    ? (awayTeam.logoLight ?? awayTeam.logo)
-                    : awayTeam.logo
+                hasLogoLight(awayTeam) ? awayTeam.logoLight : awayTeam.logo
               }
               style={styles.bgLogo}
               resizeMode="contain"
@@ -165,27 +198,15 @@ export function CustomHeaderTitle({
           </View>
         </View>
 
-        {/* Divider */}
         <View style={styles.dividerWrapper}>
           <Text style={styles.dividerText}>{dividerText}</Text>
         </View>
 
-        {/* Home Team Content */}
         <View style={styles.teamHalfWrapper}>
           <View style={styles.teamHalfContent}>
             <Image
               source={
-                league === "NFL"
-                  ? ["NYG", "NYJ"].includes(homeTeam.code)
-                    ? ((homeTeam as any).logoLight ?? homeTeam.logo)
-                    : isDark
-                      ? ((homeTeam as any).logoLight500x500 ??
-                        (homeTeam as any).logoLight ??
-                        homeTeam.logo)
-                      : ((homeTeam as any).logo500x500 ?? homeTeam.logo)
-                  : isDark
-                    ? (homeTeam.logoLight ?? homeTeam.logo)
-                    : homeTeam.logo
+                hasLogoLight(homeTeam) ? homeTeam.logoLight : homeTeam.logo
               }
               style={styles.bgLogo}
               resizeMode="contain"
@@ -208,6 +229,7 @@ export function CustomHeaderTitle({
 
   return (
     <View style={{ paddingTop: insets.top, height: 56 + insets.top }}>
+      {/* Status bar filler */}
       <View
         style={{
           position: "absolute",
@@ -219,6 +241,7 @@ export function CustomHeaderTitle({
         }}
       />
 
+      {/* Background for team/player */}
       {isTeamScreen || isPlayerScreen ? (
         <View
           style={{
@@ -237,9 +260,13 @@ export function CustomHeaderTitle({
               zIndex: -1,
             }}
           />
-          {selectedTeam?.logo && (
+          {(selectedTeam?.logo || logo) && (
             <Image
-              source={selectedTeam.logo}
+              source={
+                selectedTeam?.logoLight
+                  ? selectedTeam.logoLight
+                  : selectedTeam?.logo ?? logo
+              }
               style={{
                 height: 200,
                 width: "100%",
@@ -263,6 +290,7 @@ export function CustomHeaderTitle({
       )}
 
       <View style={[containerStyle, { zIndex: 2 }]}>
+        {/* Left button */}
         {tabName === "Profile" ? (
           <TouchableOpacity onPress={onLogout}>
             <Ionicons
@@ -277,13 +305,11 @@ export function CustomHeaderTitle({
               name="arrow-back"
               size={24}
               color={
-                tabName === "Game"
+                tabName === "Game" || isTeamScreen
                   ? "#fff"
-                  : isTeamScreen
-                    ? "#fff"
-                    : isDark
-                      ? "#fff"
-                      : "#1d1d1d"
+                  : isDark
+                  ? "#fff"
+                  : "#1d1d1d"
               }
             />
           </TouchableOpacity>
@@ -291,16 +317,33 @@ export function CustomHeaderTitle({
           <View style={{ width: 24 }} />
         )}
 
+        {/* Center title */}
         {tabName === "Game" && GameHeader ? (
           GameHeader
-        ) : playerName ? (
-          <HeaderTitle style={textStyle}></HeaderTitle>
+        ) : tabName === "League" ? (
+          <TouchableOpacity
+            onPress={() => {
+              setModalVisible(!modalVisible); // toggle parent state
+              onOpenLeagueModal?.();
+            }}
+            style={{ flexDirection: "row", alignItems: "center" }}
+          >
+            <HeaderTitle style={textStyle}>{league}</HeaderTitle>
+            <Animated.View style={{ transform: [{ rotate }] }}>
+              <Ionicons
+                name="chevron-down"
+                size={20}
+                color={isDark ? "#fff" : "#1d1d1d"}
+              />
+            </Animated.View>
+          </TouchableOpacity>
         ) : title ? (
           <HeaderTitle style={textStyle}>{title}</HeaderTitle>
         ) : (
           <View style={{ width: 36, height: 36 }} />
         )}
 
+        {/* Right buttons */}
         {isTeamScreen ? (
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             {onToggleFavorite && (
@@ -316,9 +359,9 @@ export function CustomHeaderTitle({
               </TouchableOpacity>
             )}
 
-            {!isPlayerScreen && (
+            {!isPlayerScreen && onOpenInfo && (
               <TouchableOpacity
-                onPress={() => setModalVisible(true)}
+                onPress={onOpenInfo} // use the callback from props
                 style={{ padding: 8 }}
               >
                 <Ionicons
@@ -327,20 +370,6 @@ export function CustomHeaderTitle({
                   color="#fff"
                 />
               </TouchableOpacity>
-            )}
-
-            {league === "NFL" ? (
-              <TeamInfoBottomSheetNFL
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-                teamId={selectedTeam?.id?.toString()}
-              />
-            ) : (
-              <TeamInfoBottomSheet
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-                teamId={selectedTeam?.id?.toString()}
-              />
             )}
           </View>
         ) : tabName === "Profile" && onSettings ? (
@@ -384,50 +413,13 @@ export function CustomHeaderTitle({
 }
 
 const styles = StyleSheet.create({
-  teamSection: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  teamLogo: {
-    width: 24,
-    height: 24,
-    marginBottom: 2,
-  },
-  teamText: {
-    color: "#fff",
-    fontFamily: Fonts.OSBOLD,
-    fontSize: 14,
-  },
-  teamHalf: {
+  teamHalfWrapper: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
     overflow: "hidden",
   },
-  teamHalfWrapper: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative", // container for skewed bg + content
-    overflow: "hidden",
-  },
-
-  teamHalfAway: {
-    ...StyleSheet.absoluteFillObject,
-    transform: [{ skewX: "10deg" }], // keep this
-    width: width * 1.15,
-    marginLeft: -width * 0.075,
-  },
-
-  teamHalfHome: {
-    ...StyleSheet.absoluteFillObject,
-    transform: [{ skewX: "10deg" }], // change from -10deg to 10deg
-    width: width * 1.15,
-    marginLeft: -width * 0.075, // use same marginLeft so they align
-  },
-
   teamHalfContent: {
     ...StyleSheet.absoluteFillObject,
     alignItems: "center",
@@ -454,9 +446,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 2,
   },
-  dividerText: {
-    color: "#fff",
-    fontFamily: Fonts.OSBOLD,
-    fontSize: 24,
-  },
+  dividerText: { color: "#fff", fontFamily: Fonts.OSBOLD, fontSize: 24 },
 });

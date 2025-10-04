@@ -1,7 +1,11 @@
+import { useNavigation } from "@react-navigation/native";
 import { CustomHeaderTitle } from "components/CustomHeaderTitle";
 import FavoriteTeamsSelector from "components/Favorites/FavoriteTeamsSelector";
-import { useNavigation } from "@react-navigation/native";
+import { Fonts } from "constants/fonts";
+import { teams } from "constants/teams";
+import { teams as nflteams } from "constants/teamsNFL";
 import { useRouter } from "expo-router";
+import { useFavoriteTeams } from "hooks/useFavoriteTeams";
 import { useLayoutEffect } from "react";
 import {
   Animated,
@@ -13,9 +17,16 @@ import {
   useColorScheme,
   useWindowDimensions,
 } from "react-native";
-import { Fonts } from "constants/fonts";
-import { useFavoriteTeams } from "hooks/useFavoriteTeams";
-import { teams } from "constants/teams";
+import type { Team } from "types/types";
+
+// Create a lookup map at the top of your component
+const leagueMap: Record<string, "NBA" | "NFL"> = {};
+[...teams].forEach((t) => {
+  leagueMap[t.id.toString()] = "NBA";
+});
+[...nflteams].forEach((t) => {
+  leagueMap[t.id.toString()] = "NFL";
+});
 
 export default function EditFavoritesScreen() {
   const {
@@ -75,16 +86,25 @@ export default function EditFavoritesScreen() {
       />
 
       <Animated.View style={{ flex: 1, opacity: fadeAnim, marginTop: 12 }}>
-        <FavoriteTeamsSelector
-          teams={teams}
-          favorites={favorites}
-          toggleFavorite={toggleFavorite}
-          isGridView={isGridView}
-          fadeAnim={fadeAnim}
-          search={search}
-          itemWidth={itemWidth}
-          loading={isLoading}
-        />
+<FavoriteTeamsSelector
+  teams={[
+    ...teams.map(
+      (t) => ({ ...t, league: "NBA", id: t.id.toString() }) as Team & { league: "NBA" }
+    ),
+    ...nflteams.map(
+      (t) => ({ ...t, league: "NFL", id: t.id.toString() }) as Team & { league: "NFL" }
+    ),
+  ]
+    .sort((a, b) => a.name.localeCompare(b.fullName ?? ""))}
+  favorites={favorites}
+  toggleFavorite={(league: "NBA" | "NFL", id: string) => toggleFavorite(league, id)}
+  isGridView={isGridView}
+  fadeAnim={fadeAnim}
+  search={search}
+  itemWidth={itemWidth}
+/>
+
+
       </Animated.View>
 
       <Pressable
@@ -112,7 +132,7 @@ const getStyles = (isDark: boolean) =>
       paddingHorizontal: 12,
       paddingVertical: 8,
       fontSize: 16,
-      color: "#000",
+      color: isDark ? "#fff" : "#1d1d1d",
       fontFamily: Fonts.OSLIGHT,
     },
     saveButton: {

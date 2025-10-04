@@ -1,21 +1,7 @@
 // hooks/useNFLPlayers.ts
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-
-export interface NFLPlayer {
-  id: number;
-  name: string;
-  age?: number;
-  height?: string;
-  weight?: string;
-  college?: string;
-  group?: string;
-  position?: string;
-  number?: number;
-  salary?: string;
-  experience?: number;
-  image?: string;
-}
+import { NFLPlayer } from "types/nfl";
 
 interface UseNFLPlayersProps {
   teamId: string;

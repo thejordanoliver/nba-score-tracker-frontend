@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import {
   Pressable,
@@ -8,10 +9,11 @@ import {
   View,
   useColorScheme,
 } from "react-native";
-import { teams } from "../constants/teams";
-import { Image } from "expo-image";
+import { teams } from "../../constants/teams"; // NBA
+import { teams as nflteams } from "../../constants/teamsNFL"; // NFL
+
 type Props = {
-  favoriteTeamIds: string[];
+  favoriteTeamIds: string[]; // e.g., ["NBA:17", "NFL:13"]
 };
 
 export default function FavoritesScroll({ favoriteTeamIds }: Props) {
@@ -20,9 +22,16 @@ export default function FavoritesScroll({ favoriteTeamIds }: Props) {
   const isDark = colorScheme === "dark";
   const styles = getStyles(isDark);
 
-  const favoriteTeams = teams.filter((team) =>
-    favoriteTeamIds.includes(team.id)
-  );
+  const favoriteTeams = favoriteTeamIds
+    .map((fav) => {
+      const [league, id] = fav.split(":");
+      let team;
+      if (league === "NBA") team = teams.find((t) => t.id === id);
+      if (league === "NFL") team = nflteams.find((t) => String(t.id) === id);
+      if (!team) return null;
+      return { ...team, league: league as "NBA" | "NFL" };
+    })
+    .filter(Boolean);
 
   return (
     <View style={styles.favoritesWrapper}>
@@ -33,39 +42,43 @@ export default function FavoritesScroll({ favoriteTeamIds }: Props) {
       >
         {favoriteTeams.map((team) => (
           <Pressable
-            key={team.id}
+            key={`${team?.league}-${team?.id}`}
             style={({ pressed }) => [
               styles.teamIcon,
               pressed && { opacity: 0.6 },
             ]}
-            onPress={() =>
-  router.push({
-    pathname: "/team/[teamId]",
-    params: { teamId: team.id.toString() }, // convert id to string
-  })
-}
+            onPress={() => {
+              if (!team) return;
 
+              const route =
+                team.league === "NFL" ? "/team/nfl/[teamId]" : "/team/[teamId]";
+
+              router.push({
+                pathname: route,
+                params: { teamId: team.id.toString() },
+              });
+            }}
           >
             <View
               style={[
                 styles.logoWrapper,
                 {
                   backgroundColor: isDark
-                    ? team.color || "#333"
-                    : team.color || "#eee",
+                    ? team?.color || "#333"
+                    : team?.color || "#eee",
                 },
               ]}
             >
               <Image
                 source={
-                  isDark && team.logoLight
-                    ? team.logoLight
-                    : team.logoLight || team.logo
+                  isDark && team?.logoLight
+                    ? team?.logoLight
+                    : team?.logoLight || team?.logo
                 }
                 style={styles.logo}
               />
             </View>
-            <Text style={styles.teamLabel}>{team.name}</Text>
+            <Text style={styles.teamLabel}>{team?.name}</Text>
           </Pressable>
         ))}
 
@@ -99,14 +112,8 @@ export default function FavoritesScroll({ favoriteTeamIds }: Props) {
 
 export const getStyles = (isDark: boolean) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: isDark ? "#1d1d1d" : "#fff",
-    },
-    favoritesWrapper: {
-      padding: 0,
-    },
-
+    container: { flex: 1, backgroundColor: isDark ? "#1d1d1d" : "#fff" },
+    favoritesWrapper: { padding: 0 },
     favorites: {
       flexDirection: "row",
       marginBottom: 20,
@@ -114,11 +121,7 @@ export const getStyles = (isDark: boolean) =>
       paddingTop: 24,
       paddingHorizontal: 16,
     },
-    teamIcon: {
-      alignItems: "center",
-      marginRight: 16,
-      marginBottom: 0,
-    },
+    teamIcon: { alignItems: "center", marginRight: 16, marginBottom: 0 },
     logoWrapper: {
       width: 80,
       height: 80,
@@ -129,11 +132,7 @@ export const getStyles = (isDark: boolean) =>
       borderWidth: 0.5,
       borderColor: isDark ? "#fff" : "#1d1d1d",
     },
-    logo: {
-      width: 50,
-      height: 50,
-      resizeMode: "contain",
-    },
+    logo: { width: 50, height: 50, resizeMode: "contain" },
     editIcon: {
       backgroundColor: isDark ? "#fff" : "#1d1d1d",
       width: 80,

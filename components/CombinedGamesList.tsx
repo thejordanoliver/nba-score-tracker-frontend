@@ -1,5 +1,4 @@
 // components/Games/CombinedGamesList.tsx
-import CombinedGamePreviewModal from "components/CombinedGamePreviewModal";
 import { Fonts } from "constants/fonts";
 import { usePreferences } from "contexts/PreferencesContext";
 import * as Haptics from "expo-haptics";
@@ -16,10 +15,10 @@ import {
 import { LongPressGestureHandler, State } from "react-native-gesture-handler";
 import type { Game, Game as NFLGameType } from "types/nfl";
 import type { Game as NBAGameType, summerGame } from "types/types";
+import GamePreviewModal from "./GamePreview/GamePreviewModal";
 import HeaderSkeleton from "./Headings/HeaderSkeleton"; // ✅ import
 import HeadingTwo from "./Headings/HeadingTwo";
 import NFLGamePreviewModal from "./NFL/GamePreview/NFLGamePreviewModal";
-import GamePreviewModal from "./GamePreview/GamePreviewModal";
 import SummerLeagueGamePreviewModal from "./summer-league/SummerLeagueGamePreviewModal";
 
 // ✅ shared skeletons
@@ -42,13 +41,15 @@ import SummerGameSquareCard from "components/summer-league/SummerGameSquareCard"
 import SummerGameCard from "components/summer-league/SummerLeagueGameCard";
 import SummerStackedGameCard from "components/summer-league/SummerLeagueStackedGameCard";
 
-type SportsCategory = "NFL" | "NBA" | "NBA Summer League";
+type SportsCategory = "NFL" | "NBA" | "NBA Summer League" | "Favorites";
 type League = "NBA" | "NFL" | "SL";
 
-type CombinedGamesSection =
+// CombinedGamesList.tsx
+export type CombinedGamesSection =
   | { category: "NFL"; data: NFLGameType[] }
   | { category: "NBA"; data: NBAGameType[] }
-  | { category: "NBA Summer League"; data: summerGame[] };
+  | { category: "NBA Summer League"; data: summerGame[] }
+  | { category: "Favorites"; data: NBAGameType[] };
 
 type CombinedGame = NFLGameType | NBAGameType | summerGame;
 
@@ -60,11 +61,21 @@ type CombinedGamesListProps = {
   expectedCount?: number;
   day?: "todayTomorrow";
   showHeaders?: boolean; // ✅ new prop
+  ListHeaderComponent?: React.ReactNode; // ✅ add this
 };
 
 type NFLGameExtended = NFLGameType & {
   league?: { id?: number; name?: string; season?: string; logo?: string };
 };
+
+const getCategoryForFavorites = (item: NBAGameType | NFLGameType | summerGame) => {
+  // @ts-ignore
+  const leagueName = (item as any).league?.name ?? "NBA";
+  if (leagueName === "NFL") return "NFL";
+  if (leagueName === "NBA Summer League") return "NBA Summer League";
+  return "NBA"; // default fallback
+};
+
 
 export default function CombinedGamesList({
   gamesByCategory,
@@ -99,47 +110,43 @@ export default function CombinedGamesList({
     setModalVisible(true);
   };
 
-const transformNFLGame = (nflGame: NFLGameExtended): Game => {
-  const gameId = String(nflGame.game?.id ?? "0");
-  const gameDate = nflGame.game?.date?.date ?? "";
-  const gameTime = nflGame.game?.date?.time ?? "";
-  const timestamp = nflGame.game?.date?.timestamp ?? 0;
+  const transformNFLGame = (nflGame: NFLGameExtended): Game => {
+    const gameId = String(nflGame.game?.id ?? "0");
+    const gameDate = nflGame.game?.date?.date ?? "";
+    const gameTime = nflGame.game?.date?.time ?? "";
+    const timestamp = nflGame.game?.date?.timestamp ?? 0;
 
-  console.log("NFL Game:", gameId, "Date:", gameDate, "Time:", gameTime, "Timestamp:", timestamp);
-
-  return {
-    game: {
-      id: gameId,
-      stage: nflGame.game?.stage ?? "regular",
-      week: nflGame.game?.week ?? "1",
-      date: {
-        timezone: nflGame.game?.date?.timezone ?? "UTC",
-        date: gameDate,
-        time: gameTime,
-        timestamp,
+    return {
+      game: {
+        id: gameId,
+        stage: nflGame.game?.stage ?? "regular",
+        week: nflGame.game?.week ?? "1",
+        date: {
+          timezone: nflGame.game?.date?.timezone ?? "UTC",
+          date: gameDate,
+          time: gameTime,
+          timestamp,
+        },
+        venue: nflGame.game?.venue || { name: "Unknown", city: "Unknown" },
+        status: {
+          short: nflGame.game?.status?.short ?? "",
+          long: nflGame.game?.status?.long ?? "",
+          timer: nflGame.game?.status?.timer ?? undefined,
+        },
       },
-      venue: nflGame.game?.venue || { name: "Unknown", city: "Unknown" },
-      status: {
-        short: nflGame.game?.status?.short ?? "",
-        long: nflGame.game?.status?.long ?? "",
-        timer: nflGame.game?.status?.timer ?? undefined,
+      league: {
+        id: Number(nflGame.league?.id ?? 0),
+        name: nflGame.league?.name ?? "NFL",
+        season: nflGame.league?.season ?? "2025",
+        logo: nflGame.league?.logo ?? "",
       },
-    },
-    league: {
-      id: Number(nflGame.league?.id ?? 0),
-      name: nflGame.league?.name ?? "NFL",
-      season: nflGame.league?.season ?? "2025",
-      logo: nflGame.league?.logo ?? "",
-    },
-    teams: nflGame.teams,
-    scores: {
-      home: nflGame.scores?.home || {},
-      away: nflGame.scores?.away || {},
-    },
+      teams: nflGame.teams,
+      scores: {
+        home: nflGame.scores?.home || {},
+        away: nflGame.scores?.away || {},
+      },
+    };
   };
-};
-
-
 
   const renderGameCard = (
     item: CombinedGame,
@@ -211,7 +218,10 @@ const transformNFLGame = (nflGame: NFLGameExtended): Game => {
       if (viewMode === "list")
         return wrapper(<GameCard game={nbaGame} isDark={isDark} />);
       if (viewMode === "grid")
-        return wrapper(<GameSquareCard game={nbaGame} isDark={isDark} />, index);
+        return wrapper(
+          <GameSquareCard game={nbaGame} isDark={isDark} />,
+          index
+        );
       return wrapper(<StackedGameCard game={nbaGame} isDark={isDark} />);
     }
 
@@ -228,17 +238,6 @@ const transformNFLGame = (nflGame: NFLGameExtended): Game => {
     }
 
     return null;
-  };
-
-  const mapCategoryToLeague = (category: SportsCategory): League => {
-    switch (category) {
-      case "NBA":
-        return "NBA";
-      case "NFL":
-        return "NFL";
-      case "NBA Summer League":
-        return "SL";
-    }
   };
 
   const renderSkeletons = (count: number) => {
@@ -318,88 +317,115 @@ const transformNFLGame = (nflGame: NFLGameExtended): Game => {
     <>
       <SectionList<CombinedGame, CombinedGamesSection>
         sections={
-          gamesByCategory as SectionListData<
-            CombinedGame,
-            CombinedGamesSection
-          >[]
+          gamesByCategory.filter(
+            (section) => section.data.length > 0
+          ) as SectionListData<CombinedGame, CombinedGamesSection>[]
         }
         keyExtractor={(item) => getItemId(item)}
-        renderItem={({ item, section, index }) => {
-          if (viewMode === "grid") return null;
-          return renderGameCard(item, section.category, index, section.data.length);
-        }}
-        renderSectionHeader={({ section: { category, data } }) =>
-          showHeaders && data.length > 0 ? (
-            <View style={{ marginHorizontal: 12 }}>
-              <HeadingTwo>{category}</HeadingTwo>
+renderItem={({ item, section, index }) => {
+  if (viewMode === "grid") return null;
+
+  const category =
+    section.category === "Favorites" ? getCategoryForFavorites(item) : section.category;
+
+  return renderGameCard(item, category, index, section.data.length);
+}}
+
+
+        renderSectionHeader={({ section }) => {
+          if (!showHeaders) return null;
+
+          const multipleSections =
+            gamesByCategory.filter((s) => s.data.length > 0).length > 1;
+          const isFirstSection =
+            gamesByCategory.findIndex(
+              (s) => s.category === section.category
+            ) === 0;
+
+          return (
+            <View
+              style={{
+                marginHorizontal: 12,
+                marginTop: multipleSections && !isFirstSection ? 8 : 0,
+              }}
+            >
+              <HeadingTwo>{section.category}</HeadingTwo>
             </View>
-          ) : null
-        }
-        contentContainerStyle={[styles.contentContainer]}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        showsVerticalScrollIndicator={false}
+          );
+        }}
+        contentContainerStyle={styles.contentContainer}
         stickySectionHeadersEnabled={false}
+        scrollEnabled={false} // ✅ Disable scrolling
         ItemSeparatorComponent={() =>
           viewMode !== "grid" ? <View style={{ height: 12 }} /> : null
         }
         renderSectionFooter={({ section }) => {
-          if (viewMode === "grid" && section.data.length > 0) {
+          if (viewMode === "grid") {
             return (
-           <FlatList<CombinedGame>
-  data={section.data as CombinedGame[]}
-  keyExtractor={(item, index) => getItemId(item) ?? `idx-${index}`}
-  numColumns={2}
-  columnWrapperStyle={styles.gridRow}
-  renderItem={({ item, index }) =>
-    renderGameCard(item, section.category, index, section.data.length)
-  }
-  scrollEnabled={false}
-  contentContainerStyle={styles.gridListContainer}
-/>
+              <View style={{ marginBottom: 16 }}>
+                <FlatList<CombinedGame>
+                  data={section.data}
+                  keyExtractor={(item, index) =>
+                    getItemId(item) ?? `idx-${index}`
+                  }
+                  numColumns={2}
+                  columnWrapperStyle={styles.gridRow}
+              renderItem={({ item, index }) =>
+  renderGameCard(
+    item,
+    section.category === "Favorites" ? getCategoryForFavorites(item) : section.category,
+    index,
+    section.data.length
+  )
+}
 
+                  scrollEnabled={false}
+                  contentContainerStyle={styles.gridListContainer}
+                />
+              </View>
             );
           }
-          return null;
+          return <View style={{ height: 16 }} />;
         }}
       />
 
-     {modalVisible && previewGame && previewCategory === "NFL" && (
-  <NFLGamePreviewModal
-    visible={modalVisible}
-    game={previewGame as NFLGameType}
-    onClose={() => setModalVisible(false)}
-  />
-)}
+      {modalVisible && previewGame && previewCategory === "NFL" && (
+        <NFLGamePreviewModal
+          visible={modalVisible}
+          game={previewGame as NFLGameType}
+          onClose={() => setModalVisible(false)}
+        />
+      )}
 
-{modalVisible && previewGame && previewCategory === "NBA" && (
-  <GamePreviewModal
-    visible={modalVisible}
-    game={previewGame as NBAGameType}
-    onClose={() => setModalVisible(false)}
-  />
-)}
+      {modalVisible && previewGame && previewCategory === "NBA" && (
+        <GamePreviewModal
+          visible={modalVisible}
+          game={previewGame as NBAGameType}
+          onClose={() => setModalVisible(false)}
+        />
+      )}
 
-{modalVisible && previewGame && previewCategory === "NBA Summer League" && (
-  <SummerLeagueGamePreviewModal
-    visible={modalVisible}
-    game={previewGame as summerGame}
-    onClose={() => setModalVisible(false)}
-  />
-)}
-
+      {modalVisible &&
+        previewGame &&
+        previewCategory === "NBA Summer League" && (
+          <SummerLeagueGamePreviewModal
+            visible={modalVisible}
+            game={previewGame as summerGame}
+            onClose={() => setModalVisible(false)}
+          />
+        )}
     </>
   );
 }
 
 const styles = StyleSheet.create({
   skeletonWrapper: {
-    paddingBottom: 20,
     gap: 12,
     marginHorizontal: 12,
+      paddingBottom: 12, // ✅ already there
   },
   skeletonGridWrapper: {
-    paddingBottom: 20,
+    paddingBottom: 12, // ✅ already there
     gap: 12,
   },
   gridRow: {
@@ -414,13 +440,13 @@ const styles = StyleSheet.create({
   },
   listItem: {
     marginHorizontal: 12,
+    
   },
   gridListContainer: {
     paddingBottom: 100,
   },
   contentContainer: {
     paddingTop: 10,
-    paddingBottom: 100,
   },
   emptyText: {
     textAlign: "center",

@@ -1,5 +1,5 @@
 import BioSection from "components/Profile/BioSection";
-import FavoriteTeamsSection from "components/Profile/FavoriteTeamsSection";
+import FavoriteTeamsSection from "components/Favorites/FavoriteTeamsSection";
 import FollowersModal from "components/Profile/FollowersModal";
 import FollowStats from "components/Profile/FollowStats";
 import ProfileBanner from "components/Profile/ProfileBanner";

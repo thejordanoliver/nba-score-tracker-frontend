@@ -48,18 +48,20 @@ const teamNameMapNFL: { [key: string]: string } = {
 const getTeamFromApi = (teamIdentifier: string) => {
   if (!teamIdentifier) return undefined;
 
-  // Try code first
+  // Try by code (e.g. "LV")
   const byCode = teams.find((t) => t.code === teamIdentifier);
   if (byCode) return byCode;
 
-  // Try full name via map
+  // Try full name via map (e.g. "Las Vegas Raiders")
   const fullName = teamNameMapNFL[teamIdentifier];
   if (fullName) {
-    return teams.find((t) => t.name === fullName);
+    return teams.find((t) => t.fullName === fullName || t.name === fullName);
   }
 
-  // Try directly by full name
-  return teams.find((t) => t.name === teamIdentifier);
+  // Try direct match on fullName or name
+  return teams.find(
+    (t) => t.fullName === teamIdentifier || t.name === teamIdentifier
+  );
 };
 
 const UpcomingOddsCard: React.FC<Props> = ({ game }) => {
@@ -119,6 +121,8 @@ const UpcomingOddsCard: React.FC<Props> = ({ game }) => {
       outcome.point !== undefined ? ` (${outcome.point})` : ""
     }`;
   };
+
+  
 
   return (
     <>

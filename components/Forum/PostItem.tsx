@@ -20,6 +20,7 @@ import {
   View,
 } from "react-native";
 import PostImages from "./PostImages";
+import { getAccessToken } from "utils/authStorage";
 
 export interface Post {
   id: string;
@@ -46,8 +47,7 @@ interface PostItemProps {
   editPost: (postId: string, newText: string) => void;
   BASE_URL: string;
   onImagePress: (uri: string, caption?: string) => void;
-    disableCommentNavigation?: boolean; // 👈 new
-
+  disableCommentNavigation?: boolean;
 }
 
 export const PostItem = memo(function PostItem({
@@ -59,7 +59,8 @@ export const PostItem = memo(function PostItem({
   deletePost,
   editPost,
   BASE_URL,
-  onImagePress,   disableCommentNavigation,
+  onImagePress,
+  disableCommentNavigation,
 }: PostItemProps) {
   const { likes, setLike, toggleLike } = useLikesStore();
   const likeState = likes[item.id];
@@ -103,7 +104,13 @@ export const PostItem = memo(function PostItem({
   const likeCount = likeState?.count ?? item.likes;
 
   const toggleLikePress = async () => {
-    if (!token) {
+    // Try passed token first, then fallback to AsyncStorage
+    let authToken = token;
+    if (!authToken) {
+      authToken = await getAccessToken();
+    }
+
+    if (!authToken) {
       alert("You must be logged in to like posts.");
       return;
     }
@@ -114,7 +121,7 @@ export const PostItem = memo(function PostItem({
       await axios.patch(
         `${BASE_URL}/api/forum/post/${item.id}/like`,
         { like: !liked },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${authToken}` } }
       );
     } catch (err: any) {
       // rollback
@@ -153,13 +160,14 @@ export const PostItem = memo(function PostItem({
       ]
     );
   };
+
   const dropdownAnim = useRef(new Animated.Value(0)).current;
   const showDropdown = () => {
     setDropdownVisible(true);
     Animated.timing(dropdownAnim, {
       toValue: 1,
       duration: 300,
-      easing: Easing.bezier(0.25, 0.1, 0.25, 1), // standard cubic easing
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
       useNativeDriver: true,
     }).start();
   };
@@ -180,8 +188,8 @@ export const PostItem = memo(function PostItem({
         ? "#ff4444"
         : "#cc0000"
       : isDark
-        ? "#fff"
-        : "#1d1d1d",
+      ? "#fff"
+      : "#1d1d1d",
     fontFamily: Fonts.OSREGULAR,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -253,7 +261,7 @@ export const PostItem = memo(function PostItem({
                   {
                     translateY: dropdownAnim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [-10, 0], // slide in from above
+                      outputRange: [-10, 0],
                     }),
                   },
                 ],
@@ -378,25 +386,24 @@ export const PostItem = memo(function PostItem({
                       />
                       <Text style={styles.count}>{likeCount}</Text>
                     </TouchableOpacity>
-                  <TouchableOpacity
-  onPress={() => {
-    if (!disableCommentNavigation) {
-      router.push({
-        pathname: "/comment-thread/[postId]",
-        params: { postId: item.id },
-      });
-    }
-  }}
-  style={styles.likeButtonContainer}
->
-  <Ionicons
-    name="chatbubble-outline"
-    size={28}
-    color={isDark ? "#fff" : "#1d1d1d"}
-  />
-  <Text style={styles.count}>{item.comments_count}</Text>
-</TouchableOpacity>
-
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (!disableCommentNavigation) {
+                          router.push({
+                            pathname: "/comment-thread/[postId]",
+                            params: { postId: item.id },
+                          });
+                        }
+                      }}
+                      style={styles.likeButtonContainer}
+                    >
+                      <Ionicons
+                        name="chatbubble-outline"
+                        size={28}
+                        color={isDark ? "#fff" : "#1d1d1d"}
+                      />
+                      <Text style={styles.count}>{item.comments_count}</Text>
+                    </TouchableOpacity>
                   </View>
                   <View style={styles.rightSide}>
                     <TouchableOpacity style={styles.likeButtonContainer}>

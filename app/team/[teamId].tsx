@@ -1,15 +1,22 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CustomHeaderTitle } from "components/CustomHeaderTitle";
 import TeamForum from "components/Forum/TeamForum";
 import GamesList from "components/Games/GamesList";
 import NewsHighlightsList from "components/News/NewsHighlightsList";
+import TabBar from "components/TabBar";
 import RosterStats from "components/Team/RosterStats";
+import TeamInfoBottomSheet from "components/Team/TeamInfoModal";
 import TeamPlayerList from "components/Team/TeamRoster";
 import { Fonts } from "constants/fonts";
-import { useTeamHighlights } from "hooks/useTeamHighlights";
-import { useTeamRosterStats } from "hooks/useTeamRosterStats";
-import { User } from "types/types";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { teams } from "constants/teams";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { goBack } from "expo-router/build/global-state/routing";
+import { useNewsStore } from "hooks/newsStore";
+import useDbPlayersByTeam from "hooks/useDbPlayersByTeam";
+import { useTeamGames } from "hooks/useTeamGames";
+import { useTeamHighlights } from "hooks/useTeamHighlights";
+import { useTeamNews } from "hooks/useTeamNews";
+import { useTeamRosterStats } from "hooks/useTeamRosterStats";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -25,13 +32,7 @@ import {
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import PagerView from "react-native-pager-view";
 import { style } from "styles/TeamDetails.styles";
-import { CustomHeaderTitle } from "components/CustomHeaderTitle";
-import TabBar from "components/TabBar";
-import { teams } from "constants/teams";
-import { useNewsStore } from "hooks/newsStore";
-import useDbPlayersByTeam from "hooks/useDbPlayersByTeam";
-import { useTeamGames } from "hooks/useTeamGames";
-import { useTeamNews } from "hooks/useTeamNews";
+import { User } from "types/types";
 
 export default function TeamDetailScreen() {
   const navigation = useNavigation();
@@ -40,6 +41,7 @@ export default function TeamDetailScreen() {
   const teamIdNum = parseInt(teamId as string, 10);
   const [isFavorite, setIsFavorite] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
+  const [modalVisible, setModalVisible] = useState(false); // ✅ bottom sheet state
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const styles = style(isDark);
@@ -49,11 +51,11 @@ export default function TeamDetailScreen() {
   const underlineX = useRef(new Animated.Value(0)).current;
   const underlineWidth = useRef(new Animated.Value(0)).current;
   const tabMeasurements = useRef<{ x: number; width: number }[]>([]);
+  const pagerRef = useRef<PagerView>(null);
 
   // map tabs to page index
   const tabToIndex = (tab: (typeof tabs)[number]) => tabs.indexOf(tab);
   const indexToTab = (index: number) => tabs[index];
-  const pagerRef = useRef<PagerView>(null);
 
   const team = useMemo(
     () => teams.find((t) => t.id === teamIdNum.toString()),
@@ -313,6 +315,7 @@ export default function TeamDetailScreen() {
           teamCode={team?.code}
           isFavorite={isFavorite}
           onToggleFavorite={toggleFavorite}
+          onOpenInfo={() => setModalVisible(true)}
         />
       ),
     });
@@ -512,6 +515,15 @@ export default function TeamDetailScreen() {
           <TeamForum teamId={teamId as string} />
         </View>
       </PagerView>
+      {/* --- Bottom Sheet --- */}
+      {team && (
+        <TeamInfoBottomSheet
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          teamId={team.id}
+          coachName={team.coach ?? "N/A"}
+        />
+      )}
     </View>
   );
 }

@@ -91,7 +91,7 @@ const team = teamId ? getTeamInfo(teamId) : undefined;
                 textAlign: "center",
               }}
             >
-              {team.name}
+              {team.fullName}
             </Text>
           )}
 

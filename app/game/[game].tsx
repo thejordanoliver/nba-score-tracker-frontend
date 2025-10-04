@@ -13,6 +13,7 @@ import {
   TeamRow,
   Weather,
 } from "components/GameDetails";
+import GameOddsSection from "components/GameDetails/GameOddsSection";
 import GameOfficials from "components/GameDetails/GameOfficials";
 import GameUniforms from "components/GameDetails/GameUniforms";
 import { Fonts } from "constants/fonts";
@@ -38,7 +39,6 @@ import {
 } from "react-native";
 import { useChatStore } from "store/chatStore";
 import { matchBroadcastToGame } from "utils/matchBroadcast";
-import GameOddsSection from "components/GameDetails/GameOddsSection";
 export default function GameDetailsScreen() {
   const { game } = useLocalSearchParams();
   const isDark = useColorScheme() === "dark";
@@ -257,19 +257,19 @@ export default function GameDetailsScreen() {
     awayTeamData.name
   );
 
-// Replace your currentClock logic
-const [refreshTick, setRefreshTick] = useState(0);
+  // Replace your currentClock logic
+  const [refreshTick, setRefreshTick] = useState(0);
 
-useEffect(() => {
-  if (status !== "In Progress") return;
+  useEffect(() => {
+    if (status !== "In Progress") return;
 
-  const interval = setInterval(() => {
-    // increment the tick to trigger re-render
-    setRefreshTick((prev) => prev + 1);
-  }, 30000); // every 30 seconds
+    const interval = setInterval(() => {
+      // increment the tick to trigger re-render
+      setRefreshTick((prev) => prev + 1);
+    }, 30000); // every 30 seconds
 
-  return () => clearInterval(interval);
-}, [status]);
+    return () => clearInterval(interval);
+  }, [status]);
 
   return (
     <>
@@ -280,61 +280,62 @@ useEffect(() => {
         onMomentumScrollEnd={handleScrollEnd}
         onScrollEndDrag={handleScrollEnd}
       >
-    <View style={[styles.teamsContainer, { borderColor: colors.border }]}>
-  <TeamRow
-    key={`away-${refreshTick}`} // forces re-render
-    team={{
-      id: awayTeamData.id,
-      code: awayTeamData.code,
-      name: away.name,
-      record: away.record,
-      logo:
-        isDark && awayTeamData.logoLight
-          ? awayTeamData.logoLight
-          : awayTeamData.logo || require("../../assets/Logos/NBA.png"),
-    }}
-    isDark={isDark}
-    score={awayScore}
-    isWinner={awayIsWinner}
-    colors={colors}
-  />
+        <View style={[styles.teamsContainer, { borderColor: colors.border }]}>
+          <TeamRow
+            key={`away-${refreshTick}`} // forces re-render
+            team={{
+              id: awayTeamData.id,
+              code: awayTeamData.code,
+              name: away.name,
+              record: away.record,
+              logo:
+                isDark && awayTeamData.logoLight
+                  ? awayTeamData.logoLight
+                  : awayTeamData.logo || require("../../assets/Logos/NBA.png"),
+            }}
+            isDark={isDark}
+            score={awayScore}
+            isWinner={awayIsWinner}
+            colors={colors}
+          />
 
-  <GameInfo
-    key={`gameinfo-${refreshTick}`} // forces re-render
-    status={status}
-    date={formattedDate}
-    time={time}
-    clock={clock}
-    period={period}
-    colors={colors}
-    isDark={isDark}
-    homeTeam={home.name}
-    awayTeam={away.name}
-    broadcastNetworks={networkString}
-    playoffInfo={[getGameNumberLabel() ?? "", seriesSummary ?? ""].filter(Boolean)}
-  />
+          <GameInfo
+            key={`gameinfo-${refreshTick}`} // forces re-render
+            status={status}
+            date={formattedDate}
+            time={time}
+            clock={clock}
+            period={period}
+            colors={colors}
+            isDark={isDark}
+            homeTeam={home.name}
+            awayTeam={away.name}
+            broadcastNetworks={networkString}
+            playoffInfo={[
+              getGameNumberLabel() ?? "",
+              seriesSummary ?? "",
+            ].filter(Boolean)}
+          />
 
-  <TeamRow
-    key={`home-${refreshTick}`} // forces re-render
-    team={{
-      id: homeTeamData.id,
-      code: homeTeamData.code,
-      name: home.name,
-      record: home.record,
-      logo:
-        isDark && homeTeamData.logoLight
-          ? homeTeamData.logoLight
-          : homeTeamData.logo || require("../../assets/Logos/NBA.png"),
-    }}
-    isDark={isDark}
-    isHome
-    score={homeScore}
-    isWinner={homeIsWinner}
-    colors={colors}
-    
-  />
-</View>
-
+          <TeamRow
+            key={`home-${refreshTick}`} // forces re-render
+            team={{
+              id: homeTeamData.id,
+              code: homeTeamData.code,
+              name: home.name,
+              record: home.record,
+              logo:
+                isDark && homeTeamData.logoLight
+                  ? homeTeamData.logoLight
+                  : homeTeamData.logo || require("../../assets/Logos/NBA.png"),
+            }}
+            isDark={isDark}
+            isHome
+            score={homeScore}
+            isWinner={homeIsWinner}
+            colors={colors}
+          />
+        </View>
 
         <View style={{ gap: 20, marginTop: 20 }}>
           {/* {isLoading || detailsLoading ? (
@@ -343,12 +344,12 @@ useEffect(() => {
           <>
             {/* --- Odds Section (Upcoming + Historical) --- */}
             <GameOddsSection
-                date={date}
-                gameDate={gameDate}
-                homeCode={homeCode}
-                awayCode={awayCode}
-                gameId={stableGameId}
-              />
+              date={date}
+              gameDate={gameDate}
+              homeCode={homeCode}
+              awayCode={awayCode}
+              gameId={stableGameId}
+            />
 
             {linescore && (
               <LineScore
@@ -387,10 +388,7 @@ useEffect(() => {
               awayTeamId={awayTeamIdNum}
             />
             {!statsLoading && gameStats && <GameTeamStats stats={gameStats} />}
-
-            <GameOfficials officials={data?.officials ?? []} />
-            <TeamInjuriesTab injuries={data?.injuries ?? []} />
-
+            
             <LastFiveGamesSwitcher
               isDark={isDark}
               home={{
@@ -406,6 +404,8 @@ useEffect(() => {
                 games: awayLastGames.games,
               }}
             />
+            <GameOfficials officials={data?.officials ?? []} />
+            <TeamInjuriesTab injuries={data?.injuries ?? []} />
 
             <GameUniforms
               homeTeamId={homeTeamData.id}

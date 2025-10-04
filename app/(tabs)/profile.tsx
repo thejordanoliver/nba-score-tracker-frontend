@@ -1,31 +1,30 @@
 // profile.tsx
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import ConfirmModal from "components/ConfirmModal";
 import { CustomHeaderTitle } from "components/CustomHeaderTitle";
+import FavoriteTeamsSection from "components/Favorites/FavoriteTeamsSection";
 import BioSection from "components/Profile/BioSection";
-import FavoriteTeamsSection from "components/Profile/FavoriteTeamsSection";
 import FollowStats from "components/Profile/FollowStats";
 import ProfileBanner from "components/Profile/ProfileBanner";
 import ProfileHeader from "components/Profile/ProfileHeader";
 import { SkeletonProfileScreen } from "components/SkeletonProfileScreen";
 import { teams } from "constants/teams";
-import { useAuth } from "hooks/useAuth";
-import { useFollowersModalStore } from "store/followersModalStore";
-import { useSettingsModalStore } from "store/settingsModalStore";
-import { getStyles } from "styles/ProfileScreen.styles";
-
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
+import { teams as nflteams } from "constants/teamsNFL";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useAuth } from "hooks/useAuth";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import {
   Animated,
   ScrollView,
   View,
   useColorScheme,
-  useWindowDimensions, Text,
+  useWindowDimensions,
 } from "react-native";
- 
+import { useFollowersModalStore } from "store/followersModalStore";
+import { useSettingsModalStore } from "store/settingsModalStore";
+import { getStyles } from "styles/ProfileScreen.styles";
+
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 
 function parseImageUrl(url: string | null | undefined): string | null {
@@ -217,8 +216,6 @@ export default function ProfileScreen() {
     ])
   );
 
- 
-
   useLayoutEffect(() => {
     navigation.setOptions({
       header: () => (
@@ -232,8 +229,27 @@ export default function ProfileScreen() {
     });
   }, [navigation, username, isDark]);
 
-  const favoriteTeams = teams.filter((team) => favorites.includes(team.id));
+  const favoriteTeams = favorites
+    .map((fav: string) => {
+      // fav format: "NBA:1610612737" or "NFL:13"
+      const [league, id] = fav.split(":");
+      if (league === "NBA") return teams.find((t) => t.id === id);
+      if (league === "NFL") return nflteams.find((t) => t.id === id);
+      return null;
+    })
+    .filter(Boolean); // remove nulls
   const styles = getStyles(isDark);
+
+  const favoriteTeamsWithLeague = favorites
+    .map((fav: string) => {
+      const [league, id] = fav.split(":");
+      let team;
+      if (league === "NBA") team = teams.find((t) => t.id === id); // NBA IDs are strings
+      if (league === "NFL") team = nflteams.find((t) => String(t.id) === id); // convert number to string
+      if (!team) return null;
+      return { ...team, league: league as "NBA" | "NFL" };
+    })
+    .filter(Boolean);
 
   if (isLoading) return <SkeletonProfileScreen isDark={isDark} />;
 
@@ -248,7 +264,6 @@ export default function ProfileScreen() {
       openModal("following", String(currentUserId), String(currentUserId));
     }
   };
-
 
   return (
     <>
@@ -285,7 +300,7 @@ export default function ProfileScreen() {
 
         <View style={styles.favoritesContainer}>
           <FavoriteTeamsSection
-            favoriteTeams={favoriteTeams}
+            favoriteTeams={favoriteTeamsWithLeague}
             isGridView={isGridView}
             fadeAnim={fadeAnim}
             toggleFavoriteTeamsView={toggleFavoriteTeamsView}

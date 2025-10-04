@@ -68,7 +68,6 @@ export default function GameCardSkeleton() {
               width: shimmerWidth,
               opacity: shimmerOpacity,
               transform: [{ translateX: shimmerTranslate }],
-              
             },
           ]}
         />
@@ -91,6 +90,7 @@ export default function GameCardSkeleton() {
       <View style={styles.info}>
         <SkeletonWithShimmer style={styles.dateSkeleton} shimmerWidth={50} />
         <SkeletonWithShimmer style={styles.timeSkeleton} shimmerWidth={80} />
+        <SkeletonWithShimmer style={styles.broadcastSkeleton} shimmerWidth={50} />
       </View>
 
       {/* Bottom Score */}
@@ -110,8 +110,8 @@ const getStyles = (isDark: boolean) =>
     card: {
       flexDirection: "row",
       backgroundColor: isDark ? "#2e2e2e" : "#eee",
-      borderRadius: 10,
-      paddingVertical: 14,
+      borderRadius: 8,
+      paddingVertical: 18,
       paddingHorizontal: 20,
       alignItems: "center",
       justifyContent: "space-between",
@@ -149,11 +149,17 @@ const getStyles = (isDark: boolean) =>
       height: 14,
       borderRadius: 6,
       backgroundColor: isDark ? "#666" : "#bbb",
-      marginBottom: 6,
+    },
+    broadcastSkeleton: {
+      width: 40,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: isDark ? "#666" : "#bbb",
     },
     timeSkeleton: {
       width: 80,
       height: 12,
+      marginVertical: 6,
       borderRadius: 6,
       backgroundColor: isDark ? "#666" : "#bbb",
     },

@@ -34,7 +34,7 @@ export default function GameOddsSection({
   const hasUpcomingOdds =
     !upcomingLoading && !upcomingError && upcomingOdds.length > 0;
 
-  // --- Historical odds (hook always called) ---
+  // --- Historical odds ---
   const {
     data: historicalOdds,
     loading: oddsLoading,
@@ -44,24 +44,25 @@ export default function GameOddsSection({
     team1: awayCode,
     team2: homeCode,
     gameId,
-    skip: hasUpcomingOdds, // ✅ prevent fetching if upcoming exists
+    skip: hasUpcomingOdds, // ✅ don't fetch if upcoming exists
   });
 
+  const isLoading = upcomingLoading || oddsLoading;
+
   // ✅ If both odds arrays are empty (and not loading), return null
-  if (
-    !upcomingLoading &&
-    !oddsLoading &&
-    (!upcomingOdds?.length && !historicalOdds?.length)
-  ) {
+  if (!isLoading && (!upcomingOdds?.length && !historicalOdds?.length)) {
     return null;
+  }
+
+  // ✅ Single skeleton
+  if (isLoading) {
+    return <OddsSkeleton />;
   }
 
   return (
     <View>
       {/* --- Upcoming Odds --- */}
-      {upcomingLoading ? (
-        <OddsSkeleton />
-      ) : upcomingError ? (
+      {upcomingError ? (
         <Text style={{ color: "red" }}>
           Error loading upcoming odds: {upcomingError}
         </Text>
@@ -75,9 +76,7 @@ export default function GameOddsSection({
 
       {/* --- Historical Odds (only if no upcoming) --- */}
       {!hasUpcomingOdds &&
-        (oddsLoading ? (
-          <OddsSkeleton />
-        ) : oddsError ? (
+        (oddsError ? (
           <Text style={{ color: "red" }}>{oddsError}</Text>
         ) : historicalOdds.length > 0 ? (
           <View>

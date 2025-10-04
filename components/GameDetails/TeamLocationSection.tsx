@@ -32,13 +32,24 @@ const TeamLocationSection: React.FC<Props> = ({
   location,
   address,
   arenaCapacity,
-
   loading,
   error,
-  lighter = false, // default false
+  lighter = false,
 }) => {
   const isDark = useColorScheme() === "dark";
   const textColor = lighter ? "#fff" : isDark ? "#fff" : "#1d1d1d";
+
+  // ✅ Early return if values are missing or marked "Unknown"
+  if (
+    !arenaName ||
+    !location ||
+    arenaName.trim() === "" ||
+    location.trim() === "" ||
+    arenaName === "Unknown" ||
+    location === "Unknown"
+  ) {
+    return null;
+  }
 
   const openInMaps = async () => {
     if (!address) return;
@@ -74,12 +85,6 @@ const TeamLocationSection: React.FC<Props> = ({
     );
   };
 
-  const titleCase = (str: string) =>
-    str
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-
   return (
     <View style={{ marginTop: 20 }}>
       <HeadingTwo lighter={lighter}>Location</HeadingTwo>
@@ -95,47 +100,39 @@ const TeamLocationSection: React.FC<Props> = ({
           />
 
           <View style={styles.textContainer}>
-            {location && (
-              <Text style={[styles.arenaTitle, { color: textColor }]}>
-                {arenaName}
-              </Text>
-            )}
+            <Text style={[styles.arenaTitle, { color: textColor }]}>
+              {arenaName}
+            </Text>
           </View>
 
           <View style={styles.addressContainer}>
             <Ionicons name="location" size={20} color={textColor} />
-            {location && (
+            {address ? (
               <TouchableOpacity onPress={openInMaps}>
                 <Text
                   style={[
                     styles.subText,
-                    {
-                      color: textColor,
-                      marginLeft: 8,
-                    },
+                    { color: textColor, marginLeft: 8 },
                   ]}
                 >
                   {address}
                 </Text>
               </TouchableOpacity>
-            )}
+            ) : null}
           </View>
 
           <View style={styles.addressContainer}>
             <Ionicons name="person" size={20} color={textColor} />
-            {location && (
-              <Text
-                style={[styles.subText, { color: textColor, marginLeft: 8 }]}
-              >
-                Capacity: {arenaCapacity || "N/A"}
-              </Text>
-            )}
+            <Text style={[styles.subText, { color: textColor, marginLeft: 8 }]}>
+              Capacity: {arenaCapacity || "N/A"}
+            </Text>
           </View>
         </View>
       )}
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {},

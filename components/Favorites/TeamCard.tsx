@@ -1,4 +1,4 @@
-import type { Team } from "types/types";
+import { Fonts } from "constants/fonts";
 import { useEffect, useRef } from "react";
 import {
   Animated,
@@ -8,14 +8,15 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { Fonts } from "constants/fonts";
+import { NFLTeam } from "types/nfl";
+import type { Team } from "types/types";
 type Props = {
-  item: Team;
+  item: Team | NFLTeam;
   isSelected: boolean;
   isGridView: boolean;
   onPress: () => void;
   itemWidth: number;
-  onImageLoad?: () => void; // new prop
+  onImageLoad?: () => void;
 };
 
 export default function TeamCard({
@@ -28,15 +29,26 @@ export default function TeamCard({
 }: Props) {
   const isDark = useColorScheme() === "dark";
 
+
+
   const [city, nickname] = (() => {
     const parts = item.fullName?.split(" ");
     return [parts?.slice(0, -1).join(" "), parts?.slice(-1).join(" ")];
   })();
 
+  // Teams that should show the light logo in dark mode (by team code)
+  const teamsWithLightLogoInDark = [
+    "Raptors",
+    "Jazz",
+    "76ers",
+    "Rockets",
+    "Giants",
+    "Jets",
+  ]; // example codes
+
   const shouldShowLight =
-    isDark && ["14", "27", "38", "40"].includes(item.id)
-      ? true
-      : !isDark && isSelected && item.logoLight;
+    (isDark && teamsWithLightLogoInDark.includes(item.name ?? "")) ||
+    (!isDark && isSelected && !!item.logoLight);
 
   const lightLogoOpacity = useRef(
     new Animated.Value(shouldShowLight ? 1 : 0)
@@ -58,10 +70,19 @@ export default function TeamCard({
     }
   }, [isSelected]);
 
-  const selectedColor =
-    isDark && item.id === "28"
-      ? (item.secondary_color ?? "#E56020")
-      : (item.color ?? "#000");
+  const secondaryColor =
+    "secondary_color" in item
+      ? item.secondary_color
+      : "secondaryColor" in item
+      ? item.secondaryColor
+      : undefined;
+
+const selectedColor = isDark
+  ? ["Grizzlies", "Suns", "Ravens", "Texans", "Cowboys", "Broncos", "Bears", "Pelicans", "Timberwolves"].includes(item.name ?? "")
+    ? secondaryColor ?? "#888"
+    : item.color ?? "#888"
+  : item.color ?? "#888";
+
 
   const backgroundColor = selectionAnim.interpolate({
     inputRange: [0, 1],

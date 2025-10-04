@@ -58,6 +58,28 @@ export default function NFLGameTeamStats({
   const teamA = stats[0];
   const teamB = stats[1];
 
+  const getTeamColor = (teamId?: number) => {
+    const team = getTeamInfo(teamId ?? 0);
+    if (!team) return "#fff";
+
+    const primary = team.color ?? "#fff";
+    const secondary = team.secondaryColor ?? primary;
+
+    if (isDark) {
+      // ✅ Apply overrides only in dark mode
+      if (team.code === "BAL") return "#fff";
+      if (team.code === "ATL") return primary;
+      if (team.code === "TB") return primary;
+      if (team.code === "PHI") return "#fff";
+
+      // default in dark mode
+      return secondary;
+    }
+
+    // ✅ Light mode → always primary
+    return primary;
+  };
+
   const textColor = lighter ? "#fff" : isDark ? "#fff" : "#000";
   const dividerColor = lighter ? "#fff" : isDark ? "#888" : "#888";
 
@@ -67,6 +89,11 @@ export default function NFLGameTeamStats({
 
   const teamALogo = getNFLTeamsLogo(teamA?.team.id, isDark);
   const teamBLogo = getNFLTeamsLogo(teamB?.team.id, isDark);
+
+  // Pick team color, but override for Denver and Raiders
+
+  const teamAColor = getTeamColor(teamA?.team?.id);
+  const teamBColor = getTeamColor(teamB?.team?.id);
 
   useEffect(() => {
     const toValue = expanded
@@ -134,7 +161,7 @@ export default function NFLGameTeamStats({
                       style={[
                         styles.bar,
                         {
-                          backgroundColor: "#0072CE",
+                          backgroundColor: teamBColor,
                           width: `${(Math.abs(valueB) / max) * 100}%`,
                           opacity: isTeamBLower ? 0.5 : 1,
                         },
@@ -146,7 +173,7 @@ export default function NFLGameTeamStats({
                       style={[
                         styles.bar,
                         {
-                          backgroundColor: "#FFB612",
+                          backgroundColor: teamAColor,
                           width: `${(Math.abs(valueA) / max) * 100}%`,
                           opacity: isTeamALower ? 0.5 : 1,
                         },

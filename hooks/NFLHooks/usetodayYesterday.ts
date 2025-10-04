@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
-export function useNFLWeeklyGames(season = "2025", league = "1") {
+export function usetodayYesterday(season = "2025", league = "1") {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +14,7 @@ export function useNFLWeeklyGames(season = "2025", league = "1") {
       setLoading(true);
       setError(null);
 
-      const res = await axios.get(`${BASE_URL}/api/gamesNFL/weekly`, {
+      const res = await axios.get(`${BASE_URL}/api/gamesNFL/todayYesterday`, {
         params: { season, league },
       });
 
