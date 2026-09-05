@@ -137,7 +137,9 @@ export default function FootballGamePreviewModal({
 
   const state = score?.status.state ?? "pre";
   const gameStatusDescription = score?.status.gameStatusDescription ?? "";
-  const gameStatusDetail = score?.status.shortDetail ?? "";
+  const gameStatusDetail =
+    score?.status.shortDetail ?? game.status.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const isCanceled = gameStatusDescription === "Canceled";
   const isDelayed = gameStatusDescription === "Delayed";
   const isPostponed = gameStatusDescription === "Postponed";
@@ -295,7 +297,7 @@ export default function FootballGamePreviewModal({
 
                 <CenterInfo
                   date={formattedDate}
-                  time={formattedTime}
+                  time={tbd || formattedTime}
                   gameStatusShortDetail={gameStatusDetail}
                   gameStatusDescription={gameStatusDescription}
                   broadcast={broadcast}

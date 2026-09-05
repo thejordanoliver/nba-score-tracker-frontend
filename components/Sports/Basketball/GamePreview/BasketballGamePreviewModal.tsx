@@ -170,7 +170,9 @@ export default function GamePreviewModal({
   const clock = score?.status?.displayClock ?? "0:00";
   const gameStatusDescription = score?.status.gameStatusDescription ?? "";
   const state = score?.status.state ?? null;
-  const gameStatusDetail = score?.status.gameStatusDetail ?? "";
+  const gameStatusDetail =
+    score?.status.gameStatusDetail ?? game.status.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const isCanceled = gameStatusDescription === "Canceled";
   const isDelayed = gameStatusDescription === "Delayed";
   const isPostponed = gameStatusDescription === "Postponed";
@@ -295,7 +297,7 @@ export default function GamePreviewModal({
                 {/* Game Info */}
                 <CenterInfo
                   date={formattedDate}
-                  time={formattedTime}
+                  time={tbd || formattedTime}
                   clock={clock}
                   period={period}
                   broadcast={broadcast}

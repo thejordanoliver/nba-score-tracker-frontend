@@ -110,6 +110,7 @@ export default function RacingGameCard({ game }: RacingEventCardProps) {
 
   const gameStatusDescription = game.status?.description ?? null;
   const gameStatusDetail = game.status?.shortDetail;
+  const tbd = gameStatusDetail?.includes("TBD") ? "TBD" : null;
   const isFinal = gameStatusDescription === "Final";
   const isScheduled = gameStatusDescription === "Scheduled";
   const inProgress = gameStatusDescription === "In Progress";
@@ -171,30 +172,30 @@ export default function RacingGameCard({ game }: RacingEventCardProps) {
             <Text style={styles.date}>{formattedDate}</Text>
           ) : null}
 
-          {formattedDate && formattedTime ? (
+          {formattedDate && (tbd || formattedTime) ? (
             <View style={styles.statusDivider} />
           ) : null}
 
-          {formattedTime ? (
-            <Text style={styles.date}>{formattedTime}</Text>
+          {tbd || formattedTime ? (
+            <Text style={styles.date}>{tbd || formattedTime}</Text>
           ) : null}
         </View>
       );
     }
 
-    if (formattedDate || formattedTime) {
+    if (formattedDate || tbd || formattedTime) {
       return (
         <View style={styles.infoWrapper}>
           {formattedDate ? (
             <Text style={styles.date}>{formattedDate}</Text>
           ) : null}
 
-          {formattedDate && formattedTime ? (
+          {formattedDate && (tbd || formattedTime) ? (
             <View style={styles.statusDivider} />
           ) : null}
 
-          {formattedTime ? (
-            <Text style={styles.date}>{formattedTime}</Text>
+          {tbd || formattedTime ? (
+            <Text style={styles.date}>{tbd || formattedTime}</Text>
           ) : null}
         </View>
       );

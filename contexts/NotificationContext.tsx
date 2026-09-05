@@ -479,6 +479,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       teamId: String(teamId),
       gameStartEnabled: true,
       touchdownEnabled: true,
+      quarterEndEnabled: true,
+      halftimeEnabled: true,
       closeGameEnabled: true,
       finalScoreEnabled: true,
       createdAt: new Date().toISOString(),

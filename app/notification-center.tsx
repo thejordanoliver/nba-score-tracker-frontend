@@ -26,6 +26,8 @@ const getNotificationIcon = (
   switch (type) {
     case "game_starting":
     case "game_touchdown":
+    case "game_quarter_end":
+    case "game_halftime":
     case "game_close":
     case "game_final":
       return "alert";

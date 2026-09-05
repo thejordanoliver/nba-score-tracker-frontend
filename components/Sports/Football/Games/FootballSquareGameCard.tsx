@@ -64,6 +64,7 @@ function FootballSquareGameCard({
   const headline = game.headline ?? holidayLabel;
   const gameStatusDescription = game?.status.description ?? "";
   const gameStatusDetail = game?.status.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const isScheduled = gameStatusDescription === "Scheduled";
   const inProgress = gameStatusDescription === "In Progress";
   const isHalftime = gameStatusDescription === "Halftime";
@@ -188,7 +189,7 @@ function FootballSquareGameCard({
     return (
       <View>
         <Text style={styles.date}>{formattedDate}</Text>
-        <Text style={styles.date}>{formattedTime}</Text>
+        <Text style={styles.date}>{tbd || formattedTime}</Text>
       </View>
     );
   };

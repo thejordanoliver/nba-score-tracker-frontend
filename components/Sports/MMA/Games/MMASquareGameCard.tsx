@@ -45,6 +45,8 @@ export default function MMASquareGameCard({ game }: MMAFightCardProps) {
   const firstFighterWinner = firstFighter?.winner === true;
   const secondFighterWinner = secondFighter?.winner === true;
   const gameStatusDescription = game?.status?.description;
+  const gameStatusDetail = game?.status?.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const isScheduled = gameStatusDescription === "Scheduled";
   const isCanceled = gameStatusDescription === "Canceled";
   const isFinal = gameStatusDescription === "Final";
@@ -128,7 +130,7 @@ export default function MMASquareGameCard({ game }: MMAFightCardProps) {
     return (
       <View>
         <Text style={styles.date}>{formattedDate}</Text>
-        <Text style={styles.date}>{formattedTime}</Text>
+        <Text style={styles.date}>{tbd || formattedTime}</Text>
       </View>
     );
   };

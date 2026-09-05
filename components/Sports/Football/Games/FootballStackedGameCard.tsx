@@ -77,6 +77,7 @@ function FootballStackedGameCard({
   const headline = game.headline ?? holidayLabel;
   const gameStatusDescription = game?.status.description ?? "";
   const gameStatusDetail = game?.status.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const isScheduled = gameStatusDescription === "Scheduled";
   const inProgress = gameStatusDescription === "In Progress";
   const isHalftime = gameStatusDescription === "Halftime";
@@ -204,7 +205,7 @@ function FootballStackedGameCard({
       <View style={styles.infoWrapper}>
         <Text style={styles.date}>{formattedDate}</Text>
         <View style={styles.statusDivider} />
-        <Text style={styles.date}>{formattedTime}</Text>
+        <Text style={styles.date}>{tbd || formattedTime}</Text>
       </View>
     );
   };

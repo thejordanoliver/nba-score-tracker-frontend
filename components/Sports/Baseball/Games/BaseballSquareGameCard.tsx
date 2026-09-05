@@ -81,6 +81,7 @@ function BaseballSquareGamecard({ game, isSB, isCB }: BaseballGameCardProps) {
   const broadcast = getBroadcastDisplay(broadcasts);
   const gameStatusDescription = game.status.description ?? "";
   const gameStatusDetail = game.status.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const isEndOfInning = gameStatusDetail.includes("End");
   const isScheduled = gameStatusDescription === "Scheduled";
   const inProgress = gameStatusDescription === "In Progress";
@@ -154,7 +155,7 @@ function BaseballSquareGamecard({ game, isSB, isCB }: BaseballGameCardProps) {
         {isScheduled && (
           <>
             <Text style={styles.date}>{formattedDate}</Text>
-            <Text style={styles.date}>{formattedTime}</Text>
+            <Text style={styles.date}>{tbd || formattedTime}</Text>
           </>
         )}
 

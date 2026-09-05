@@ -99,6 +99,7 @@ export default function HockeyGamePreviewModal({
   const state = score?.status?.state;
   const gameStatusDescription = game.status.description ?? "";
   const gameStatusDetail = game.status.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const isCanceled = gameStatusDescription === "Canceled";
   const isPostponed = gameStatusDescription === "Postponed";
   const isDelayed = gameStatusDescription === "Delayed";
@@ -210,7 +211,7 @@ export default function HockeyGamePreviewModal({
                 {/* Game Info */}
                 <CenterInfo
                   date={formattedDate}
-                  time={formattedTime}
+                  time={tbd || formattedTime}
                   clock={clock}
                   period={period}
                   broadcast={broadcast}

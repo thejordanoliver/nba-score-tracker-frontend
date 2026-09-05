@@ -138,7 +138,9 @@ export default function BaseballGamePreviewModal({
   const broadcast = getBroadcastDisplay(game?.broadcasts);
   const state = score?.status?.state;
   const gameStatusDescription = score?.status.gameStatusDescription ?? "";
-  const gameStatusDetail = score?.status.shortDetail ?? "";
+  const gameStatusDetail =
+    score?.status.shortDetail ?? game.status.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const isTopInning = gameStatusDetail.includes("Top");
   const isBottomInning = gameStatusDetail.includes("Bot");
 
@@ -268,7 +270,7 @@ export default function BaseballGamePreviewModal({
                   gameStatusDescription={gameStatusDescription}
                   gameStatusDetail={gameStatusDetail}
                   date={formattedDate}
-                  time={formattedTime}
+                  time={tbd || formattedTime}
                   broadcast={broadcast}
                   isTopInning={isTopInning}
                   isBottomInning={isBottomInning}

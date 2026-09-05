@@ -62,6 +62,7 @@ export default function SoccerGameCard({ game }: SoccerGameCardProps) {
   const clock = game.status?.displayClock;
   const gameStatusDescription = game.status?.description;
   const gameStatusDetail = game.status?.shortDetail;
+  const tbd = gameStatusDetail?.includes("TBD") ? "TBD" : null;
   const inProgress = game.status.state === "in";
   const isFinal = game.status.state === "post";
   const isScheduled = game.status.state === "pre";
@@ -148,7 +149,7 @@ export default function SoccerGameCard({ game }: SoccerGameCardProps) {
       <View style={styles.infoWrapper}>
         <Text style={styles.date}>{formattedDate}</Text>
         <View style={styles.statusDivider} />
-        <Text style={styles.date}>{formattedTime}</Text>
+        <Text style={styles.date}>{tbd || formattedTime}</Text>
       </View>
     );
   };

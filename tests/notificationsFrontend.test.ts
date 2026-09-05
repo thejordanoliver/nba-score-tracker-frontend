@@ -108,6 +108,8 @@ test("the central navigation mapper covers all notification types", () => {
   for (const type of [
     "game_starting",
     "game_touchdown",
+    "game_quarter_end",
+    "game_halftime",
     "game_close",
     "game_final",
   ] as const) {

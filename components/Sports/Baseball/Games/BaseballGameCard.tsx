@@ -78,6 +78,7 @@ function BaseballGameCard({ game, isCB, isSB }: BaseballGameCardProps) {
   const broadcast = getBroadcastDisplay(broadcasts);
   const gameStatusDescription = game.status.description ?? "";
   const gameStatusDetail = game.status.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const isScheduled = gameStatusDescription === "Scheduled";
   const inProgress = gameStatusDescription === "In Progress";
   const isFinal = gameStatusDescription === "Final";
@@ -160,7 +161,7 @@ function BaseballGameCard({ game, isCB, isSB }: BaseballGameCardProps) {
           <View style={styles.infoWrapper}>
             <Text style={styles.date}>{formattedDate}</Text>
             <View style={styles.statusDivider} />
-            <Text style={styles.date}>{formattedTime}</Text>
+            <Text style={styles.date}>{tbd || formattedTime}</Text>
           </View>
         )}
 

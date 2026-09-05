@@ -174,6 +174,7 @@ export default function ChampionshipGameCard({
 
   const gameStatusDescription = status.description;
   const gameStatusDetail = status.shortDetail;
+  const tbd = gameStatusDetail?.includes("TBD") ? "TBD" : null;
 
   const isFinal = gameStatusDescription === "Final";
   const isScheduled = gameStatusDescription === "Scheduled";
@@ -270,7 +271,7 @@ export default function ChampionshipGameCard({
 
         <View style={styles.statusDivider} />
 
-        <Text style={styles.date}>{formattedTime}</Text>
+        <Text style={styles.date}>{tbd || formattedTime}</Text>
       </View>
     );
   };

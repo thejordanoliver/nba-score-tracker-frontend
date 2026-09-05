@@ -53,6 +53,8 @@ export default function RacingSquareGameCard({ game }: RacingEventCardProps) {
 
   const styles = racingCardStyles(isDark);
   const gameStatusDescription = game?.status?.description;
+  const gameStatusDetail = game?.status?.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const headline = game.shortName || game.name;
 
   const isScheduled = gameStatusDescription === "Scheduled";
@@ -75,7 +77,7 @@ export default function RacingSquareGameCard({ game }: RacingEventCardProps) {
     ? "Final"
     : inProgress
     ? game.status?.detail || "Live"
-    : formattedTime;
+    : tbd || formattedTime;
 
   const renderDriverRow = (driver: RacingDriver, index: number) => {
     const isLast = index === topDrivers.length - 1;

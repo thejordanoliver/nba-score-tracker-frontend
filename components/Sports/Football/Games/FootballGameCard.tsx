@@ -77,6 +77,7 @@ function FootballGameCard({
   const headline = game.headline ?? holidayLabel;
   const gameStatusDescription = game?.status.description ?? "";
   const gameStatusDetail = game?.status.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const isScheduled = gameStatusDescription === "Scheduled";
   const inProgress = gameStatusDescription === "In Progress";
   const isHalftime = gameStatusDescription === "Halftime";
@@ -116,6 +117,7 @@ function FootballGameCard({
   const homeWins = game.home.winner;
   const awayWins = game.away.winner;
   const isTie = game.home.winner === game.away.winner;
+  
 
   const ScoreText = ({
     score,
@@ -211,7 +213,7 @@ function FootballGameCard({
       <View style={styles.infoWrapper}>
         <Text style={styles.date}>{formattedDate}</Text>
         <View style={styles.statusDivider} />
-        <Text style={styles.date}>{formattedTime}</Text>
+        <Text style={styles.date}>{tbd || formattedTime}</Text>
       </View>
     );
   };

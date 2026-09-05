@@ -218,6 +218,7 @@ export default function MatchupComparison({
       pathname: ROUTE,
       params: {
         id: fighterId,
+        league: "mma"
       },
     });
   };

@@ -49,6 +49,8 @@ export default function MMAGameCard({ game }: MMAFightCardProps) {
   const secondFighterWinner = secondFighter?.winner === true;
   const styles = gameCardStyles(isDark);
   const gameStatusDescription = game?.status?.description;
+  const gameStatusDetail = game?.status?.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
 
   
 
@@ -152,7 +154,7 @@ export default function MMAGameCard({ game }: MMAFightCardProps) {
       <View style={styles.infoWrapper}>
         <Text style={styles.date}>{formattedDate}</Text>
         <View style={styles.statusDivider} />
-        <Text style={styles.date}>{formattedTime}</Text>
+        <Text style={styles.date}>{tbd || formattedTime}</Text>
       </View>
     );
   };

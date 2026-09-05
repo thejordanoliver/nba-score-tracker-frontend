@@ -93,6 +93,8 @@ export default function MMAGamePreviewModal({ game, visible, onClose }: Props) {
   const secondFighterIsChampion = secondFighter?.isChampion ?? false;
 
   const gameStatusDescription = game.status.description;
+  const gameStatusDetail = game.status.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const state = game.status.state;
 
   const styles = GamePreviewModalStyles({
@@ -185,7 +187,7 @@ export default function MMAGamePreviewModal({ game, visible, onClose }: Props) {
 
             <GameInfo
               date={formattedDate}
-              time={formattedTime}
+              time={tbd || formattedTime}
               period={period}
               clock={clock}
               broadcast={broadcast}

@@ -56,6 +56,7 @@ function HockeyGameCard({ game, isNHL, isMCH }: HockeyGameCardProps) {
   const state = game.status.state ?? "";
   const gameStatusDescription = game.status.description ?? "";
   const gameStatusDetail = game.status.shortDetail ?? "";
+  const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
   const isFinal = state === "post";
   const isScheduled = state === "pre";
   const inProgress = state === "in";
@@ -143,7 +144,7 @@ function HockeyGameCard({ game, isNHL, isMCH }: HockeyGameCardProps) {
       <View style={styles.infoWrapper}>
         <Text style={styles.date}>{formattedDate}</Text>
         <View style={styles.statusDivider} />
-        <Text style={styles.date}>{formattedTime}</Text>
+        <Text style={styles.date}>{tbd || formattedTime}</Text>
       </View>
     );
   };

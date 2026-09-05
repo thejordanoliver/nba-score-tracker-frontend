@@ -7,6 +7,8 @@ export const NOTIFICATION_TYPES = [
   "new_follower",
   "game_starting",
   "game_touchdown",
+  "game_quarter_end",
+  "game_halftime",
   "game_close",
   "game_final",
 ] as const;
@@ -68,6 +70,8 @@ export type TeamNotificationSubscription = {
   teamId: string;
   gameStartEnabled: boolean;
   touchdownEnabled: boolean;
+  quarterEndEnabled: boolean;
+  halftimeEnabled: boolean;
   closeGameEnabled: boolean;
   finalScoreEnabled: boolean;
   createdAt: string;
@@ -78,6 +82,8 @@ export type TeamNotificationSettings = Pick<
   TeamNotificationSubscription,
   | "gameStartEnabled"
   | "touchdownEnabled"
+  | "quarterEndEnabled"
+  | "halftimeEnabled"
   | "closeGameEnabled"
   | "finalScoreEnabled"
 >;

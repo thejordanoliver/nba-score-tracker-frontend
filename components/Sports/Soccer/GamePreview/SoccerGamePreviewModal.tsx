@@ -116,6 +116,7 @@ export default function SoccerGamePreviewModal({
   const clock = score?.status.displayClock ?? "0:00";
   const gameStatusDescription = game.status?.description;
   const gameStatusDetail = game.status.shortDetail;
+  const tbd = gameStatusDetail?.includes("TBD") ? "TBD" : null;
   const isSuspended = gameStatusDescription === "Suspended";
   const isCanceled = gameStatusDescription === "Canceled";
   const isDelayed = gameStatusDescription === "Delayed";
@@ -228,7 +229,7 @@ export default function SoccerGamePreviewModal({
                   broadcast={broadcast}
                   period={period}
                   clock={clock}
-                  time={formattedTime}
+                  time={tbd || formattedTime}
                   date={formattedDate}
                   isDark={isDark}
                 />
