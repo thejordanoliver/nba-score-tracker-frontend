@@ -162,7 +162,14 @@ export default function SoccerGameCard({ game }: SoccerGameCardProps) {
           style={styles.logo}
           accessibilityLabel={`${awayName} logo`}
         />
-        <Text style={styles.teamName}>{awayName}</Text>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
+          {awayName}
+        </Text>
       </View>
 
       <ScoreText score={awayScore} record={awayRecord} isWinner={awayWins} />
@@ -186,7 +193,14 @@ export default function SoccerGameCard({ game }: SoccerGameCardProps) {
           style={styles.logo}
           accessibilityLabel={`${homeName} logo`}
         />
-        <Text style={styles.teamName}>{homeName}</Text>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
+          {homeName}
+        </Text>
       </View>
     </>
   );

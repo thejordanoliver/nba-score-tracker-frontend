@@ -258,7 +258,12 @@ function BaseballGameCard({ game, isCB, isSB }: BaseballGameCardProps) {
           style={styles.logo}
           accessibilityLabel={`${awayName} logo`}
         />
-        <Text style={styles.teamName}>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
           {awayRank && <Text style={styles.rank}>{awayRank} </Text>}
           {awayName}
         </Text>
@@ -285,7 +290,12 @@ function BaseballGameCard({ game, isCB, isSB }: BaseballGameCardProps) {
           style={styles.logo}
           accessibilityLabel={`${homeName} logo`}
         />
-        <Text style={styles.teamName}>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
           {homeRank && <Text style={styles.rank}>{homeRank} </Text>}
           {homeName}
         </Text>

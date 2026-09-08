@@ -16,7 +16,7 @@ import { useRouter } from "expo-router";
 import { memo } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { squareGameCardStyles } from "styles/GamecardStyles/SquareGameCardStyles";
-import { getBroadcastDisplay } from "utils/games";
+import { getBroadcastDisplay, winnerStyle } from "utils/games";
 import { BasesIndicator } from "../GameDetails/BasesIndicator";
 
 function BaseballSquareGamecard({ game, isSB, isCB }: BaseballGameCardProps) {
@@ -128,11 +128,11 @@ function BaseballSquareGamecard({ game, isSB, isCB }: BaseballGameCardProps) {
   const ScoreText = ({
     score,
     record,
-    teamWins,
+    isWinner,
   }: {
     score: number | undefined;
     record: string | undefined;
-    teamWins: boolean;
+    isWinner: boolean;
   }) => {
     const showRecord = isScheduled || isCanceled || isPostponed;
 
@@ -141,13 +141,21 @@ function BaseballSquareGamecard({ game, isSB, isCB }: BaseballGameCardProps) {
         style={
           showRecord
             ? styles.teamRecord
-            : [styles.teamScore, winnerStyle(teamWins)]
+            : [
+                styles.teamScore,
+                winnerStyle({
+                  isWinner: isWinner,
+                  isTie: isTie,
+                  isDark: isDark,
+                }),
+              ]
         }
       >
         {showRecord ? record : score}
       </Text>
     );
   };
+
   const renderStatus = () => {
     return (
       <View>
@@ -253,7 +261,12 @@ function BaseballSquareGamecard({ game, isSB, isCB }: BaseballGameCardProps) {
               style={styles.logo}
               accessibilityLabel={`${awayName} logo`}
             />
-            <Text style={styles.teamName}>
+            <Text
+              style={styles.teamName}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
+            >
               {awayRank && <Text style={styles.rank}>{awayRank} </Text>}
               {awayName}
             </Text>
@@ -273,7 +286,12 @@ function BaseballSquareGamecard({ game, isSB, isCB }: BaseballGameCardProps) {
               style={styles.logo}
               accessibilityLabel={`${homeName} logo`}
             />
-            <Text style={styles.teamName}>
+            <Text
+              style={styles.teamName}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
+            >
               {homeRank && <Text style={styles.rank}>{homeRank} </Text>}
               {homeName}
             </Text>

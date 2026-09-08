@@ -3,7 +3,6 @@ import { FavoriteTeamsSliderStyles } from "@/styles/ExploreStyles/FavoriteTeamsS
 import PlaceholderLogo from "assets/Placeholders/teamPlaceholder.png";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { ExploreFavoriteTeam } from "hooks/WidgetHooks/useExploreWidgetGames";
 import { useCallback, useRef, useState } from "react";
 import {
   FlatList,
@@ -16,9 +15,14 @@ import {
   View,
 } from "react-native";
 import { getTeamRoute } from "utils/teams";
+import type { FavoriteLeague, FavoriteTeamKey } from "types/favorites";
 
 export type FavoriteTeamSlide = {
-  favorite: ExploreFavoriteTeam;
+  favorite: {
+    key: FavoriteTeamKey;
+    league: FavoriteLeague;
+    id: string;
+  };
   name: string;
   fullName?: string;
   logo?: ImageSourcePropType;

@@ -22,7 +22,7 @@ type TeamColors = {
 type Props = {
   label: string;
   value: string | number | ReactNode | string[] | number[];
-  image?: string;
+  image?: string | null;
   team: TeamColors;
   teamId?: string;
   teamName?: string;

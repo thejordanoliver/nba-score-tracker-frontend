@@ -105,7 +105,9 @@ export default function TeamDetailScreen() {
           isTeamScreen={true}
           isFavorite={favorited}
           onToggleFavorite={() => team && toggleFavorite(league, teamIdNum)}
-          onToggleNotifications={() => void toggleNotifications(league, teamIdNum)}
+          onToggleNotifications={() =>
+            void toggleNotifications(league, teamIdNum)
+          }
           isNotified={isNotified(league, teamIdNum)}
           onOpenInfo={() => setModalVisible(true)}
           league={league}
@@ -199,7 +201,6 @@ export default function TeamDetailScreen() {
         teamId={teamIdNum}
         teamLogo={teamLogo}
         league={league}
-        isDark={isDark}
       />
     </View>
   );

@@ -1,15 +1,20 @@
 import { CustomHeader } from "@/components/CustomHeader";
+import { GameNotificationTeamLogos } from "@/components/Notifications/GameNotificationTeamLogos";
 import { Colors } from "@/constants/styles";
-import {
-  useNotifications,
-} from "@/contexts/NotificationContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { usePreferences } from "@/contexts/PreferencesContext";
 import { NotificationsCenterStyles } from "@/styles/NotificationCenterStyles";
-import { getNotificationCenterHref } from "@/utils/notificationCenter";
 import type { AppNotification, NotificationType } from "@/types/notifications";
+import { getNotificationGameTeams } from "@/utils/notification-team-presentation";
+import {
+  getNotificationCenterHref,
+  getNotificationLeagueLabel,
+} from "@/utils/notificationCenter";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+import { formatDistance } from "date-fns/formatDistance";
 import { Href, useNavigation, useRouter } from "expo-router";
-import { memo, useCallback, useLayoutEffect } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -56,6 +61,7 @@ const getNotificationIcon = (
 type NotificationRowProps = {
   notification: AppNotification;
   isDark: boolean;
+  now: number;
   onPress: (notification: AppNotification) => void;
   onArchive: (notification: AppNotification) => void;
 };
@@ -63,6 +69,7 @@ type NotificationRowProps = {
 const NotificationRow = memo(function NotificationRow({
   notification,
   isDark,
+  now,
   onPress,
   onArchive,
 }: NotificationRowProps) {
@@ -76,15 +83,33 @@ const NotificationRow = memo(function NotificationRow({
 
   const iconName = getNotificationIcon(type);
   const href = getNotificationCenterHref(notification);
+  const leagueLabel = getNotificationLeagueLabel(notification);
+  const gameTeams = getNotificationGameTeams(notification, isDark);
   const isPressable = href !== null;
   const isUnread = !readAt;
+  const createdAt = new Date(notification.createdAt);
+  const timeAgo = Number.isNaN(createdAt.getTime())
+    ? null
+    : formatDistance(createdAt, now, { addSuffix: true }).replace(
+        /^about /,
+        "",
+      );
+  const accessibilityLabel = [
+    leagueLabel,
+    title,
+    gameTeams?.matchup,
+    body,
+    timeAgo,
+  ]
+    .filter(Boolean)
+    .join(". ");
 
   return (
     <Pressable
       disabled={!isPressable}
       onPress={() => onPress(notification)}
       accessibilityRole={isPressable ? "button" : undefined}
-      accessibilityLabel={`${title}. ${body}`}
+      accessibilityLabel={accessibilityLabel}
       accessibilityHint={
         isPressable ? "Opens the related notification." : undefined
       }
@@ -94,24 +119,42 @@ const NotificationRow = memo(function NotificationRow({
         pressed && isPressable && styles.notificationRowPressed,
       ]}
     >
-      <View style={styles.iconWrapper}>
-        <Ionicons
-          name={iconName}
-          size={20}
-          color={isDark ? Colors.white : Colors.black}
-        />
+      <View
+        style={[styles.iconWrapper, gameTeams && styles.gameTeamLogoWrapper]}
+      >
+        {gameTeams ? (
+          <GameNotificationTeamLogos teams={gameTeams} isDark={isDark} />
+        ) : (
+          <Ionicons
+            name={iconName}
+            size={20}
+            color={isDark ? Colors.white : Colors.black}
+          />
+        )}
 
         {isUnread && <View style={styles.unreadDot} />}
       </View>
 
       <View style={styles.textContainer}>
-        <Text style={styles.notificationHeader} numberOfLines={1}>
-          {title}
-        </Text>
+        <View style={styles.titleRow}>
+          {leagueLabel && <Text style={styles.leagueLabel}>{leagueLabel}</Text>}
 
-        <Text style={styles.notificationText} numberOfLines={3}>
+          <Text style={styles.notificationHeader} numberOfLines={1}>
+            {title}
+          </Text>
+        </View>
+
+        {gameTeams?.matchup && (
+          <Text style={styles.teamNames} numberOfLines={1}>
+            {gameTeams.matchup}
+          </Text>
+        )}
+
+        <Text style={styles.notificationText} numberOfLines={gameTeams ? 2 : 3}>
           {body}
         </Text>
+
+        {timeAgo && <Text style={styles.notificationTime}>{timeAgo}</Text>}
       </View>
 
       <Pressable
@@ -157,6 +200,7 @@ export default function NotificationsCenter() {
   } = useNotifications();
 
   const isDark = resolvedColorScheme === "dark";
+  const [relativeTimeNow, setRelativeTimeNow] = useState(() => Date.now());
 
   const styles = NotificationsCenterStyles(isDark);
 
@@ -170,6 +214,20 @@ export default function NotificationsCenter() {
       ),
     });
   }, [navigation, router]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshNotifications();
+    }, [refreshNotifications]),
+  );
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setRelativeTimeNow(Date.now());
+    }, 60_000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const handleNotificationPress = useCallback(
     (notification: AppNotification) => {
@@ -204,11 +262,17 @@ export default function NotificationsCenter() {
       <NotificationRow
         notification={item}
         isDark={isDark}
+        now={relativeTimeNow}
         onPress={handleNotificationPress}
         onArchive={handleArchiveNotification}
       />
     ),
-    [handleArchiveNotification, handleNotificationPress, isDark],
+    [
+      handleArchiveNotification,
+      handleNotificationPress,
+      isDark,
+      relativeTimeNow,
+    ],
   );
 
   const hasUnreadNotifications = centerNotifications.some(
@@ -218,6 +282,7 @@ export default function NotificationsCenter() {
   return (
     <FlatList
       data={centerNotifications}
+      extraData={relativeTimeNow}
       keyExtractor={(item) => item.id}
       renderItem={renderNotificationItem}
       ListHeaderComponent={
@@ -244,19 +309,19 @@ export default function NotificationsCenter() {
             <ActivityIndicator color={isDark ? Colors.white : Colors.black} />
           ) : (
             <>
-          <Ionicons
-            name="notifications-outline"
-            size={34}
-            color={isDark ? Colors.lightGray : Colors.darkGray}
-          />
+              <Ionicons
+                name="notifications-outline"
+                size={34}
+                color={isDark ? Colors.lightGray : Colors.darkGray}
+              />
 
-          <Text style={styles.emptyTitle}>No notifications yet</Text>
+              <Text style={styles.emptyTitle}>No notifications yet</Text>
 
-          <Text style={styles.emptyText}>
-            {error
-              ? "Notifications could not be loaded. Pull down to try again."
-              : "New messages, likes, comments, and other activity will appear here."}
-          </Text>
+              <Text style={styles.emptyText}>
+                {error
+                  ? "Notifications could not be loaded. Pull down to try again."
+                  : "New messages, likes, comments, and other activity will appear here."}
+              </Text>
             </>
           )}
         </View>

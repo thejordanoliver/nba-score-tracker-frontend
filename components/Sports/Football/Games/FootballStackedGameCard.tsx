@@ -87,7 +87,9 @@ function FootballStackedGameCard({
   const isPostponed = gameStatusDescription === "Postponed";
   const isForfeited = gameStatusDescription === "Forfeited";
   const endOfPeriod = gameStatusDescription === "End of Period";
-  const displayClock = game.status?.displayClock;
+  const clock = game.status?.displayClock;
+  const isSuspended = gameStatusDescription === "Suspended";
+  const isOT = isCFB ? gameStatusDetail.includes("OT") : false;
   const period = formatPeriod({ period: game.status.period });
   const redzone = game?.situation.isRedZone;
   const isRedzone = redzone;
@@ -174,25 +176,43 @@ function FootballStackedGameCard({
   };
 
   const renderStatus = () => {
-    if (inProgress)
+    if (inProgress) {
       return (
-        <View style={styles.infoWrapper}>
-          <Text style={styles.date}>{period}</Text>
-          <View style={styles.statusDivider} />
-          <Text style={styles.clock}>{displayClock ?? "0:00"}</Text>
-        </View>
+        <>
+          <>
+            {!isOT && (
+              <>
+                <View style={styles.infoWrapper}>
+                  <Text style={styles.date}>{period}</Text>
+                  <View style={styles.statusDivider} />
+                  <Text style={styles.clock}>{clock}</Text>
+                </View>
+              </>
+            )}
+
+            {isOT && <Text style={styles.clock}>{period}</Text>}
+          </>
+          {renderDownAndDistance()}
+        </>
       );
+    }
 
-    if (isDelayed) return <Text style={styles.finalText}>Delayed</Text>;
-    if (isHalftime) return <Text style={styles.finalText}>Halftime</Text>;
-    if (isCanceled) return <Text style={styles.finalText}>Canceled</Text>;
-    if (isPostponed) return <Text style={styles.finalText}>Postponed</Text>;
-    if (isForfeited) return <Text style={styles.finalText}>Forfeited</Text>;
+    if (endOfPeriod) {
+      return <Text style={styles.clock}>End of {period}</Text>;
+    }
 
-    if (endOfPeriod)
-      return <Text style={styles.clock}>{gameStatusDetail}</Text>;
+    if (
+      isHalftime ||
+      isDelayed ||
+      isCanceled ||
+      isPostponed ||
+      isForfeited ||
+      isSuspended
+    ) {
+      return <Text style={styles.finalText}>{gameStatusDescription}</Text>;
+    }
 
-    if (isFinal)
+    if (isFinal) {
       return (
         <View style={styles.infoWrapper}>
           <Text style={styles.finalText}>{gameStatusDetail}</Text>
@@ -200,11 +220,14 @@ function FootballStackedGameCard({
           <Text style={styles.finalText}>{formattedDate}</Text>
         </View>
       );
+    }
 
     return (
       <View style={styles.infoWrapper}>
         <Text style={styles.date}>{formattedDate}</Text>
+
         <View style={styles.statusDivider} />
+
         <Text style={styles.date}>{tbd || formattedTime}</Text>
       </View>
     );
@@ -221,7 +244,12 @@ function FootballStackedGameCard({
               contentFit="contain"
               accessibilityLabel={`${awayName} logo`}
             />
-            <Text style={styles.teamName}>
+            <Text
+              style={styles.teamName}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
+            >
               {awayRank && <Text style={styles.rank}>{awayRank} </Text>}
               {awayName}
             </Text>
@@ -247,7 +275,12 @@ function FootballStackedGameCard({
               contentFit="contain"
               accessibilityLabel={`${homeName} logo`}
             />
-            <Text style={styles.teamName}>
+            <Text
+              style={styles.teamName}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
+            >
               {homeRank && <Text style={styles.rank}>{homeRank} </Text>}
               {homeName}
             </Text>
@@ -269,7 +302,6 @@ function FootballStackedGameCard({
       <Text style={styles.headlineText}>{headline}</Text>
       <View style={styles.info}>
         {renderStatus()}
-        {renderDownAndDistance()}
         {!isFinal && broadcast && (
           <Text style={styles.broadcast}>{broadcast}</Text>
         )}

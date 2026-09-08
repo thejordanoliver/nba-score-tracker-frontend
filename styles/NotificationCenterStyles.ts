@@ -65,6 +65,12 @@ export const NotificationsCenterStyles = (isDark: boolean) =>
       borderRadius: 21,
     },
 
+    gameTeamLogoWrapper: {
+      width: 52,
+      borderWidth: 0,
+      borderRadius: 0,
+    },
+
     unreadDot: {
       position: "absolute",
       top: 2,
@@ -81,7 +87,28 @@ export const NotificationsCenterStyles = (isDark: boolean) =>
       paddingTop: 1,
     },
 
+    titleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 7,
+    },
+
+    leagueLabel: {
+      flexShrink: 0,
+      overflow: "hidden",
+      paddingHorizontal: 7,
+      paddingVertical: 2,
+      borderRadius: 999,
+      backgroundColor: isDark ? Colors.dark.blue : Colors.light.blue,
+      color: Colors.white,
+      fontFamily: Fonts.BOLD,
+      fontSize: 10,
+      lineHeight: 13,
+      letterSpacing: 0.4,
+    },
+
     notificationHeader: {
+      flexShrink: 1,
       fontFamily: Fonts.BOLD,
       fontSize: 16,
       lineHeight: 20,
@@ -94,6 +121,21 @@ export const NotificationsCenterStyles = (isDark: boolean) =>
       fontSize: 14,
       lineHeight: 20,
       color: isDark ? Colors.lightGray : Colors.darkGray,
+    },
+
+    notificationTime: {
+      fontFamily: Fonts.REGULAR,
+      fontSize: 12,
+      lineHeight: 16,
+      color: isDark ? Colors.lightGray : Colors.darkGray,
+    },
+
+    teamNames: {
+      flexShrink: 1,
+      fontFamily: Fonts.BOLD,
+      fontSize: 12,
+      lineHeight: 16,
+      color: isDark ? Colors.white : Colors.black,
     },
 
     chevron: {

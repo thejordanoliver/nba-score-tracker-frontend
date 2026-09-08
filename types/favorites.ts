@@ -21,7 +21,6 @@ type FavoriteItemBase = {
   name: string;
   color?: string;
   key: string;
-  isDark: boolean;
 };
 
 export type FavoriteTeamItem = FavoriteItemBase & {
@@ -112,38 +111,39 @@ export function splitFavoriteRailOrder(
   };
 }
 
-export function groupFavoriteRailItems(
+export function reorderFavoriteRailItems(
   items: readonly FavoriteItem[],
+  from: number,
+  to: number,
 ): FavoriteItem[] {
-  return [
-    ...items.filter((item) => item.kind === "league"),
-    ...items.filter((item) => item.kind === "team"),
-  ];
-}
+  const draggedItem = items[from];
 
-export function resolvePersistedFavoriteRailKeys(
-  orderedKeys: readonly string[],
-  previousFavoriteTeamIds: readonly FavoriteTeamKey[],
-  previousFavoriteSports: readonly FavoriteSportId[],
-  teamOrderSaved: boolean,
-  sportOrderSaved: boolean,
-): string[] {
-  let previousTeamIndex = 0;
-  let previousSportIndex = 0;
+  if (!draggedItem || from === to) {
+    return [...items];
+  }
 
-  return orderedKeys.map((key) => {
-    if (key.startsWith("league:")) {
-      const previousSport = previousFavoriteSports[previousSportIndex];
-      previousSportIndex += 1;
+  const sectionIndexes = items.flatMap((item, index) =>
+    item.kind === draggedItem.kind ? [index] : [],
+  );
+  const firstIndex = sectionIndexes[0];
+  const lastIndex = sectionIndexes.at(-1);
 
-      return sportOrderSaved || !previousSport
-        ? key
-        : `league:${previousSport}`;
-    }
+  if (firstIndex === undefined || lastIndex === undefined) {
+    return [...items];
+  }
 
-    const previousTeam = previousFavoriteTeamIds[previousTeamIndex];
-    previousTeamIndex += 1;
+  const destination = Math.min(lastIndex, Math.max(firstIndex, to));
 
-    return teamOrderSaved || !previousTeam ? key : previousTeam;
-  });
+  if (destination === from) {
+    return [...items];
+  }
+
+  const reordered = [...items];
+  const [removedItem] = reordered.splice(from, 1);
+
+  if (removedItem) {
+    reordered.splice(destination, 0, removedItem);
+  }
+
+  return reordered;
 }

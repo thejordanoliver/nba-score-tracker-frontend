@@ -90,12 +90,13 @@ function FootballGameCard({
   const endOfPeriod = gameStatusDescription === "End of Period";
   const clock = game.status?.displayClock;
   const period = formatPeriod({ period: game.status.period });
+  const isOT = isCFB ? gameStatusDetail.includes("OT") : false;
   const redzone = game?.situation?.isRedZone;
   const isRedzone = redzone;
   const broadcasts = game?.broadcasts;
   const broadcast = getBroadcastDisplay(broadcasts);
-  const downDistanceText = game.situation.downDistanceText;
-  const possessionTeamId = game.situation.possession;
+  const downDistanceText = game.situation?.downDistanceText;
+  const possessionTeamId = game.situation?.possession;
   const homeRecord = game?.home?.record ?? "0-0";
   const awayRecord = game?.away?.record ?? "0-0";
   const homeScore = game?.home?.score ?? 0;
@@ -117,7 +118,6 @@ function FootballGameCard({
   const homeWins = game.home.winner;
   const awayWins = game.away.winner;
   const isTie = game.home.winner === game.away.winner;
-  
 
   const ScoreText = ({
     score,
@@ -176,19 +176,30 @@ function FootballGameCard({
   };
 
   const renderStatus = () => {
-    if (inProgress)
+    if (inProgress) {
       return (
         <>
-          <View style={styles.infoWrapper}>
-            <Text style={styles.date}>{period}</Text>
-            <View style={styles.statusDivider} />
-            <Text style={styles.clock}>{clock}</Text>
-          </View>
+          <>
+            {!isOT && (
+              <>
+                <View style={styles.infoWrapper}>
+                  <Text style={styles.date}>{period}</Text>
+                  <View style={styles.statusDivider} />
+                  <Text style={styles.clock}>{clock}</Text>
+                </View>
+              </>
+            )}
+
+            {isOT && <Text style={styles.clock}>{period}</Text>}
+          </>
           {renderDownAndDistance()}
         </>
       );
+    }
 
-    if (endOfPeriod) return <Text style={styles.clock}>End of {period}</Text>;
+    if (endOfPeriod) {
+      return <Text style={styles.clock}>End of {period}</Text>;
+    }
 
     if (
       isHalftime ||
@@ -197,10 +208,11 @@ function FootballGameCard({
       isPostponed ||
       isForfeited ||
       isSuspended
-    )
+    ) {
       return <Text style={styles.finalText}>{gameStatusDescription}</Text>;
+    }
 
-    if (isFinal)
+    if (isFinal) {
       return (
         <View style={styles.infoWrapper}>
           <Text style={styles.finalText}>{gameStatusDetail}</Text>
@@ -208,6 +220,7 @@ function FootballGameCard({
           <Text style={styles.finalText}>{formattedDate}</Text>
         </View>
       );
+    }
 
     return (
       <View style={styles.infoWrapper}>
@@ -223,7 +236,12 @@ function FootballGameCard({
       <View style={styles.teamSection}>
         <Image source={awayLogo} style={styles.logo} contentFit="contain" />
 
-        <Text style={styles.teamName}>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
           {awayRank && <Text style={styles.rank}>{awayRank} </Text>}
           {awayName}
         </Text>
@@ -263,7 +281,12 @@ function FootballGameCard({
 
       <View style={styles.teamSection}>
         <Image source={homeLogo} style={styles.logo} contentFit="contain" />
-        <Text style={styles.teamName}>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
           {homeRank && <Text style={styles.rank}>{homeRank} </Text>}
           {homeName}
         </Text>

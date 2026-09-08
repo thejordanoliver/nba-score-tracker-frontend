@@ -46,6 +46,8 @@ export type LeagueType =
   | "ufc"
   | "f1"
   | "nascarpremier"
+  | "atp"
+  | "wta"
   | "leaguescup";
 
 export type Venue = {

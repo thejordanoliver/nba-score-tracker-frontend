@@ -12,9 +12,9 @@ import UFLLightLogo from "assets/Football/UFL_Logos/UFLLight.png";
 import NHLLogo from "assets/Hockey/NHL_Logos/NHL.png";
 import UFCLogo from "assets/MMA/MMA_Logos/UFC.png";
 import UFCLogoLight from "assets/MMA/MMA_Logos/UFCLight.png";
-import NBALogo from "assets/NBA/Logos/NBA.png";
 import GLeagueLogo from "assets/NBA/Logos/GLeague.png";
 import GLeagueLogoLight from "assets/NBA/Logos/GLeagueLight.png";
+import NBALogo from "assets/NBA/Logos/NBA.png";
 import F1Logo from "assets/Racing/Logos/f1.png";
 import NascarLogo from "assets/Racing/Logos/Nascar.png";
 import NascarLightLogo from "assets/Racing/Logos/NascarLight.png";
@@ -30,6 +30,9 @@ import UEFAEuropaLogo from "assets/Soccer/Logos/UEFAEuropa.png";
 import UEFAEuropaLightLogo from "assets/Soccer/Logos/UEFAEuropaLight.png";
 import WorldCupLogo from "assets/Soccer/Logos/WorldCup.png";
 import WorldCupLightLogo from "assets/Soccer/Logos/WorldCupLight.png";
+import ATPLogo from "assets/Tennis/Logos/ATP.png";
+import WTALogo from "assets/Tennis/Logos/WTA.png";
+import WTALogoLight from "assets/Tennis/Logos/WTALight.png";
 import WNBALogo from "assets/WNBA/Logos/WNBA.png";
 import WNBALogoLight from "assets/WNBA/Logos/WNBALight.png";
 
@@ -42,6 +45,7 @@ export type LeagueRoute =
   | "/league/hockey"
   | "/league/mma"
   | "/league/racing"
+  | "/league/tennis"
   | "/league/socc";
 
 type LeagueDefinition = {
@@ -55,6 +59,7 @@ type LeagueDefinition = {
 };
 
 export const BROWSEABLE_LEAGUES = [
+  "atp",
   "bundesliga",
   "cb",
   "cbb",
@@ -78,11 +83,22 @@ export const BROWSEABLE_LEAGUES = [
   "ufl",
   "wcbb",
   "wnba",
+  "wta",
 ] as const satisfies readonly LeagueType[];
 
 export type BrowseableLeague = (typeof BROWSEABLE_LEAGUES)[number];
 
 export const LEAGUE_CONFIG = {
+  atp: {
+    id: "atp",
+    label: "ATP Tennis",
+    color: "#002865",
+    secondaryColor: "#00AFF0",
+    logo: ATPLogo,
+    logoLight: ATPLogo,
+    route: "/league/tennis",
+  },
+
   bundesliga: {
     id: "bundesliga",
     label: "German Bundesliga",
@@ -312,6 +328,16 @@ export const LEAGUE_CONFIG = {
     logoLight: WNBALogoLight,
     route: "/league/basketball",
   },
+
+  wta: {
+    id: "wta",
+    label: "WTA Tennis",
+    color: "#3B1C56",
+    secondaryColor: "#C6ED2C",
+    logo: WTALogo,
+    logoLight: WTALogoLight,
+    route: "/league/tennis",
+  },
 } as const satisfies Record<LeagueType, LeagueDefinition>;
 export type FavoriteSportId = (typeof LEAGUE_CONFIG)[BrowseableLeague]["id"];
 
@@ -333,6 +359,8 @@ export const HOME_SCORE_LEAGUES = [
   "wcbb",
   "wnba",
   "ufc",
+  "atp",
+  "wta",
 ] as const satisfies readonly FavoriteSportId[];
 
 export type HomeLeagueId = (typeof HOME_SCORE_LEAGUES)[number];

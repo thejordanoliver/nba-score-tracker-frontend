@@ -108,7 +108,7 @@ export const formatPeriod = ({
 
     return statusText || "";
   }
-
+  
   // Default: football / basketball quarters
   if (p === 1) return "1st";
   if (p === 2) return "2nd";

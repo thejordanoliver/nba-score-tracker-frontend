@@ -6,7 +6,6 @@ import TeamInfoModal from "@/components/Sports/Basketball/Team/TeamInfoModal";
 import { Colors } from "@/constants/styles";
 import { useRosterStats } from "@/hooks/BaseballHooks/useRosterStats";
 import { useTeamStats } from "@/hooks/BaseballHooks/useTeamStats";
-import { useTeamMonthSelector } from "@/hooks/LeagueHooks/useMonthSelector";
 import useRoster from "@/hooks/LeagueHooks/useRoster";
 import useTeamDetails from "@/hooks/useTeams";
 import { useNavigation } from "@react-navigation/native";
@@ -22,38 +21,15 @@ import { useNotifications } from "contexts/NotificationContext";
 import { usePreferences } from "contexts/PreferencesContext";
 import { useLocalSearchParams } from "expo-router";
 import { goBack } from "expo-router/build/global-state/routing";
-import {
-  BaseballScheduleMonth,
-  useBaseballTeamGames,
-} from "hooks/BaseballHooks/useBaseballTeamGames";
+import { useBaseballTeamGames } from "hooks/BaseballHooks/useBaseballTeamGames";
 import { useTeamTabs } from "hooks/LeagueHooks/useLeagueTabs";
 import { useLeaguesNews } from "hooks/NewsHooks/useLeaguesNews";
 import { usePagerTabScrollProgress } from "hooks/usePagerTabScrollProgress";
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import PagerView from "react-native-pager-view";
 import { getMLBSeason } from "utils/dateUtils";
-import {
-  filterGamesBySeasonYear,
-  getFirstSeasonGame,
-  isSameCalendarMonth,
-} from "utils/seasonGames";
 import { teamDetailStyles } from "../../../styles/TeamStyles/TeamDetailsStyles";
-
-function getMonthKeyFromDate(date: Date | null) {
-  if (!date) return null;
-
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-    2,
-    "0",
-  )}`;
-}
-
-function getMonthIndex(monthGroup: BaseballScheduleMonth) {
-  if (typeof monthGroup.month !== "number") return null;
-
-  return monthGroup.month - 1;
-}
 
 export default function TeamDetailScreen() {
   const league = "mlb";
@@ -73,7 +49,6 @@ export default function TeamDetailScreen() {
   const teamColor = team?.color ?? Colors.midTone;
   const teamSecondaryColor = team?.secondaryColor ?? Colors.midTone;
   const teamName = team?.name;
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [standingsYear, setStandingsYear] = useState(currentSeason.toString());
@@ -123,7 +98,10 @@ export default function TeamDetailScreen() {
     refreshing: gamesRefreshing,
     error: gamesError,
     refresh: refreshTeamGames,
-    season: scheduleSeason,
+    selectedMonthKey,
+    selectMonth,
+    firstSeasonGame,
+    showCountdown,
   } = useBaseballTeamGames("mlb", teamIdNum, currentSeason);
 
   const tabToIndex = (tab: (typeof tabs)[number]) => tabs.indexOf(tab);
@@ -142,70 +120,6 @@ export default function TeamDetailScreen() {
       setSelectedTab(nextTab);
     }
   };
-
-  const monthGroups = useMemo(() => {
-    return months
-      .map((monthGroup) => {
-        const monthIndex = getMonthIndex(monthGroup);
-
-        if (
-          typeof monthGroup.year !== "number" ||
-          typeof monthIndex !== "number"
-        ) {
-          return null;
-        }
-
-        return {
-          key: monthGroup.key,
-          year: monthGroup.year,
-          month: monthIndex,
-          label: monthGroup.label,
-          count: monthGroup.games.length,
-          games: monthGroup.games,
-        };
-      })
-      .filter((monthGroup): monthGroup is NonNullable<typeof monthGroup> =>
-        Boolean(monthGroup),
-      );
-  }, [months]);
-
-  const selectedMonthKey = useMemo(
-    () => getMonthKeyFromDate(selectedDate),
-    [selectedDate],
-  );
-
-  const selectedMonthGames = useMemo(() => {
-    if (!selectedMonthKey) {
-      return games;
-    }
-
-    return (
-      months.find((monthGroup) => monthGroup.key === selectedMonthKey)?.games ??
-      []
-    );
-  }, [games, months, selectedMonthKey]);
-
-  const seasonGames = useMemo(
-    () => filterGamesBySeasonYear(games, scheduleSeason?.year),
-    [games, scheduleSeason?.year],
-  );
-
-  const firstSeasonGame = useMemo(
-    () => getFirstSeasonGame(seasonGames),
-    [seasonGames],
-  );
-
-  const isSeasonOpeningMonth = useMemo(
-    () => isSameCalendarMonth(firstSeasonGame?.date, selectedDate),
-    [firstSeasonGame?.date, selectedDate],
-  );
-
-  const { monthsToShow, gameCountByMonth, handleSelectMonth } =
-    useTeamMonthSelector({
-      gamesByMonth: monthGroups,
-      selectedDate,
-      setSelectedDate,
-    });
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -234,7 +148,9 @@ export default function TeamDetailScreen() {
           isTeamScreen={true}
           isFavorite={favorited}
           onToggleFavorite={() => team && toggleFavorite(league, team.id)}
-          onToggleNotifications={() => void toggleNotifications(league, teamIdNum)}
+          onToggleNotifications={() =>
+            void toggleNotifications(league, teamIdNum)
+          }
           isNotified={isNotified(league, teamIdNum)}
           onOpenInfo={() => setModalVisible(true)}
           league={league}
@@ -282,21 +198,20 @@ export default function TeamDetailScreen() {
         {/* SCHEDULE */}
         <View key="schedule" style={styles.contentArea}>
           <MonthSelector
-            months={monthsToShow}
-            selectedDate={selectedDate}
-            onSelect={handleSelectMonth}
+            months={months}
+            selected={selectedMonthKey}
+            onSelect={selectMonth}
             loading={gamesLoading}
-            gameCountByMonth={gameCountByMonth}
           />
 
           <GamesList
-            games={selectedMonthGames}
+            games={games}
             error={gamesError}
             loading={gamesLoading}
             refreshing={gamesRefreshing || refreshing}
             onRefresh={handleRefresh}
             showHeaders={true}
-            showCountdown={isSeasonOpeningMonth}
+            showCountdown={showCountdown}
             countdownGame={firstSeasonGame}
             scrollEnabled={true}
             teamLogo={teamLogo}
@@ -366,7 +281,6 @@ export default function TeamDetailScreen() {
         teamId={teamIdNum}
         teamLogo={teamLogo}
         league={league}
-        isDark={isDark}
       />
     </View>
   );

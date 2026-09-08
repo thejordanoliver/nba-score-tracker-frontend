@@ -16,7 +16,6 @@ type Props = {
   teamId?: string | number;
   teamDetails: TeamDetails | null;
   league: string;
-  isDark: boolean;
 };
 
 export default function TeamInfo({ teamId, teamDetails, league }: Props) {

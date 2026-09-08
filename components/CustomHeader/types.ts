@@ -77,6 +77,8 @@ export type CustomHeaderProps = {
   onNotificationsCenter?: () => void;
   onOpenThemesSettings?: () => void;
   onAddWidget?: () => void;
+  onToggleWidgetEditing?: () => void;
+  isWidgetEditing?: boolean;
 
   unreadNotificationCount?: number;
 
@@ -108,6 +110,7 @@ export type CustomHeaderProps = {
   isFavorite?: boolean;
   showFavoriteAction?: boolean;
   favoritePending?: boolean;
+  notificationPending?: boolean;
   isNotified?: boolean;
 
   onOpenInfo?: () => void;

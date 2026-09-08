@@ -61,7 +61,6 @@ export default function HomeScreen() {
   }, []);
 
   const {
-    favorites,
     refreshing,
     handleRefresh,
     homeGameSections,
@@ -128,7 +127,6 @@ export default function HomeScreen() {
               refreshControl={refreshControl()}
             >
               <FavoritesScroll
-                favoriteTeamIds={favorites}
                 onInteractionStart={handleFavoritesInteractionStart}
                 onInteractionEnd={handleFavoritesInteractionEnd}
                 isDark={isDark}

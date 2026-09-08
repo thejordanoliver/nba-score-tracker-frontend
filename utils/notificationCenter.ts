@@ -7,6 +7,20 @@ const dataString = (notification: AppNotification, key: string) => {
     : null;
 };
 
+const SAFE_LEAGUE_CODE = /^[a-z0-9][a-z0-9._-]*$/;
+
+export const getNotificationLeague = (
+  notification: AppNotification,
+): string | null => {
+  const league = dataString(notification, "league")?.trim().toLowerCase();
+
+  return league && SAFE_LEAGUE_CODE.test(league) ? league : null;
+};
+
+export const getNotificationLeagueLabel = (
+  notification: AppNotification,
+): string | null => getNotificationLeague(notification)?.toUpperCase() ?? null;
+
 /** The single navigation policy used by both inbox rows and foreground banners. */
 export const getNotificationCenterHref = (
   notification: AppNotification,
@@ -43,9 +57,14 @@ export const getNotificationCenterHref = (
     case "game_final": {
       const gameId = dataString(notification, "gameId") ?? notification.entityId;
       const sport = dataString(notification, "sport");
-      return gameId && sport
-        ? `/game/${encodeURIComponent(sport)}/${encodeURIComponent(gameId)}`
-        : null;
+      if (!gameId || !sport) return null;
+
+      const gameHref = `/game/${encodeURIComponent(sport)}/${encodeURIComponent(gameId)}`;
+      const league = getNotificationLeague(notification);
+
+      return league
+        ? `${gameHref}?league=${encodeURIComponent(league)}`
+        : gameHref;
     }
 
     default:

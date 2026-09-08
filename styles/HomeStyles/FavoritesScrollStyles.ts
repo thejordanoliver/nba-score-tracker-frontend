@@ -1,9 +1,9 @@
 import { Colors, Fonts } from "constants/styles";
 import { StyleSheet } from "react-native";
 
-export const FAVORITES_RAIL_GAP = 12;
-export const FAVORITES_RAIL_HORIZONTAL_PADDING = 16;
-export const FAVORITES_RAIL_ITEM_WIDTH = 80;
+export const FAVORITES_RAIL_CELL_WIDTH = 92;
+export const FAVORITES_RAIL_HORIZONTAL_PADDING = 10;
+const FAVORITES_RAIL_ITEM_SIZE = 80;
 
 export const FavoritesScrollStyles = (isDark: boolean) =>
   StyleSheet.create({
@@ -12,15 +12,17 @@ export const FavoritesScrollStyles = (isDark: boolean) =>
     },
     container: {
       flexDirection: "row",
-      gap: FAVORITES_RAIL_GAP,
       marginBottom: 20,
       paddingTop: 24,
       paddingHorizontal: FAVORITES_RAIL_HORIZONTAL_PADDING,
     },
-
+    cell: {
+      alignItems: "center",
+      width: FAVORITES_RAIL_CELL_WIDTH,
+    },
     tabContainer: {
       alignItems: "center",
-      width: FAVORITES_RAIL_ITEM_WIDTH,
+      width: FAVORITES_RAIL_ITEM_SIZE,
     },
     activeTabContainer: {
       zIndex: 10,
@@ -31,8 +33,8 @@ export const FavoritesScrollStyles = (isDark: boolean) =>
     logoWrapper: {
       alignItems: "center",
       justifyContent: "center",
-      width: 80,
-      height: 80,
+      width: FAVORITES_RAIL_ITEM_SIZE,
+      height: FAVORITES_RAIL_ITEM_SIZE,
       borderWidth: 0.5,
       borderColor: isDark ? Colors.light.background : Colors.dark.background,
       borderRadius: 40,
@@ -45,8 +47,8 @@ export const FavoritesScrollStyles = (isDark: boolean) =>
     editIcon: {
       alignItems: "center",
       justifyContent: "center",
-      width: 80,
-      height: 80,
+      width: FAVORITES_RAIL_ITEM_SIZE,
+      height: FAVORITES_RAIL_ITEM_SIZE,
       borderWidth: 0.5,
       borderColor: isDark ? Colors.light.background : Colors.dark.background,
       borderRadius: 40,
@@ -79,17 +81,17 @@ export const FavoritesScrollStyles = (isDark: boolean) =>
       top: 24,
       zIndex: 20,
       width: StyleSheet.hairlineWidth,
-      height: 80,
-      backgroundColor: isDark ? Colors.white : Colors.black,
+      height: FAVORITES_RAIL_ITEM_SIZE,
+      backgroundColor: isDark ? Colors.lightGray : Colors.darkGray,
     },
 
     dragPlaceholder: {
       alignItems: "center",
-      width: 80,
+      width: FAVORITES_RAIL_CELL_WIDTH,
     },
     dragPlaceholderCircle: {
-      width: 80,
-      height: 80,
+      width: FAVORITES_RAIL_ITEM_SIZE,
+      height: FAVORITES_RAIL_ITEM_SIZE,
       borderWidth: 1.5,
       borderColor: isDark ? Colors.lightGray : Colors.darkGray,
       borderStyle: "dashed",

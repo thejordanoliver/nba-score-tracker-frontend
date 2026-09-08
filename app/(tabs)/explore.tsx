@@ -1,10 +1,10 @@
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { View } from "react-native";
 import { CustomHeader } from "../../components/CustomHeader";
 import AddWidgetModal from "../../components/Explore/AddWidgetModal";
-import EmptyState from "../../components/Explore/EmptyState";
+import ExploreWidgetDashboard from "../../components/Explore/ExploreWidgetDashboard";
 import SearchResultsList from "../../components/Explore/SearchResultsList";
 import { usePreferences } from "../../contexts/PreferencesContext";
 import { useExplore } from "../../hooks/ExploreHooks/useExplore";
@@ -16,6 +16,7 @@ import { getExploreRouteForResult } from "../../utils/exploreNavigation";
 
 export default function ExplorePage() {
   const [widgetModalVisible, setWidgetModalVisible] = useState(false);
+  const [widgetsEditing, setWidgetsEditing] = useState(false);
 
   const navigation = useNavigation();
   const router = useRouter();
@@ -41,12 +42,25 @@ export default function ExplorePage() {
 
   const {
     widgets,
+    widgetsReady,
+    games: widgetGames,
+    loading: widgetsLoading,
+    refreshing: widgetsRefreshing,
+    error: widgetsError,
     addWidget,
     removeWidget,
     resizeWidget,
     moveWidget,
     reorderWidgets,
+    ensureWidgetData,
+    refreshWidgetData,
   } = useExploreWidgets();
+
+  useFocusEffect(
+    useCallback(() => {
+      void ensureWidgetData();
+    }, [ensureWidgetData]),
+  );
 
   const {
     searchVisible,
@@ -90,6 +104,14 @@ export default function ExplorePage() {
     setWidgetModalVisible(false);
   }, []);
 
+  const toggleWidgetEditing = useCallback(() => {
+    setWidgetsEditing((current) => !current);
+  }, []);
+
+  const beginWidgetEditing = useCallback(() => {
+    setWidgetsEditing(true);
+  }, []);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       header: () => (
@@ -97,22 +119,45 @@ export default function ExplorePage() {
           tabName="Explore"
           title="Explore"
           onSearchToggle={toggleSearch}
+          onAddWidget={searchVisible ? undefined : openWidgetModal}
+          onToggleWidgetEditing={
+            searchVisible || widgets.length === 0
+              ? undefined
+              : toggleWidgetEditing
+          }
+          isWidgetEditing={widgetsEditing}
         />
       ),
     });
-  }, [navigation, toggleSearch]);
+  }, [
+    navigation,
+    openWidgetModal,
+    searchVisible,
+    toggleSearch,
+    toggleWidgetEditing,
+    widgets.length,
+    widgetsEditing,
+  ]);
 
   return (
     <View style={styles.container}>
       {!searchVisible ? (
-        <EmptyState
+        <ExploreWidgetDashboard
           isDark={isDark}
           selectedWidgets={widgets}
+          widgetsReady={widgetsReady}
+          games={widgetGames}
+          loading={widgetsLoading}
+          refreshing={widgetsRefreshing}
+          error={widgetsError}
+          onRefresh={refreshWidgetData}
           onAddWidget={openWidgetModal}
           onRemoveWidget={removeWidget}
           onResizeWidget={resizeWidget}
           onMoveWidget={moveWidget}
           onReorderWidgets={reorderWidgets}
+          isEditing={widgetsEditing}
+          onBeginEditing={beginWidgetEditing}
         />
       ) : (
         <SearchResultsList

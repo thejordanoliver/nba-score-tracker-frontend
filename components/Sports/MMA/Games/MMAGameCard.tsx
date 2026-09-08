@@ -52,8 +52,6 @@ export default function MMAGameCard({ game }: MMAFightCardProps) {
   const gameStatusDetail = game?.status?.shortDetail ?? "";
   const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
 
-  
-
   const isScheduled = gameStatusDescription === "Scheduled";
   const isPreFight = gameStatusDescription === "Pre-fight";
   const isCanceled = gameStatusDescription === "Canceled";
@@ -182,7 +180,14 @@ export default function MMAGameCard({ game }: MMAFightCardProps) {
             accessibilityLabel={`${secondFighterName} country flag`}
           />
         ) : null}
-        <Text style={styles.teamName}>{secondFighterName}</Text>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
+          {secondFighterName}
+        </Text>
       </View>
 
       {/* Second Fighter Score / Record */}
@@ -233,7 +238,14 @@ export default function MMAGameCard({ game }: MMAFightCardProps) {
           />
         ) : null}
 
-        <Text style={styles.teamName}>{firstFighterName}</Text>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
+          {firstFighterName}
+        </Text>
       </View>
     </>
   );

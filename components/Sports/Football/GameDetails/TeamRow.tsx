@@ -125,7 +125,12 @@ export const TeamRow = ({
         </Pressable>
 
         <View style={styles.teamInfo}>
-          <Text style={styles.teamName}>
+          <Text
+            style={styles.teamName}
+            numberOfLines={1}
+            adjustsFontSizeToFit={true}
+            minimumFontScale={0.5}
+          >
             {rank ? <Text style={styles.rank}>{rank} </Text> : null}
             {name}
           </Text>

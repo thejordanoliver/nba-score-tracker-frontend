@@ -156,7 +156,14 @@ export default function MMAStackedGameCard({ game }: MMAFightCardProps) {
               />
             </View>
 
-            <Text style={styles.teamName}>{secondFighterName}</Text>
+            <Text
+              style={styles.teamName}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
+            >
+              {secondFighterName}
+            </Text>
             <Image
               source={{ uri: secondFighterFlag }}
               style={styles.fighterFlag}
@@ -181,7 +188,14 @@ export default function MMAStackedGameCard({ game }: MMAFightCardProps) {
                 accessibilityLabel={firstFighterName}
               />
             </View>
-            <Text style={styles.teamName}>{firstFighterName}</Text>
+            <Text
+              style={styles.teamName}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
+            >
+              {firstFighterName}
+            </Text>
             <Image
               source={{ uri: firstFighterFlag }}
               style={styles.fighterFlag}

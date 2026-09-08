@@ -2,12 +2,10 @@ import CustomActivityIndicator from "components/CustomActivityIndicator";
 import { EXPLORE_WIDGET_HEIGHTS } from "constants/exploreWidgetSizes";
 import { Colors, Fonts } from "constants/styles";
 import { useFavoriteTeamsContext } from "contexts/FavoriteTeamsContext";
-import {
-  ExploreFavoriteTeam,
-  normalizeExploreFavoriteTeam,
-} from "hooks/WidgetHooks/useExploreWidgetGames";
+import { BlurView } from "expo-blur";
 import { useMemo } from "react";
-import { ImageSourcePropType, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { isFavoriteLeague } from "types/favorites";
 import { ExploreWidgetSize } from "types/widgets";
 import FavoriteTeamsSlider, { FavoriteTeamSlide } from "./FavoriteTeamsSlider";
 import { WidgetEditControls } from "./WidgetSlider";
@@ -30,35 +28,8 @@ type FavoriteTeamsWidgetProps = {
   canMoveDown?: boolean;
 };
 
-type FavoriteTeamsCatalog = ReturnType<
-  typeof useFavoriteTeamsContext
->["allTeams"];
-
 const sizeFallback: Record<ExploreWidgetSize, number> = {
   ...EXPLORE_WIDGET_HEIGHTS,
-};
-
-const findFavoriteTeam = (
-  favorite: ExploreFavoriteTeam,
-  allTeams: FavoriteTeamsCatalog,
-) =>
-  allTeams.find(
-    (team) =>
-      team.league === favorite.league && String(team.id) === favorite.id,
-  );
-
-const resolveTeamLogo = (
-  favorite: ExploreFavoriteTeam,
-  allTeams: FavoriteTeamsCatalog,
-  isDark: boolean,
-): ImageSourcePropType | undefined => {
-  const team = findFavoriteTeam(favorite, allTeams);
-
-  if (!team) {
-    return undefined;
-  }
-
-  return isDark ? (team.logoLight ?? team.logo) : team.logo;
 };
 
 export default function FavoriteTeamsWidget({
@@ -94,17 +65,31 @@ export default function FavoriteTeamsWidget({
   const styles = favoriteTeamsWidgetStyles(isDark, compact);
   const showActions = isEditing && Boolean(widgetId);
 
+  const teamByFavoriteKey = useMemo(
+    () =>
+      new Map(
+        allTeams.map((team) => [
+          `${team.league.toLowerCase()}:${team.id}`,
+          team,
+        ]),
+      ),
+    [allTeams],
+  );
+
   const slides = useMemo<FavoriteTeamSlide[]>(
     () =>
-      favorites
-        .map(normalizeExploreFavoriteTeam)
-        .filter(
-          (favorite): favorite is ExploreFavoriteTeam => favorite !== null,
-        )
-        .map((favorite) => {
-          const team = findFavoriteTeam(favorite, allTeams);
+      favorites.flatMap((key) => {
+        const separatorIndex = key.indexOf(":");
+        const league = key.slice(0, separatorIndex);
+        const id = key.slice(separatorIndex + 1);
 
-          return {
+        if (!isFavoriteLeague(league)) return [];
+
+        const favorite = { key, league, id };
+        const team = teamByFavoriteKey.get(key);
+
+        return [
+          {
             favorite,
             name: team?.name ?? team?.shortName ?? favorite.id,
             code: team?.code,
@@ -112,10 +97,15 @@ export default function FavoriteTeamsWidget({
             secondaryColor: team?.secondaryColor ?? Colors.midTone,
             fullName:
               team?.fullName ?? team?.name ?? team?.shortName ?? favorite.id,
-            logo: resolveTeamLogo(favorite, allTeams, isDark),
-          };
-        }),
-    [allTeams, favorites, isDark],
+            logo: team
+              ? isDark
+                ? (team.logoLight ?? team.logo)
+                : team.logo
+              : undefined,
+          },
+        ];
+      }),
+    [favorites, isDark, teamByFavoriteKey],
   );
 
   const renderContent = () => {
@@ -153,7 +143,7 @@ export default function FavoriteTeamsWidget({
   };
 
   return (
-    <View
+    <BlurView
       style={[
         styles.card,
         {
@@ -161,6 +151,7 @@ export default function FavoriteTeamsWidget({
           height: resolvedHeight,
         },
       ]}
+      intensity={100}
     >
       <View
         style={[
@@ -188,7 +179,7 @@ export default function FavoriteTeamsWidget({
           />
         )}
       </View>
-    </View>
+    </BlurView>
   );
 }
 

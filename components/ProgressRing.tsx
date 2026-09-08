@@ -83,7 +83,14 @@ export default function ProgressRing({
       <Text style={styles.teamValue}>{value}</Text>
 
       {/* Label */}
-      <Text style={styles.teamName}>{label}</Text>
+      <Text
+        style={styles.teamName}
+        numberOfLines={1}
+        adjustsFontSizeToFit={true}
+        minimumFontScale={0.5}
+      >
+        {label}
+      </Text>
     </View>
   );
 }

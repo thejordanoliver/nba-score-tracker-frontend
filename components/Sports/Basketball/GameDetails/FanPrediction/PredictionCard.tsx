@@ -1,7 +1,7 @@
 import { Colors } from "@/constants/styles";
-import { useState } from "react";
-import { Animated, Image, Text, TouchableOpacity, View } from "react-native";
 import { FanPredictionStyles } from "@/styles/GameDetailStyles/FanPredictionStyles";
+import { useState } from "react";
+import { Animated, Image, Text, TouchableOpacity } from "react-native";
 
 type PredictionCardProps = {
   code?: string;
@@ -70,7 +70,7 @@ export default function PredictionCard({
         disabled,
         selected: isSelected,
       }}
-       onLayout={(event) => {
+      onLayout={(event) => {
         setCardHeight(event.nativeEvent.layout.height);
       }}
     >
@@ -85,13 +85,11 @@ export default function PredictionCard({
         ]}
       />
 
-      <View style={styles.logoContainer}>
-        <Image
-          source={typeof logo === "string" ? { uri: logo } : logo}
-          style={styles.teamLogo}
-          resizeMode="contain"
-        />
-      </View>
+      <Image
+        source={typeof logo === "string" ? { uri: logo } : logo}
+        style={styles.teamLogo}
+        resizeMode="contain"
+      />
 
       <Text numberOfLines={1} style={styles.teamLabel}>
         {teamLabel}

@@ -11,6 +11,7 @@ import type { FootballGame } from "@/types/football/football";
 import type { HockeyGame } from "@/types/hockey/hockey";
 import type { HomeGameItem, HomeGameSection } from "@/types/leagues";
 import type { SoccerGame } from "@/types/soccer/soccer";
+import type { TennisMatch } from "@/types/tennis/tennis";
 import GameCardSkeleton from "components/Skeletons/GameCards/GameCardSkeleton";
 import StackedGameCardSkeleton from "components/Skeletons/GameCards/StackedGameCardSkeleton";
 import BaseballGamePreviewModal from "components/Sports/Baseball/GamePreview/BaseballGamePreviewModal";
@@ -24,6 +25,7 @@ import { LongPressGestureHandler, State } from "react-native-gesture-handler";
 import { leagueGamesListStyles } from "styles/GamecardStyles/LeagueGamesListStyles";
 import type { MMAFight } from "types/mma/mma";
 
+import TennisGameCard from "@/components/Sports/Tennis/Games/TennisGameCard";
 import HeadingTwo from "../../Headings/HeadingTwo";
 import SquareGameCardSkeleton from "../../Skeletons/GameCards/SquareGameCardSkeleton";
 import HeaderSkeleton from "../../Skeletons/HeaderSkeleton";
@@ -41,6 +43,7 @@ import SoccerGamePreviewModal from "../../Sports/Soccer/GamePreview/SoccerGamePr
 import SoccerGameCard from "../../Sports/Soccer/Games/SoccerGameCard";
 import SoccerSquareGameCard from "../../Sports/Soccer/Games/SoccerSquareGameCard";
 import SoccerStackedGameCard from "../../Sports/Soccer/Games/SoccerStackedGameCard";
+import TennisMatchPreviewModal from "../../Sports/Tennis/GamePreview/TennisMatchPreviewModal";
 import ChampionshipGameCard from "./ChampionshipGameCard";
 
 const BASKETBALL_LEAGUES = new Set<HomeLeagueId>([
@@ -70,7 +73,8 @@ type LeagueGamesListProps = {
 };
 
 const isChampionshipGame = (item: HomeGameItem): boolean => {
-  const headline = item.game?.headline || "";
+  const headline =
+    "headline" in item.game ? String(item.game.headline ?? "") : "";
   return (
     headline.includes("NBA Finals") ||
     headline.includes("Finals") ||
@@ -278,6 +282,12 @@ export default function LeagueGamesList({
         if (viewMode === "grid")
           return wrapper(<MMASquareGameCard game={game} />, index);
         return wrapper(<MMAStackedGameCard game={game} />);
+      }
+
+      case "atp":
+      case "wta": {
+        const match = item.game as TennisMatch;
+        return wrapper(<TennisGameCard match={match} />, index);
       }
     }
   };
@@ -544,6 +554,16 @@ export default function LeagueGamesList({
           onClose={() => setModalVisible(false)}
         />
       )}
+
+      {modalVisible &&
+        previewGame &&
+        (previewLeague === "atp" || previewLeague === "wta") && (
+          <TennisMatchPreviewModal
+            visible={modalVisible}
+            match={previewGame as TennisMatch}
+            onClose={() => setModalVisible(false)}
+          />
+        )}
     </>
   );
 }

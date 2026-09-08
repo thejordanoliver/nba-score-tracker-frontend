@@ -78,8 +78,32 @@ export type TeamNotificationSubscription = {
   updatedAt: string;
 };
 
+export type GameNotificationSubscription = {
+  sport: NotificationTeamSport;
+  league: string;
+  gameId: string;
+  gameStartEnabled: boolean;
+  touchdownEnabled: boolean;
+  quarterEndEnabled: boolean;
+  halftimeEnabled: boolean;
+  closeGameEnabled: boolean;
+  finalScoreEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type TeamNotificationSettings = Pick<
   TeamNotificationSubscription,
+  | "gameStartEnabled"
+  | "touchdownEnabled"
+  | "quarterEndEnabled"
+  | "halftimeEnabled"
+  | "closeGameEnabled"
+  | "finalScoreEnabled"
+>;
+
+export type GameNotificationSettings = Pick<
+  GameNotificationSubscription,
   | "gameStartEnabled"
   | "touchdownEnabled"
   | "quarterEndEnabled"

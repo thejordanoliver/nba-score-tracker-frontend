@@ -61,9 +61,9 @@ const BASE_POINTS: Record<BaseballBase, Point> = {
 };
 
 const BALL = Colors.white;
-const BALL_STROKE = "#1D1E1F";
-const OCCUPIED_BASE = Colors.dark.yellow;
-const PLAY_PATH = "rgba(255,255,255,0.9)";
+const BALL_STROKE = Colors.black;
+const OCCUPIED_BASE = Colors.dark.green;
+const PLAY_PATH = Colors.white;
 const RUNNER = "#2F74D0";
 const SHADOW = "rgba(0,0,0,0.28)";
 
@@ -229,22 +229,28 @@ function FieldPlayAnimation({
   animation: BaseballPlayAnimation | null;
 }) {
   const reducedMotion = useReducedMotion();
+
   const ballProgress = useSharedValue(1);
   const runnerProgress = useSharedValue(1);
+  const trajectoryOpacity = useSharedValue(0);
+
   const ballPath = useMemo(
     () => (animation ? getBallPath(animation) : null),
     [animation],
   );
+
   const animationKey = animation?.key ?? null;
   const animationKind = animation?.kind ?? null;
 
   useEffect(() => {
     cancelAnimation(ballProgress);
     cancelAnimation(runnerProgress);
+    cancelAnimation(trajectoryOpacity);
 
     if (!animationKey || !animationKind || reducedMotion) {
       ballProgress.value = 1;
       runnerProgress.value = 1;
+      trajectoryOpacity.value = 0;
       return;
     }
 
@@ -252,13 +258,19 @@ function FieldPlayAnimation({
 
     ballProgress.value = 0;
     runnerProgress.value = 0;
+    trajectoryOpacity.value = isHit ? 1 : 0;
+
+    const ballDelay = isHit ? 160 : 40;
+    const ballDuration = isHit ? 1180 : 420;
+
     ballProgress.value = withDelay(
-      isHit ? 160 : 40,
+      ballDelay,
       withTiming(1, {
-        duration: isHit ? 1180 : 420,
+        duration: ballDuration,
         easing: isHit ? Easing.linear : Easing.in(Easing.quad),
       }),
     );
+
     runnerProgress.value = withDelay(
       isHit ? 300 : 0,
       withTiming(1, {
@@ -267,9 +279,22 @@ function FieldPlayAnimation({
       }),
     );
 
+    // Keep the completed trajectory visible after the ball lands,
+    // then fade it away.
+    if (isHit) {
+      trajectoryOpacity.value = withDelay(
+        ballDelay + ballDuration + 400,
+        withTiming(0, {
+          duration: 500,
+          easing: Easing.out(Easing.quad),
+        }),
+      );
+    }
+
     return () => {
       cancelAnimation(ballProgress);
       cancelAnimation(runnerProgress);
+      cancelAnimation(trajectoryOpacity);
     };
   }, [
     animationKey,
@@ -277,11 +302,16 @@ function FieldPlayAnimation({
     ballProgress,
     reducedMotion,
     runnerProgress,
+    trajectoryOpacity,
   ]);
 
   const ballProps = useAnimatedProps(() => {
     if (!ballPath) {
-      return { cx: HOME.x, cy: HOME.y, opacity: 0 };
+      return {
+        cx: HOME.x,
+        cy: HOME.y,
+        opacity: 0,
+      };
     }
 
     const point = cubicBezier(
@@ -291,31 +321,45 @@ function FieldPlayAnimation({
       ballPath.end,
       ballProgress.value,
     );
-    const isAtRest = ballProgress.value <= 0.005 || ballProgress.value >= 0.995;
+
+    const isAtStart = ballProgress.value <= 0.005;
+    const isAtEnd = ballProgress.value >= 0.995;
 
     return {
       cx: point.x,
       cy: point.y,
-      opacity: isAtRest ? 0 : 1,
+      opacity: isAtStart || isAtEnd ? 0 : 1,
     };
   });
+
   const shadowProps = useAnimatedProps(() => {
     if (!ballPath || animation?.kind !== "hit") {
-      return { cx: HOME.x, cy: HOME.y, opacity: 0 };
+      return {
+        cx: HOME.x,
+        cy: HOME.y,
+        opacity: 0,
+      };
     }
 
     const progress = clamp(ballProgress.value, 0, 1);
 
     return {
       cx: ballPath.start.x + (ballPath.end.x - ballPath.start.x) * progress,
+
       cy: ballPath.start.y + (ballPath.end.y - ballPath.start.y) * progress + 6,
+
       opacity: progress <= 0.005 || progress >= 0.995 ? 0 : 0.28,
     };
   });
-  const pathProps = useAnimatedProps(() => ({
-    opacity: animation?.kind === "hit" && ballProgress.value < 0.995 ? 0.9 : 0,
-    strokeDashoffset: (ballPath?.pathLength ?? 0) * (1 - ballProgress.value),
-  }));
+
+  const trajectoryProps = useAnimatedProps(() => {
+    const progress = clamp(ballProgress.value, 0, 1);
+
+    return {
+      opacity: trajectoryOpacity.value,
+      strokeDashoffset: (ballPath?.pathLength ?? 0) * (1 - progress),
+    };
+  });
 
   if (!animation || !ballPath) {
     return null;
@@ -324,17 +368,38 @@ function FieldPlayAnimation({
   return (
     <G pointerEvents="none">
       {animation.kind === "hit" ? (
-        <AnimatedPath
-          animatedProps={pathProps}
-          d={ballPath.path}
-          fill="none"
-          stroke={PLAY_PATH}
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeDasharray={`${ballPath.pathLength} ${ballPath.pathLength}`}
-        />
+        <>
+          {/* Dark outline so trajectory stays visible
+              against lighter parts of the field */}
+          <AnimatedPath
+            animatedProps={trajectoryProps}
+            d={ballPath.path}
+            fill="none"
+            stroke={BALL_STROKE}
+            strokeWidth={6}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray={`${ballPath.pathLength} ${ballPath.pathLength}`}
+          />
+
+          {/* Main trajectory */}
+          <AnimatedPath
+            animatedProps={trajectoryProps}
+            d={ballPath.path}
+            fill="none"
+            stroke={PLAY_PATH}
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray={`${ballPath.pathLength} ${ballPath.pathLength}`}
+          />
+        </>
       ) : null}
+
+      {/* Ball shadow */}
       <AnimatedCircle animatedProps={shadowProps} r={8} fill={SHADOW} />
+
+      {/* Baseball */}
       <AnimatedCircle
         animatedProps={ballProps}
         r={6}
@@ -342,6 +407,8 @@ function FieldPlayAnimation({
         stroke={BALL_STROKE}
         strokeWidth={1.8}
       />
+
+      {/* Base runners */}
       {animation.runnerMovements.map((movement) => (
         <AnimatedRunner
           key={`${animation.key}:${movement.athleteId}:${movement.from}:${movement.to}`}

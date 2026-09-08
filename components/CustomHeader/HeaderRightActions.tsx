@@ -14,6 +14,7 @@ type HeaderRightActionsProps = {
   isPlayerScreen?: boolean;
   showFavoriteAction?: boolean;
   favoritePending?: boolean;
+  notificationPending?: boolean;
   favoriteIconColor: string;
   onToggleFavorite?: () => void;
   onToggleNotifications?: () => void;
@@ -84,6 +85,7 @@ export function HeaderRightActions({
   isPlayerScreen,
   showFavoriteAction = false,
   favoritePending = false,
+  notificationPending = false,
   favoriteIconColor,
   onToggleFavorite,
   onToggleNotifications,
@@ -125,6 +127,10 @@ export function HeaderRightActions({
             activeOpacity={activeOpacity}
             onPress={onToggleNotifications}
             style={styles.teamHeaderActionButton}
+            accessibilityRole="button"
+            accessibilityLabel="Open team notification settings"
+            accessibilityState={{ selected: Boolean(isNotified) }}
+            hitSlop={8}
           >
             <Ionicons
               name={isNotified ? "notifications" : "notifications-outline"}
@@ -147,6 +153,42 @@ export function HeaderRightActions({
             />
           </TouchableOpacity>
         ) : null}
+      </View>
+    );
+  }
+
+  if (tabName === "Game" && onToggleNotifications) {
+    const handleGameNotificationPress = () => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() =>
+        undefined,
+      );
+      onToggleNotifications();
+    };
+
+    return (
+      <View style={styles.teamHeaderActions}>
+        <TouchableOpacity
+          activeOpacity={activeOpacity}
+          disabled={notificationPending}
+          onPress={handleGameNotificationPress}
+          style={[
+            styles.teamHeaderActionButton,
+            notificationPending && { opacity: 0.55 },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="Open game notification settings"
+          accessibilityState={{
+            disabled: notificationPending,
+            selected: Boolean(isNotified),
+          }}
+          hitSlop={8}
+        >
+          <Ionicons
+            name={isNotified ? "notifications" : "notifications-outline"}
+            size={24}
+            color={Colors.white}
+          />
+        </TouchableOpacity>
       </View>
     );
   }

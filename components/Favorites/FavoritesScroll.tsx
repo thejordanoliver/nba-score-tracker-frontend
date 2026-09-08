@@ -5,7 +5,7 @@ import { Colors } from "constants/styles";
 import { useFavoriteTeamsContext } from "contexts/FavoriteTeamsContext";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   Text,
@@ -23,33 +23,43 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 import {
-  FAVORITES_RAIL_GAP,
+  FAVORITES_RAIL_CELL_WIDTH,
   FAVORITES_RAIL_HORIZONTAL_PADDING,
-  FAVORITES_RAIL_ITEM_WIDTH,
   FavoritesScrollStyles,
 } from "styles/HomeStyles/FavoritesScrollStyles";
 import type {
   FavoriteItem,
   FavoriteLeagueItem,
-  FavoriteTeamKey,
   FavoriteTeamItem,
 } from "types/favorites";
 import {
-  groupFavoriteRailItems,
   isFavoriteLeague,
-  resolvePersistedFavoriteRailKeys,
+  reorderFavoriteRailItems,
   splitFavoriteRailOrder,
 } from "types/favorites";
 import { getFavoriteBaseTeam } from "utils/favoriteTeams";
 import { FavoritesTab } from "./FavoritesTab";
 
 type Props = {
-  favoriteTeamIds: FavoriteTeamKey[];
-  onFavoritesChange?: (ids: FavoriteTeamKey[]) => void;
   onInteractionStart?: () => void;
   onInteractionEnd?: () => void;
   isDark: boolean;
 };
+
+type FavoriteSection = FavoriteItem["kind"];
+
+type FavoriteRailOrder = {
+  userId: number | null;
+  sectionKeys: Record<FavoriteSection, string[]>;
+};
+
+const createRailOrder = (userId: number | null): FavoriteRailOrder => ({
+  userId,
+  sectionKeys: {
+    league: [],
+    team: [],
+  },
+});
 
 const FAVORITES_SNAP_ANIMATION = {
   damping: 24,
@@ -66,14 +76,14 @@ type FavoriteDragAnimationValues = Parameters<
 
 type FavoriteDragBoundaryProps = {
   animationValues: FavoriteDragAnimationValues;
-  favoriteCount: number;
-  leagueCount: number;
+  itemCount: number;
+  sportCount: number;
 };
 
 function FavoriteDragBoundary({
   animationValues,
-  favoriteCount,
-  leagueCount,
+  itemCount,
+  sportCount,
 }: FavoriteDragBoundaryProps) {
   const {
     activeCellSize,
@@ -90,18 +100,17 @@ function FavoriteDragBoundary({
         touchTranslate.value + autoScrollDistance.value,
     }),
     ({ activeIndex, translatedDistance }) => {
-      if (activeIndex < 0 || favoriteCount === 0) {
+      if (activeIndex < 0) {
         return;
       }
 
-      const draggingLeague = activeIndex < leagueCount;
-      const minimumIndex = draggingLeague ? 0 : leagueCount;
-      const maximumIndex = draggingLeague
-        ? leagueCount - 1
-        : favoriteCount - 1;
-      const itemStep = activeCellSize.value + FAVORITES_RAIL_GAP;
-      const minimumTranslation = (minimumIndex - activeIndex) * itemStep;
-      const maximumTranslation = (maximumIndex - activeIndex) * itemStep;
+      const draggingSport = activeIndex < sportCount;
+      const minimumIndex = draggingSport ? 0 : sportCount;
+      const maximumIndex = draggingSport ? sportCount - 1 : itemCount - 1;
+      const minimumTranslation =
+        (minimumIndex - activeIndex) * activeCellSize.value;
+      const maximumTranslation =
+        (maximumIndex - activeIndex) * activeCellSize.value;
       const boundedTranslation = Math.min(
         maximumTranslation,
         Math.max(minimumTranslation, translatedDistance),
@@ -118,7 +127,7 @@ function FavoriteDragBoundary({
           boundedTranslation - autoScrollDistance.value;
       }
     },
-    [favoriteCount, leagueCount],
+    [itemCount, sportCount],
   );
 
   return null;
@@ -126,19 +135,18 @@ function FavoriteDragBoundary({
 
 type FavoriteSectionDividerProps = {
   animationValues: FavoriteDragAnimationValues;
-  leagueCount: number;
+  sportCount: number;
   style: StyleProp<ViewStyle>;
 };
 
 function FavoriteSectionDivider({
   animationValues,
-  leagueCount,
+  sportCount,
   style,
 }: FavoriteSectionDividerProps) {
   const dividerContentPosition =
     FAVORITES_RAIL_HORIZONTAL_PADDING +
-    leagueCount * (FAVORITES_RAIL_ITEM_WIDTH + FAVORITES_RAIL_GAP) -
-    FAVORITES_RAIL_GAP / 2;
+    sportCount * FAVORITES_RAIL_CELL_WIDTH;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: -animationValues.scrollOffset.value }],
   }));
@@ -151,28 +159,47 @@ function FavoriteSectionDivider({
   );
 }
 
-function FavoritesScrollComponent({
-  favoriteTeamIds,
-  onFavoritesChange,
+function orderFavoriteItems<T extends FavoriteItem>(
+  items: readonly T[],
+  orderedKeys: readonly string[],
+): T[] {
+  const itemsByKey = new Map(items.map((item) => [item.key, item]));
+  const orderedItems: T[] = [];
+
+  for (const key of orderedKeys) {
+    const item = itemsByKey.get(key);
+
+    if (item) {
+      orderedItems.push(item);
+      itemsByKey.delete(key);
+    }
+  }
+
+  return [...orderedItems, ...itemsByKey.values()];
+}
+
+export default function FavoritesScroll({
   onInteractionStart,
   onInteractionEnd,
   isDark,
 }: Props) {
   const router = useRouter();
-
-  /**
-   * Don't recreate the entire StyleSheet object on every render.
-   */
   const styles = useMemo(() => FavoritesScrollStyles(isDark), [isDark]);
 
-  const lastPlaceholderHapticRef = useRef(0);
-  const latestReorderIdRef = useRef(0);
-  const reorderQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const latestReorderIdRef = useRef<Record<FavoriteSection, number>>({
+    league: 0,
+    team: 0,
+  });
+  const reorderQueueRef = useRef<Record<FavoriteSection, Promise<void>>>({
+    league: Promise.resolve(),
+    team: Promise.resolve(),
+  });
   const interactionActiveRef = useRef(false);
   const [dragAnimationValues, setDragAnimationValues] =
     useState<FavoriteDragAnimationValues | null>(null);
 
   const {
+    favorites: favoriteTeamIds,
     syncFavorites,
     setFavorites,
     isLoading,
@@ -183,17 +210,9 @@ function FavoritesScrollComponent({
     userId,
   } = useFavoriteTeamsContext();
 
-  const [railOrder, setRailOrder] = useState<{
-    userId: number | null;
-    keys: string[];
-  }>({
-    userId,
-    keys: [],
-  });
-
-  /* -------------------------------------------------------------------------- */
-  /*                                 Team data                                  */
-  /* -------------------------------------------------------------------------- */
+  const [railOrder, setRailOrder] = useState<FavoriteRailOrder>(() =>
+    createRailOrder(userId),
+  );
 
   const teamData = useMemo<FavoriteTeamItem[]>(() => {
     return favoriteTeamIds.reduce<FavoriteTeamItem[]>((teams, favorite) => {
@@ -225,16 +244,11 @@ function FavoritesScrollComponent({
         league,
         key: `${league}:${favoriteId}`,
         color: baseTeam.color ?? undefined,
-        isDark,
       });
 
       return teams;
     }, []);
-  }, [favoriteTeamIds, isDark]);
-
-  /* -------------------------------------------------------------------------- */
-  /*                                League data                                 */
-  /* -------------------------------------------------------------------------- */
+  }, [favoriteTeamIds]);
 
   const leagueData = useMemo<FavoriteLeagueItem[]>(() => {
     return favoriteSports.map((sport) => {
@@ -248,52 +262,26 @@ function FavoritesScrollComponent({
         logo: config.logoLight,
         color: config.color,
         key: `league:${sport}`,
-        isDark,
       };
     });
-  }, [favoriteSports, isDark]);
-
-  /* -------------------------------------------------------------------------- */
-  /*                              Available items                               */
-  /* -------------------------------------------------------------------------- */
-
-  const availableData = useMemo<FavoriteItem[]>(
-    () => [...leagueData, ...teamData],
-    [leagueData, teamData],
-  );
-
-  /* -------------------------------------------------------------------------- */
-  /*                                Rail order                                  */
-  /* -------------------------------------------------------------------------- */
+  }, [favoriteSports]);
 
   const data = useMemo<FavoriteItem[]>(() => {
-    if (!availableData.length) {
-      return [];
-    }
+    const sectionKeys =
+      railOrder.userId === userId
+        ? railOrder.sectionKeys
+        : createRailOrder(userId).sectionKeys;
 
-    const itemsByKey = new Map(availableData.map((item) => [item.key, item]));
+    return [
+      ...orderFavoriteItems(leagueData, sectionKeys.league),
+      ...orderFavoriteItems(teamData, sectionKeys.team),
+    ];
+  }, [leagueData, railOrder, teamData, userId]);
 
-    const activeKeys = railOrder.userId === userId ? railOrder.keys : [];
-
-    const ordered: FavoriteItem[] = [];
-
-    for (const key of activeKeys) {
-      const item = itemsByKey.get(key);
-
-      if (!item) {
-        continue;
-      }
-
-      ordered.push(item);
-      itemsByKey.delete(key);
-    }
-
-    return groupFavoriteRailItems([...ordered, ...itemsByKey.values()]);
-  }, [availableData, railOrder, userId]);
-
-  /* -------------------------------------------------------------------------- */
-  /*                              Interaction                                   */
-  /* -------------------------------------------------------------------------- */
+  useEffect(() => {
+    latestReorderIdRef.current.league += 1;
+    latestReorderIdRef.current.team += 1;
+  }, [userId]);
 
   const handleInteractionStart = useCallback(() => {
     if (interactionActiveRef.current) {
@@ -313,11 +301,12 @@ function FavoritesScrollComponent({
     onInteractionEnd?.();
   }, [onInteractionEnd]);
 
-  useEffect(() => handleInteractionEnd, [handleInteractionEnd]);
-
-  /* -------------------------------------------------------------------------- */
-  /*                                   Drag                                     */
-  /* -------------------------------------------------------------------------- */
+  useEffect(
+    () => () => {
+      handleInteractionEnd();
+    },
+    [handleInteractionEnd],
+  );
 
   const handleDragBegin = useCallback(() => {
     handleInteractionStart();
@@ -332,110 +321,111 @@ function FavoritesScrollComponent({
     [],
   );
 
-  const handlePlaceholderChange = useCallback(() => {
-    const now = Date.now();
-
-    if (now - lastPlaceholderHapticRef.current < 70) {
-      return;
-    }
-
-    lastPlaceholderHapticRef.current = now;
-
-    void Haptics.selectionAsync();
-  }, []);
-
   const handleDragEnd = useCallback(
-    ({ data: draggedOrder, from, to }: DragEndParams<FavoriteItem>) => {
+    ({ from, to }: DragEndParams<FavoriteItem>) => {
       handleInteractionEnd();
 
-      if (from === to) {
+      const draggedItem = data[from];
+
+      if (!draggedItem) {
         return;
       }
 
-      const reordered = groupFavoriteRailItems(draggedOrder);
-      const reorderId = ++latestReorderIdRef.current;
-      const orderedKeys = reordered.map((item) => item.key);
+      const section = draggedItem.kind;
+      const previousKeys = data
+        .filter((item) => item.kind === section)
+        .map((item) => item.key);
+      const reordered = reorderFavoriteRailItems(data, from, to);
+      const orderedKeys = reordered
+        .filter((item) => item.kind === section)
+        .map((item) => item.key);
 
-      setRailOrder({
-        userId,
-        keys: orderedKeys,
+      if (orderedKeys.every((key, index) => key === previousKeys[index])) {
+        return;
+      }
+
+      const reorderId = ++latestReorderIdRef.current[section];
+
+      setRailOrder((current) => {
+        const activeOrder =
+          current.userId === userId ? current : createRailOrder(userId);
+
+        return {
+          ...activeOrder,
+          sectionKeys: {
+            ...activeOrder.sectionKeys,
+            [section]: orderedKeys,
+          },
+        };
       });
+
+      void Haptics.selectionAsync();
 
       const {
         favoriteTeamIds: orderedTeamFavorites,
         favoriteSports: orderedFavoriteSports,
       } = splitFavoriteRailOrder(reordered);
 
-      const teamOrderChanged =
-        orderedTeamFavorites.length !== favoriteTeamIds.length ||
-        orderedTeamFavorites.some(
-          (favorite, index) => favorite !== favoriteTeamIds[index],
-        );
-
-      if (teamOrderChanged) {
+      if (section === "team") {
         setFavorites(orderedTeamFavorites);
-
-        onFavoritesChange?.(orderedTeamFavorites);
       }
 
-      const sportOrderChanged =
-        orderedFavoriteSports.length !== favoriteSports.length ||
-        orderedFavoriteSports.some(
-          (sport, index) => sport !== favoriteSports[index],
-        );
-
       const persistReorder = async () => {
-        const [teamOrderSaved, sportOrderSaved] = await Promise.all([
-          teamOrderChanged
-            ? syncFavorites(orderedTeamFavorites)
-            : Promise.resolve(true),
-          sportOrderChanged
-            ? updateFavoriteSports(orderedFavoriteSports)
-            : Promise.resolve(true),
-        ]);
+        const saved =
+          section === "team"
+            ? await syncFavorites(orderedTeamFavorites)
+            : await updateFavoriteSports(orderedFavoriteSports);
 
-        if (reorderId !== latestReorderIdRef.current) {
+        if (reorderId !== latestReorderIdRef.current[section]) {
           return;
         }
 
-        if (teamOrderSaved && sportOrderSaved) {
-          void Haptics.notificationAsync(
-            Haptics.NotificationFeedbackType.Success,
-          );
+        if (saved) {
+          setRailOrder((current) => {
+            if (current.userId !== userId) {
+              return current;
+            }
+
+            return {
+              ...current,
+              sectionKeys: {
+                ...current.sectionKeys,
+                [section]: [],
+              },
+            };
+          });
           return;
         }
 
-        const persistedKeys = resolvePersistedFavoriteRailKeys(
-          orderedKeys,
-          favoriteTeamIds,
-          favoriteSports,
-          teamOrderSaved,
-          sportOrderSaved,
-        );
+        setRailOrder((current) => {
+          const activeOrder =
+            current.userId === userId ? current : createRailOrder(userId);
 
-        setRailOrder({
-          userId,
-          keys: persistedKeys,
+          return {
+            ...activeOrder,
+            sectionKeys: {
+              ...activeOrder.sectionKeys,
+              [section]: previousKeys,
+            },
+          };
         });
 
-        if (!teamOrderSaved) {
+        if (section === "team") {
           setFavorites(favoriteTeamIds);
-          onFavoritesChange?.(favoriteTeamIds);
         }
 
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       };
 
-      reorderQueueRef.current = reorderQueueRef.current.then(
+      reorderQueueRef.current[section] = reorderQueueRef.current[section].then(
         persistReorder,
         persistReorder,
       );
     },
     [
-      favoriteSports,
+      data,
       favoriteTeamIds,
       handleInteractionEnd,
-      onFavoritesChange,
       setFavorites,
       syncFavorites,
       updateFavoriteSports,
@@ -443,13 +433,11 @@ function FavoritesScrollComponent({
     ],
   );
 
-  /* -------------------------------------------------------------------------- */
-  /*                              Stable renders                                */
-  /* -------------------------------------------------------------------------- */
-
   const renderItem = useCallback(
-    (props: RenderItemParams<FavoriteItem>) => <FavoritesTab {...props} />,
-    [],
+    (props: RenderItemParams<FavoriteItem>) => (
+      <FavoritesTab {...props} styles={styles} />
+    ),
+    [styles],
   );
 
   const renderPlaceholder = useCallback(() => {
@@ -470,32 +458,33 @@ function FavoritesScrollComponent({
     const hasFavorites = data.length > 0;
 
     return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Edit favorites"
-        onPress={handleEditFavorites}
-        style={styles.tabContainer}
-      >
-        <View style={styles.editIcon}>
-          <Ionicons
-            name={hasFavorites ? "create" : "add"}
-            size={28}
-            color={isDark ? Colors.dark.background : Colors.light.background}
-          />
-        </View>
+      <View style={styles.cell}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Edit favorites"
+          onPress={handleEditFavorites}
+          style={({ pressed }) => [
+            styles.tabContainer,
+            pressed && styles.pressed,
+          ]}
+        >
+          <View style={styles.editIcon}>
+            <Ionicons
+              name={hasFavorites ? "create" : "add"}
+              size={28}
+              color={isDark ? Colors.dark.background : Colors.light.background}
+            />
+          </View>
 
-        <View style={styles.labelContainer}>
-          <Text style={styles.tabLabel}>
-            {hasFavorites ? "Edit" : "Add favorites"}
-          </Text>
-        </View>
-      </Pressable>
+          <View style={styles.labelContainer}>
+            <Text style={styles.tabLabel}>
+              {hasFavorites ? "Edit" : "Add favorites"}
+            </Text>
+          </View>
+        </Pressable>
+      </View>
     );
   }, [data.length, handleEditFavorites, isDark, styles]);
-
-  /* -------------------------------------------------------------------------- */
-  /*                                  Loading                                   */
-  /* -------------------------------------------------------------------------- */
 
   const favoritesLoading =
     isLoading || (favoriteSportsLoading && !favoriteSportsReady);
@@ -504,17 +493,13 @@ function FavoritesScrollComponent({
     return <FavoritesScrollSkeleton isDark={isDark} />;
   }
 
-  /* -------------------------------------------------------------------------- */
-  /*                                   Render                                   */
-  /* -------------------------------------------------------------------------- */
-
   return (
     <View style={styles.railContainer}>
       {dragAnimationValues && (
         <FavoriteDragBoundary
           animationValues={dragAnimationValues}
-          favoriteCount={data.length}
-          leagueCount={leagueData.length}
+          itemCount={data.length}
+          sportCount={leagueData.length}
         />
       )}
 
@@ -523,7 +508,7 @@ function FavoritesScrollComponent({
         teamData.length > 0 && (
           <FavoriteSectionDivider
             animationValues={dragAnimationValues}
-            leagueCount={leagueData.length}
+            sportCount={leagueData.length}
             style={styles.sectionDivider}
           />
         )}
@@ -533,8 +518,12 @@ function FavoritesScrollComponent({
         horizontal
         keyExtractor={(item) => item.key}
         showsHorizontalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="never"
         contentContainerStyle={styles.container}
-        activationDistance={8}
+        directionalLockEnabled
+        nestedScrollEnabled
+        decelerationRate="fast"
+        activationDistance={10}
         autoscrollThreshold={56}
         autoscrollSpeed={180}
         dragItemOverflow={false}
@@ -543,11 +532,7 @@ function FavoritesScrollComponent({
         onTouchStart={handleInteractionStart}
         onTouchEnd={handleInteractionEnd}
         onTouchCancel={handleInteractionEnd}
-        onScrollBeginDrag={handleInteractionStart}
-        onScrollEndDrag={handleInteractionEnd}
         onDragBegin={handleDragBegin}
-        onRelease={handleInteractionEnd}
-        onPlaceholderIndexChange={handlePlaceholderChange}
         onDragEnd={handleDragEnd}
         onAnimValInit={handleAnimationValuesInit}
         renderPlaceholder={renderPlaceholder}
@@ -556,22 +541,3 @@ function FavoritesScrollComponent({
     </View>
   );
 }
-
-/**
- * Prevent parent rerenders from rerendering FavoritesScroll
- * when none of its actual props changed.
- */
-const FavoritesScroll = memo(FavoritesScrollComponent, (previous, next) => {
-  return (
-    previous.isDark === next.isDark &&
-    previous.onFavoritesChange === next.onFavoritesChange &&
-    previous.onInteractionStart === next.onInteractionStart &&
-    previous.onInteractionEnd === next.onInteractionEnd &&
-    previous.favoriteTeamIds.length === next.favoriteTeamIds.length &&
-    previous.favoriteTeamIds.every(
-      (favorite, index) => favorite === next.favoriteTeamIds[index],
-    )
-  );
-});
-
-export default FavoritesScroll;

@@ -5,6 +5,7 @@ import FootballSquareGameCard from "@/components/Sports/Football/Games/FootballS
 import { FootballGame } from "@/types/football/football";
 import HeadingTwo from "components/Headings/HeadingTwo";
 import GameCardSkeleton from "components/Skeletons/GameCards/GameCardSkeleton";
+import HeaderSkeleton from "components/Skeletons/HeaderSkeleton";
 import SquareGameCardSkeleton from "components/Skeletons/GameCards/SquareGameCardSkeleton";
 import StackedGameCardSkeleton from "components/Skeletons/GameCards/StackedGameCardSkeleton";
 import { globalStyles } from "constants/styles";
@@ -290,9 +291,7 @@ export default function GamesList({
               key={`skel-section-${section.title}`}
               style={{ marginTop: sectionIndex > 0 ? 12 : 0 }}
             >
-              {showHeaders && (
-                <HeadingTwo isDark={isDark}>{section.title}</HeadingTwo>
-              )}
+              {showHeaders && <HeaderSkeleton style={styles.headerSkeleton} />}
 
               {renderSkeletons(section.data.length)}
             </View>
@@ -315,6 +314,8 @@ export default function GamesList({
             teamSecondaryColor={teamSecondaryColor}
           />
         )}
+
+        {showHeaders && <HeaderSkeleton style={styles.headerSkeleton} />}
 
         {renderSkeletons(totalSkeletonCount)}
       </View>

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, activeOpacity } from "constants/styles";
-import { TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, useWindowDimensions, View } from "react-native";
 import { customHeaderStyles } from "../../styles/CustomHeaderStyles";
 
 type HeaderLeftActionsProps = {
@@ -8,6 +8,8 @@ type HeaderLeftActionsProps = {
   showBackButton: boolean;
   onBack?: () => void;
   onAddWidget?: () => void;
+  onToggleWidgetEditing?: () => void;
+  isWidgetEditing?: boolean;
   onProfileMessages?: () => void;
   isDark: boolean;
   headerIconColor: string;
@@ -18,11 +20,14 @@ export function HeaderLeftActions({
   showBackButton,
   onBack,
   onAddWidget,
+  onToggleWidgetEditing,
+  isWidgetEditing = false,
   onProfileMessages,
   isDark,
   headerIconColor,
 }: HeaderLeftActionsProps) {
-  const styles = customHeaderStyles(isDark);
+  const { width } = useWindowDimensions();
+  const styles = customHeaderStyles(isDark, width);
 
   if (tabName === "Profile") {
     return onProfileMessages ? (
@@ -55,19 +60,57 @@ export function HeaderLeftActions({
     );
   }
 
-  if (tabName === "Explore" && onAddWidget) {
+  if (tabName === "Explore" && (onAddWidget || onToggleWidgetEditing)) {
     return (
-      <TouchableOpacity
-        activeOpacity={activeOpacity}
-        onPress={onAddWidget}
-        hitSlop={8}
-      >
-        <Ionicons
-          name="add"
-          size={24}
-          color={isDark ? Colors.white : Colors.black}
-        />
-      </TouchableOpacity>
+      <View style={styles.exploreHeaderActions}>
+        {onAddWidget && (
+          <TouchableOpacity
+            activeOpacity={activeOpacity}
+            onPress={onAddWidget}
+            style={styles.exploreHeaderActionButton}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Add widget"
+          >
+            <Ionicons
+              name="add"
+              size={23}
+              color={isDark ? Colors.white : Colors.black}
+            />
+          </TouchableOpacity>
+        )}
+
+        {onToggleWidgetEditing && (
+          <TouchableOpacity
+            activeOpacity={activeOpacity}
+            onPress={onToggleWidgetEditing}
+            style={[
+              styles.exploreHeaderActionButton,
+              isWidgetEditing && styles.exploreHeaderActionButtonSelected,
+            ]}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={
+              isWidgetEditing ? "Finish editing widgets" : "Edit widgets"
+            }
+            accessibilityState={{ selected: isWidgetEditing }}
+          >
+            <Ionicons
+              name={isWidgetEditing ? "checkmark" : "create-outline"}
+              size={21}
+              color={
+                isWidgetEditing
+                  ? isDark
+                    ? Colors.black
+                    : Colors.white
+                  : isDark
+                    ? Colors.white
+                    : Colors.black
+              }
+            />
+          </TouchableOpacity>
+        )}
+      </View>
     );
   }
 

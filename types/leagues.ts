@@ -6,6 +6,7 @@ import type { BasketballGame } from "./basketball/basketball";
 import type { FootballGame } from "./football/football";
 import type { HockeyGame } from "./hockey/hockey";
 import type { SoccerGame } from "./soccer/soccer";
+import type { TennisMatch } from "./tennis/tennis";
 
 export type LeagueGame =
   | BasketballGame
@@ -13,6 +14,7 @@ export type LeagueGame =
   | BaseballGame
   | HockeyGame
   | SoccerGame
+  | TennisMatch
   | MMAFight;
 
 export type HomeLeagueSource = {

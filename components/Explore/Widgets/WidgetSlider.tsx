@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { EXPLORE_WIDGET_SLIDE_INDICATOR_BOTTOM } from "constants/exploreWidgetSizes";
 import { EXPLORE_WIDGET_SIZES } from "constants/exploreWidgets";
 import { Colors, activeOpacity } from "constants/styles";
+import { BlurView } from "expo-blur";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -611,47 +612,49 @@ export default function WidgetSlider({
       }}
     >
       <View style={styles.container}>
-        <FlatList
-          ref={flatListRef}
-          data={slides}
-          keyExtractor={keyExtractor}
-          horizontal={isHorizontal}
-          pagingEnabled
-          snapToInterval={isHorizontal ? slideWidth : slideHeight}
-          decelerationRate="fast"
-          disableIntervalMomentum
-          directionalLockEnabled
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-          getItemLayout={getItemLayout}
-          onScrollBeginDrag={showProgress}
-          onMomentumScrollBegin={showProgress}
-          onMomentumScrollEnd={hideProgress}
-          onScrollEndDrag={hideProgress}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
-          renderItem={renderItem}
-          scrollEnabled={!showEditControls}
-        />
-
-        {canResize && (
-          <View style={styles.resizeHandle} {...panResponder.panHandlers} />
-        )}
-
-        {showEditControls && widgetId && widgetSize && (
-          <WidgetEditControls
-            isDark={isDark}
-            widgetId={widgetId}
-            widgetSize={widgetSize}
-            availableSizeOptions={availableSizeOptions}
-            onResizeWidget={onResizeWidget}
-            onRemoveWidget={onRemoveWidget}
-            onMoveWidget={onMoveWidget}
-            canMoveUp={canMoveUp}
-            canMoveDown={canMoveDown}
-            compact={slideWidth < 240 || slideHeight < 260}
+        <BlurView intensity={100}>
+          <FlatList
+            ref={flatListRef}
+            data={slides}
+            keyExtractor={keyExtractor}
+            horizontal={isHorizontal}
+            pagingEnabled
+            snapToInterval={isHorizontal ? slideWidth : slideHeight}
+            decelerationRate="fast"
+            disableIntervalMomentum
+            directionalLockEnabled
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            getItemLayout={getItemLayout}
+            onScrollBeginDrag={showProgress}
+            onMomentumScrollBegin={showProgress}
+            onMomentumScrollEnd={hideProgress}
+            onScrollEndDrag={hideProgress}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            renderItem={renderItem}
+            scrollEnabled={!showEditControls}
           />
-        )}
+
+          {canResize && (
+            <View style={styles.resizeHandle} {...panResponder.panHandlers} />
+          )}
+
+          {showEditControls && widgetId && widgetSize && (
+            <WidgetEditControls
+              isDark={isDark}
+              widgetId={widgetId}
+              widgetSize={widgetSize}
+              availableSizeOptions={availableSizeOptions}
+              onResizeWidget={onResizeWidget}
+              onRemoveWidget={onRemoveWidget}
+              onMoveWidget={onMoveWidget}
+              canMoveUp={canMoveUp}
+              canMoveDown={canMoveDown}
+              compact={slideWidth < 240 || slideHeight < 260}
+            />
+          )}
+        </BlurView>
       </View>
 
       {!dashboardMode && (

@@ -5,7 +5,8 @@ export type LiveSport =
   | "hockey"
   | "soccer"
   | "mma"
-  | "racing";
+  | "racing"
+  | "tennis";
 
 export type LiveSubscriptionKind = "game" | "scoreboard";
 

@@ -1,3 +1,8 @@
+import type { BaseballGame } from "./baseball/baseball";
+import type { BasketballGame } from "./basketball/basketball";
+import type { FootballGame } from "./football/football";
+import type { HockeyGame } from "./hockey/hockey";
+
 export type ExploreWidgetType =
   | "nba_games"
   | "nfl_games"
@@ -19,4 +24,66 @@ export type ExploreWidgetConfig = {
   createdAt: number;
   size: ExploreWidgetSize;
   order: number;
+};
+
+export const EXPLORE_WIDGET_LEAGUES = [
+  "nba",
+  "wnba",
+  "cbb",
+  "wcbb",
+  "mlb",
+  "nfl",
+  "cfb",
+  "nhl",
+] as const;
+
+export type ExploreWidgetLeague = (typeof EXPLORE_WIDGET_LEAGUES)[number];
+
+type ExploreWidgetGameBase = {
+  key: string;
+  gameId: string;
+  favoriteTeamKeys: string[];
+};
+
+export type ExploreWidgetGame =
+  | (ExploreWidgetGameBase & {
+      sport: "basketball";
+      league: "nba" | "wnba" | "cbb" | "wcbb";
+      game: BasketballGame;
+    })
+  | (ExploreWidgetGameBase & {
+      sport: "baseball";
+      league: "mlb";
+      game: BaseballGame;
+    })
+  | (ExploreWidgetGameBase & {
+      sport: "football";
+      league: "nfl" | "cfb";
+      game: FootballGame;
+    })
+  | (ExploreWidgetGameBase & {
+      sport: "hockey";
+      league: "nhl";
+      game: HockeyGame;
+    });
+
+export type ExploreWidgetFailure = {
+  favoriteTeamKey: string;
+  code: "upstream_unavailable" | "malformed_upstream_response";
+};
+
+export type ExploreWidgetsResponse = {
+  version: 1;
+  generatedAt: string;
+  requestedLeagues: ExploreWidgetLeague[];
+  favoriteTeamKeys: string[];
+  games: ExploreWidgetGame[];
+  failures: ExploreWidgetFailure[];
+};
+
+export type ExploreWidgetDataCache = {
+  key: string;
+  userId: number;
+  fetchedAt: number;
+  response: ExploreWidgetsResponse;
 };

@@ -4,10 +4,9 @@ import test from "node:test";
 // @ts-expect-error Node's type-stripping test runner requires the .ts extension.
 import {
   buildFavoriteTeamKey,
-  groupFavoriteRailItems,
   normalizeFavoriteTeamKey,
   normalizeFavoriteTeamKeys,
-  resolvePersistedFavoriteRailKeys,
+  reorderFavoriteRailItems,
   splitFavoriteRailOrder,
   type FavoriteItem,
 } from "../types/favorites.ts";
@@ -42,79 +41,68 @@ test("unprefixed, malformed, unsupported, and invalid IDs are not guessed", () =
   );
 });
 
-test("combined rail reordering preserves independent team and sport order", () => {
-  const items: FavoriteItem[] = [
-    {
-      kind: "team",
-      id: "17",
-      code: "BOS",
-      league: "nba",
-      name: "Boston Celtics",
-      key: "nba:17",
-      isDark: false,
-    },
-    {
-      kind: "league",
-      id: "nfl",
-      league: "nfl",
-      name: "NFL",
-      logo: 1,
-      key: "league:nfl",
-      isDark: false,
-    },
-    {
-      kind: "league",
-      id: "nba",
-      league: "nba",
-      name: "NBA",
-      logo: 2,
-      key: "league:nba",
-      isDark: false,
-    },
-    {
-      kind: "team",
-      id: "2",
-      code: "BUF",
-      league: "nfl",
-      name: "Buffalo Bills",
-      key: "nfl:2",
-      isDark: false,
-    },
-  ];
+const favoriteRailItems: FavoriteItem[] = [
+  {
+    kind: "league",
+    id: "nfl",
+    league: "nfl",
+    name: "NFL",
+    logo: 1,
+    key: "league:nfl",
+  },
+  {
+    kind: "league",
+    id: "nba",
+    league: "nba",
+    name: "NBA",
+    logo: 2,
+    key: "league:nba",
+  },
+  {
+    kind: "team",
+    id: "17",
+    code: "BOS",
+    league: "nba",
+    name: "Boston Celtics",
+    key: "nba:17",
+  },
+  {
+    kind: "team",
+    id: "2",
+    code: "BUF",
+    league: "nfl",
+    name: "Buffalo Bills",
+    key: "nfl:2",
+  },
+];
 
-  assert.deepEqual(splitFavoriteRailOrder(items), {
+test("combined rail order splits into independent team and sport order", () => {
+  assert.deepEqual(splitFavoriteRailOrder(favoriteRailItems), {
     favoriteTeamIds: ["nba:17", "nfl:2"],
     favoriteSports: ["nfl", "nba"],
   });
+});
+
+test("sports reorder only within the sports area", () => {
+  assert.deepEqual(
+    reorderFavoriteRailItems(favoriteRailItems, 0, 1).map((item) => item.key),
+    ["league:nba", "league:nfl", "nba:17", "nfl:2"],
+  );
 
   assert.deepEqual(
-    groupFavoriteRailItems(items).map((item) => item.key),
-    ["league:nfl", "league:nba", "nba:17", "nfl:2"],
+    reorderFavoriteRailItems(favoriteRailItems, 1, 3).map((item) => item.key),
+    favoriteRailItems.map((item) => item.key),
   );
 });
 
-test("a failed sport save restores only sport order in a mixed rail", () => {
+test("teams reorder only within the teams area", () => {
   assert.deepEqual(
-    resolvePersistedFavoriteRailKeys(
-      ["league:nfl", "nba:17", "league:nba", "nfl:2"],
-      ["nfl:2", "nba:17"],
-      ["nba", "nfl"],
-      true,
-      false,
-    ),
-    ["league:nba", "nba:17", "league:nfl", "nfl:2"],
+    reorderFavoriteRailItems(favoriteRailItems, 2, 3).map((item) => item.key),
+    ["league:nfl", "league:nba", "nfl:2", "nba:17"],
   );
-});
 
-test("a failed team save restores only team order in a mixed rail", () => {
   assert.deepEqual(
-    resolvePersistedFavoriteRailKeys(
-      ["league:nfl", "nba:17", "league:nba", "nfl:2"],
-      ["nfl:2", "nba:17"],
-      ["nba", "nfl"],
-      false,
-      true,
-    ),
-    ["league:nfl", "nfl:2", "league:nba", "nba:17"],
+    reorderFavoriteRailItems(favoriteRailItems, 2, 0).map((item) => item.key),
+    favoriteRailItems.map((item) => item.key),
   );
 });

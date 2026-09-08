@@ -2,12 +2,6 @@ type GameWithDate = {
   date?: string | null;
 };
 
-type GameWithSeason = GameWithDate & {
-  season?: {
-    year?: number | string | null;
-  } | null;
-};
-
 function getValidDateTime(dateValue: string | Date | null | undefined) {
   if (!dateValue) return null;
 
@@ -35,36 +29,5 @@ export function getFirstSeasonGame<T extends GameWithDate>(
       },
       { game: null, time: null },
     ).game ?? null
-  );
-}
-
-export function filterGamesBySeasonYear<T extends GameWithSeason>(
-  games: readonly T[],
-  seasonYear: number | string | null | undefined,
-): T[] {
-  const parsedSeasonYear = Number(seasonYear);
-
-  if (!Number.isFinite(parsedSeasonYear)) {
-    return [...games];
-  }
-
-  return games.filter((game) => Number(game.season?.year) === parsedSeasonYear);
-}
-
-export function isSameCalendarMonth(
-  firstDate: string | Date | null | undefined,
-  selectedDate: Date | null,
-): boolean {
-  if (!selectedDate) return false;
-
-  const firstTime = getValidDateTime(firstDate);
-
-  if (firstTime === null) return false;
-
-  const parsedFirstDate = new Date(firstTime);
-
-  return (
-    parsedFirstDate.getUTCFullYear() === selectedDate.getFullYear() &&
-    parsedFirstDate.getUTCMonth() === selectedDate.getMonth()
   );
 }

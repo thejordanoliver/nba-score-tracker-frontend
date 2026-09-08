@@ -1,4 +1,5 @@
 import ChampionshipBanner from "@/components/Sports/Basketball/Team/ChampionshipBanner";
+import { usePreferences } from "@/contexts/PreferencesContext";
 import { TeamDetails } from "@/hooks/useTeams";
 import { snapPoints } from "@/utils/modalUtils";
 import {
@@ -7,7 +8,6 @@ import {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { Colors, Fonts } from "constants/styles";
-import { BlurView } from "expo-blur";
 import { useCallback, useEffect, useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,7 +22,6 @@ type Props = {
   teamId?: string | number;
   teamLogo?: any;
   league: string;
-  isDark: boolean;
 };
 
 export default function TeamInfoModal({
@@ -32,8 +31,9 @@ export default function TeamInfoModal({
   teamId,
   teamLogo,
   league,
-  isDark,
 }: Props) {
+  const { resolvedColorScheme } = usePreferences();
+  const isDark = resolvedColorScheme === "dark";
   const insets = useSafeAreaInsets();
   const sheetRef = useRef<BottomSheetModal>(null);
   const isPresentedRef = useRef(false);
@@ -75,7 +75,7 @@ export default function TeamInfoModal({
     <BottomSheetModal
       ref={sheetRef}
       snapPoints={snapPoints}
-      index={0}
+      index={1}
       onDismiss={handleDismiss}
       enablePanDownToClose
       enableDynamicSizing={false}
@@ -85,41 +85,37 @@ export default function TeamInfoModal({
       handleIndicatorStyle={styles.handleIndicatorStyle}
     >
       <View style={styles.container}>
-        <BlurView
-          intensity={100}
-          tint={"systemMaterial"}
-          style={StyleSheet.absoluteFill}
-        />
-
-        <View style={styles.wrapper}>
-          {teamDetails?.name && (
-            <Text style={styles.teamName}>{teamDetails.name}</Text>
-          )}
-
-          <BottomSheetScrollView
-            contentContainerStyle={styles.contentContainerStyle}
-            showsVerticalScrollIndicator={false}
+        {teamDetails?.name && (
+          <Text
+            style={styles.teamName}
+            numberOfLines={1}
+            adjustsFontSizeToFit={true}
+            minimumFontScale={0.5}
           >
-            <Text style={styles.sectionTitle}>Championships</Text>
+            {teamDetails.name}
+          </Text>
+        )}
 
-            <ChampionshipBanner
-              championships={teamDetails?.championships}
-              logo={teamDetails?.logo}
-              teamName={teamDetails?.name ?? teamDetails?.shortName}
-              teamLogo={teamLogo}
-              teamId={teamId}
-              league={league}
-              isDark={isDark}
-            />
+        <BottomSheetScrollView
+          contentContainerStyle={styles.contentContainerStyle}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.sectionTitle}>Championships</Text>
 
-            <TeamInfo
-              teamId={teamId}
-              teamDetails={teamDetails ?? null}
-              league={league}
-              isDark={isDark}
-            />
-          </BottomSheetScrollView>
-        </View>
+          <ChampionshipBanner
+            championships={teamDetails?.championships}
+            teamName={teamDetails?.name ?? teamDetails?.shortName}
+            teamLogo={teamLogo}
+            teamId={teamId}
+            league={league}
+          />
+
+          <TeamInfo
+            teamId={teamId}
+            teamDetails={teamDetails ?? null}
+            league={league}
+          />
+        </BottomSheetScrollView>
       </View>
     </BottomSheetModal>
   );
@@ -128,8 +124,10 @@ export default function TeamInfoModal({
 export const TeamInfoModalStyles = (isDark: boolean, insets: any) =>
   StyleSheet.create({
     backgroundStyle: {
-      backgroundColor: "transparent",
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
       overflow: "hidden",
+      backgroundColor: isDark ? Colors.black : Colors.white,
     },
     handleStyle: {
       position: "absolute",
@@ -151,14 +149,17 @@ export const TeamInfoModalStyles = (isDark: boolean, insets: any) =>
     },
     container: {
       flex: 1,
+      padding: 12,
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       overflow: "hidden",
     },
-    wrapper: {
+    blurViewContainer: {
       flex: 1,
-      paddingHorizontal: 12,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
     },
+
     contentContainerStyle: {
       paddingTop: 20,
       paddingBottom: 40,

@@ -1,16 +1,22 @@
 import { HockeyGame } from "@/types/hockey/hockey";
+import { useTeamMonthSelector } from "hooks/LeagueHooks/useMonthSelector";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type {
+  ScheduleMonthGroup,
+  ScheduleMonthKey,
+  ScheduleMonthOption,
+} from "types/schedule";
 import { apiClient } from "utils/apiClient";
+import { getFirstSeasonGame } from "utils/seasonGames";
+import {
+  buildScheduleMonthOptions,
+  getScheduleGamesForMonth,
+  isScheduleOpeningMonth,
+} from "utils/teamSchedule";
 
 export type TeamScheduleLeague = "nhl" | "mch";
 
-export type ScheduleMonth = {
-  key: string;
-  label: string;
-  year: number | null;
-  month: number | null;
-  games: HockeyGame[];
-};
+export type ScheduleMonth = ScheduleMonthGroup<HockeyGame>;
 
 export type TeamScheduleTeam = {
   id?: string;
@@ -34,12 +40,13 @@ export type TeamScheduleResponse = {
   months: ScheduleMonth[];
 };
 
-interface UseTeamGamesResult {
-  league: string | null;
-  team: TeamScheduleTeam | null;
-  season: any;
+export interface UseTeamGamesResult {
   games: HockeyGame[];
-  months: ScheduleMonth[];
+  months: ScheduleMonthOption[];
+  selectedMonthKey: ScheduleMonthKey | null;
+  selectMonth: (key: ScheduleMonthKey) => void;
+  firstSeasonGame: HockeyGame | null;
+  showCountdown: boolean;
   loading: boolean;
   refreshing: boolean;
   error: Error | null;
@@ -137,13 +144,13 @@ export function useTeamGames(
       }
 
       try {
+        setError(null);
+
         if (isRefresh) {
           setRefreshing(true);
         } else {
           setLoading(true);
         }
-
-        setError(null);
 
         const response = await apiClient.get<TeamScheduleResponse>(
           `api/games/hockey/team/${league}/${teamId}`,
@@ -168,8 +175,11 @@ export function useTeamGames(
           err?.message ||
           "Failed to fetch hockey team schedule";
 
-        setError(message);
-        setData(null);
+        setError(new Error(message));
+
+        if (!isRefresh) {
+          setData(null);
+        }
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -182,22 +192,60 @@ export function useTeamGames(
     fetchSchedule(false);
   }, [fetchSchedule]);
 
+  const allGames = useMemo(() => data?.games ?? [], [data?.games]);
+  const monthGroups = useMemo(() => data?.months ?? [], [data?.months]);
+  const months = useMemo(
+    () => buildScheduleMonthOptions(monthGroups),
+    [monthGroups],
+  );
+  const scheduleIdentity = `${league}:${String(teamId ?? "")}:${String(
+    data?.season?.year ?? "",
+  )}`;
+  const { selectedMonthKey, selectMonth } = useTeamMonthSelector({
+    months,
+    scheduleIdentity,
+  });
+  const games = useMemo(
+    () => getScheduleGamesForMonth(monthGroups, selectedMonthKey),
+    [monthGroups, selectedMonthKey],
+  );
+  const firstSeasonGame = useMemo(
+    () => getFirstSeasonGame(allGames),
+    [allGames],
+  );
+  const showCountdown = isScheduleOpeningMonth(
+    firstSeasonGame,
+    selectedMonthKey,
+  );
+
   const refresh = useCallback(async () => {
     await fetchSchedule(true);
   }, [fetchSchedule]);
 
   return useMemo(
     () => ({
-      league: data?.league ?? null,
-      team: data?.team ?? null,
-      season: data?.season ?? null,
-      games: data?.games ?? [],
-      months: data?.months ?? [],
+      games,
+      months,
+      selectedMonthKey,
+      selectMonth,
+      firstSeasonGame,
+      showCountdown,
       loading,
       refreshing,
       error,
       refresh,
     }),
-    [data, loading, refreshing, error, refresh],
+    [
+      games,
+      months,
+      selectedMonthKey,
+      selectMonth,
+      firstSeasonGame,
+      showCountdown,
+      loading,
+      refreshing,
+      error,
+      refresh,
+    ],
   );
 }

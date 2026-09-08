@@ -588,6 +588,8 @@ export default function CreatePostScreen() {
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        onScrollBeginDrag={Keyboard.dismiss}
       >
         {renderUserRow()}
         {renderComposer()}

@@ -3,7 +3,6 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { Dimensions, ScrollView } from "react-native";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -192,68 +191,7 @@ export function getMLBStandingsSeason(date: Date = new Date()): string {
   return String(year);
 }
 
-export function getGameCountByMonth<T>(
-  games: T[],
-  getDate: (game: T) => string | Date | null,
-): Map<string, number> {
-  const count = new Map<string, number>();
-
-  games.forEach((game) => {
-    const dateVal = getDate(game);
-    if (!dateVal) return;
-
-    const date = typeof dateVal === "string" ? new Date(dateVal) : dateVal;
-    if (isNaN(date.getTime())) return;
-
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
-    count.set(key, (count.get(key) || 0) + 1);
-  });
-
-  return count;
-}
-
-export function getMonthsToShow<T>(
-  games: T[],
-  getDate: (game: T) => string | Date | null,
-) {
-  const map = new Map<string, { month: number; year: number }>();
-
-  games.forEach((game) => {
-    const dateVal = getDate(game);
-    if (!dateVal) return;
-
-    const date = typeof dateVal === "string" ? new Date(dateVal) : dateVal;
-    if (isNaN(date.getTime())) return;
-
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
-    map.set(key, { year: date.getFullYear(), month: date.getMonth() });
-  });
-
-  return Array.from(map.values()).sort(
-    (a, b) => a.year * 12 + a.month - (b.year * 12 + b.month),
-  );
-}
-
-export const scrollToMonth = (
-  scrollRef: React.RefObject<ScrollView | null>,
-  index: number,
-) => {
-  if (!scrollRef.current) return; // ✅ null check
-
-  const screenWidth = Dimensions.get("window").width;
-  const itemWidth = 70; // your month button width
-  const spacing = 12; // your padding/margin
-
-  const scrollToX =
-    index * itemWidth + index * spacing - screenWidth / 2 + itemWidth / 2;
-
-  scrollRef.current.scrollTo({
-    x: Math.max(0, scrollToX),
-    animated: true,
-  });
-};
-
-export const calculateAge = (birthDate?: string) => {
+export const calculateAge = (birthDate?: string | null) => {
   if (!birthDate) return null;
   const d = new Date(birthDate);
   if (isNaN(d.getTime())) return null;

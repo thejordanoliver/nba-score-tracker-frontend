@@ -16,11 +16,14 @@ export const footballGamesListStyle = StyleSheet.create({
   skeletonWrapper: {
     gap: 12,
     paddingHorizontal: 12,
-    paddingVertical: 4,
   },
 
   skeletonGridWrapper: {
     paddingHorizontal: 12,
+  },
+
+  headerSkeleton: {
+    marginHorizontal: 12,
   },
 
   /* ---------- Grid ---------- */

@@ -770,10 +770,6 @@ export function NBAPlayoffBracket({
     >
       <ScrollView
         horizontal
-        snapToOffsets={snapBracketOffsets}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        disableIntervalMomentum
         showsHorizontalScrollIndicator={false}
         nestedScrollEnabled
         directionalLockEnabled

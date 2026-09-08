@@ -9,6 +9,8 @@
     "test:play-by-play-field": "node ./scripts/test-play-by-play-field-utils.js",
     "test:badges": "node ./scripts/test-badge-notification-store.js",
     "test:favorites": "node --experimental-strip-types --experimental-default-type=module --test tests/favoriteTeamKeys.test.ts tests/favoriteSportHeader.test.ts",
+    "test:schedule": "node --experimental-strip-types --experimental-default-type=module --test tests/teamScheduleSelection.test.ts",
+    "test:widget-grid": "tsx --test tests/exploreWidgetGridLayout.test.ts",
     "test:dm-privacy": "node --experimental-strip-types --experimental-default-type=module --test tests/dmPrivacyFrontend.test.ts",
     "android": "expo start --android",
     "ios": "expo start --ios",

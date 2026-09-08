@@ -125,7 +125,12 @@ export default function TeamPreviewModal({
                   />
                 )}
 
-                <Text style={styles.teamName}>
+                <Text
+                  style={styles.teamName}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit={true}
+                  minimumFontScale={0.5}
+                >
                   {team.fullName ?? team.name ?? team.shortName}
                 </Text>
 

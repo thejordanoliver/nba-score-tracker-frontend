@@ -210,6 +210,7 @@ export default function FootballGamePreviewModal({
     return null;
   }, [lastPlay, score?.plays, score?.drives]);
 
+  const neutralSite = details?.neutralSite;
   const officials = details?.officials ?? [];
   const highlights = details?.highlights ?? [];
   const injuries = details?.injuries ?? [];
@@ -345,6 +346,7 @@ export default function FootballGamePreviewModal({
                   awayName={awayName}
                   homeCode={homeCode}
                   drives={drives}
+                  neutralSite={neutralSite}
                   fieldPlay={fieldPlay}
                   homeChance={homeChance}
                   awayChance={awayChance}

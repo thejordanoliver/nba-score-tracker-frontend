@@ -14,69 +14,11 @@ export const WidgetDashboardStyles = (isDark: boolean) =>
     scroll: {
       flex: 1,
     },
-    gridRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: EXPLORE_WIDGET_GRID_GAP,
-      width: "100%",
-    },
     gridCell: {
       flexShrink: 0,
     },
-    gridCellFull: {
-      width: "100%",
-    },
     draggableCell: {
       marginBottom: 0,
-    },
-    dropPlaceholder: {
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 6,
-      width: "100%",
-      borderWidth: 1,
-      borderColor: isDark ? Colors.dark.leafGreen : Colors.light.green,
-      borderStyle: "dashed",
-      borderRadius: 8,
-      backgroundColor: isDark
-        ? "rgba(68, 178, 111, 0.12)"
-        : "rgba(44, 156, 83, 0.1)",
-    },
-    dropPlaceholderText: {
-      fontFamily: Fonts.SEMIBOLD,
-      fontSize: 13,
-      color: isDark ? Colors.dark.leafGreen : Colors.light.green,
-    },
-    toolbar: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: 8,
-      width: "100%",
-    },
-    toolbarButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 5,
-      minHeight: 34,
-      paddingHorizontal: 10,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: isDark ? Colors.darkGray : Colors.lightGray,
-      borderRadius: 8,
-      backgroundColor: isDark
-        ? Colors.dark.itemBackground
-        : Colors.light.itemBackground,
-    },
-    toolbarButtonSelected: {
-      borderColor: isDark ? Colors.white : Colors.black,
-      backgroundColor: isDark ? Colors.white : Colors.black,
-    },
-    toolbarButtonText: {
-      fontFamily: Fonts.SEMIBOLD,
-      fontSize: 13,
-      color: isDark ? Colors.white : Colors.black,
-    },
-    toolbarButtonTextSelected: {
-      color: isDark ? Colors.black : Colors.white,
     },
     emptyWrap: {
       alignItems: "center",

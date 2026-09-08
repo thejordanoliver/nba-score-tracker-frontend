@@ -16,7 +16,7 @@ import { useRouter } from "expo-router";
 import { memo } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { stackedGameCardStyles } from "styles/GamecardStyles/StackedGameCardStyles";
-import { getBroadcastDisplay } from "utils/games";
+import { getBroadcastDisplay, winnerStyle } from "utils/games";
 import { BasesIndicator } from "../GameDetails/BasesIndicator";
 
 function BaseballStackedGameCard({ game, isSB, isCB }: BaseballGameCardProps) {
@@ -133,7 +133,7 @@ function BaseballStackedGameCard({ game, isSB, isCB }: BaseballGameCardProps) {
     record: string | undefined;
     isWinner: boolean;
   }) => {
-    const showRecord = isScheduled || isCanceled || isPostponed || isDelayed;
+    const showRecord = isScheduled || isCanceled || isPostponed;
 
     return (
       <Text
@@ -264,7 +264,12 @@ function BaseballStackedGameCard({ game, isSB, isCB }: BaseballGameCardProps) {
               style={styles.logo}
               accessibilityLabel={`${awayName} logo`}
             />
-            <Text style={styles.teamName}>
+            <Text
+              style={styles.teamName}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
+            >
               {awayRank && <Text style={styles.rank}>{awayRank} </Text>}
               {awayName}
             </Text>
@@ -284,7 +289,12 @@ function BaseballStackedGameCard({ game, isSB, isCB }: BaseballGameCardProps) {
               style={styles.logo}
               accessibilityLabel={`${homeName} logo`}
             />
-            <Text style={styles.teamName}>
+            <Text
+              style={styles.teamName}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
+            >
               {homeRank && <Text style={styles.rank}>{homeRank} </Text>}
               {homeName}
             </Text>

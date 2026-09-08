@@ -1,23 +1,25 @@
+import { snapPoints } from "@/utils/modalUtils";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
 import type { ExploreWidgetOption } from "constants/exploreWidgets";
 import {
   EXPLORE_WIDGET_OPTIONS,
   getDefaultWidgetSize,
 } from "constants/exploreWidgets";
 import { Colors, Fonts, activeOpacity } from "constants/styles";
-import { BlurView } from "expo-blur";
-import { useCallback, useMemo, useRef, useState } from "react";
+import type { ComponentProps } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
-  Animated,
-  Modal,
-  PanResponder,
-  Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ExploreWidgetConfig,
   ExploreWidgetSize,
@@ -36,13 +38,6 @@ type AddWidgetModalProps = {
   ) => void;
 };
 
-type DropZoneBounds = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
 type WidgetCatalogCardProps = {
   option: ExploreWidgetOption;
   isDark: boolean;
@@ -53,16 +48,6 @@ type WidgetCatalogCardProps = {
     title: string,
     size: ExploreWidgetSize,
   ) => void;
-  onDragStart: (type: ExploreWidgetType) => void;
-  onDragMove: (x: number, y: number) => void;
-  onDragEnd: (
-    type: ExploreWidgetType,
-    title: string,
-    size: ExploreWidgetSize,
-    x: number,
-    y: number,
-  ) => boolean;
-  onDragCancel: () => void;
 };
 
 function WidgetCatalogCard({
@@ -71,88 +56,11 @@ function WidgetCatalogCard({
   isSelected,
   styles,
   onAddWidget,
-  onDragStart,
-  onDragMove,
-  onDragEnd,
-  onDragCancel,
 }: WidgetCatalogCardProps) {
   const defaultSize = getDefaultWidgetSize(option.type);
-  const dragPosition = useRef(new Animated.ValueXY()).current;
-  const [isDragging, setIsDragging] = useState(false);
-
-  const resetDrag = useCallback(() => {
-    Animated.spring(dragPosition, {
-      toValue: { x: 0, y: 0 },
-      useNativeDriver: true,
-      speed: 22,
-      bounciness: 4,
-    }).start(() => {
-      setIsDragging(false);
-    });
-  }, [dragPosition]);
-
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => false,
-        onMoveShouldSetPanResponder: (_, gestureState) =>
-          !isSelected &&
-          (Math.abs(gestureState.dx) > 6 || Math.abs(gestureState.dy) > 6),
-        onMoveShouldSetPanResponderCapture: (_, gestureState) =>
-          !isSelected &&
-          (Math.abs(gestureState.dx) > 8 || Math.abs(gestureState.dy) > 8),
-        onPanResponderGrant: () => {
-          setIsDragging(true);
-          dragPosition.setValue({ x: 0, y: 0 });
-          onDragStart(option.type);
-        },
-        onPanResponderMove: (_, gestureState) => {
-          dragPosition.setValue({
-            x: gestureState.dx,
-            y: gestureState.dy,
-          });
-          onDragMove(gestureState.moveX, gestureState.moveY);
-        },
-        onPanResponderRelease: (_, gestureState) => {
-          onDragEnd(
-            option.type,
-            option.title,
-            defaultSize,
-            gestureState.moveX,
-            gestureState.moveY,
-          );
-          resetDrag();
-        },
-        onPanResponderTerminate: () => {
-          onDragCancel();
-          resetDrag();
-        },
-        onShouldBlockNativeResponder: () => false,
-      }),
-    [
-      defaultSize,
-      dragPosition,
-      isSelected,
-      onDragCancel,
-      onDragEnd,
-      onDragMove,
-      onDragStart,
-      option.title,
-      option.type,
-      resetDrag,
-    ],
-  );
 
   return (
-    <Animated.View
-      {...panResponder.panHandlers}
-      style={[
-        styles.card,
-        isSelected && styles.cardSelected,
-        isDragging && styles.cardDragging,
-        { transform: dragPosition.getTranslateTransform() },
-      ]}
-    >
+    <View style={[styles.card, isSelected && styles.cardSelected]}>
       <View style={styles.iconWrap}>
         <Ionicons
           name={option.icon}
@@ -209,7 +117,7 @@ function WidgetCatalogCard({
           </TouchableOpacity>
         )}
       </View>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -220,202 +128,141 @@ export default function AddWidgetModal({
   onClose,
   onAddWidget,
 }: AddWidgetModalProps) {
-  const styles = addWidgetModalStyles(isDark);
+  const styles = useMemo(() => addWidgetModalStyles(isDark), [isDark]);
+  const sheetRef = useRef<BottomSheetModal>(null);
+  const hasPresentedRef = useRef(false);
+  const { top, bottom } = useSafeAreaInsets();
   const selectedSet = useMemo(
     () => new Set(selectedWidgets.map((widget) => widget.type)),
     [selectedWidgets],
   );
-  const dropZoneRef = useRef<View>(null);
-  const dropZoneBoundsRef = useRef<DropZoneBounds | null>(null);
-  const [draggingOptionType, setDraggingOptionType] =
-    useState<ExploreWidgetType | null>(null);
-  const [dropZoneActive, setDropZoneActive] = useState(false);
 
-  const measureDropZone = useCallback(() => {
-    dropZoneRef.current?.measureInWindow((x, y, width, height) => {
-      dropZoneBoundsRef.current = { x, y, width, height };
-    });
-  }, []);
-
-  const isPointInDropZone = useCallback((x: number, y: number) => {
-    const bounds = dropZoneBoundsRef.current;
-
-    if (!bounds) return false;
-
-    return (
-      x >= bounds.x &&
-      x <= bounds.x + bounds.width &&
-      y >= bounds.y &&
-      y <= bounds.y + bounds.height
-    );
-  }, []);
-
-  const handleDragStart = useCallback(
-    (type: ExploreWidgetType) => {
-      setDraggingOptionType(type);
-      setDropZoneActive(false);
-      measureDropZone();
-    },
-    [measureDropZone],
-  );
-
-  const handleDragMove = useCallback(
-    (x: number, y: number) => {
-      const isActive = isPointInDropZone(x, y);
-      setDropZoneActive((current) =>
-        current === isActive ? current : isActive,
-      );
-    },
-    [isPointInDropZone],
-  );
-
-  const clearDragState = useCallback(() => {
-    setDraggingOptionType(null);
-    setDropZoneActive(false);
-  }, []);
-
-  const handleDragEnd = useCallback(
-    (
-      type: ExploreWidgetType,
-      title: string,
-      size: ExploreWidgetSize,
-      x: number,
-      y: number,
-    ) => {
-      const shouldAdd = isPointInDropZone(x, y);
-
-      if (shouldAdd) {
-        onAddWidget(type, title, size);
+  useEffect(() => {
+    if (!visible) {
+      if (hasPresentedRef.current) {
+        sheetRef.current?.dismiss();
       }
 
-      clearDragState();
-      return shouldAdd;
-    },
-    [clearDragState, isPointInDropZone, onAddWidget],
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      hasPresentedRef.current = true;
+      sheetRef.current?.present();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [visible]);
+
+  const handleDismiss = useCallback(() => {
+    hasPresentedRef.current = false;
+    onClose();
+  }, [onClose]);
+
+  const dismissSheet = useCallback(() => {
+    sheetRef.current?.dismiss();
+  }, []);
+
+  const renderBackdrop = useCallback(
+    (props: ComponentProps<typeof BottomSheetBackdrop>) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        opacity={isDark ? 0.58 : 0.34}
+        pressBehavior="close"
+      />
+    ),
+    [isDark],
   );
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-      statusBarTranslucent
+    <BottomSheetModal
+      ref={sheetRef}
+      index={2}
+      snapPoints={snapPoints}
+      stackBehavior="push"
+      topInset={top}
+      enableDynamicSizing={false}
+      enablePanDownToClose
+      onDismiss={handleDismiss}
+      backdropComponent={renderBackdrop}
+      handleStyle={styles.handle}
+      handleIndicatorStyle={styles.handleIndicator}
+      backgroundStyle={styles.sheetBackground}
     >
-      <BlurView
-        intensity={36}
-        tint={isDark ? "dark" : "light"}
-        style={StyleSheet.absoluteFill}
-      />
-
-      <View style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <View style={styles.headerText}>
-              <Text style={styles.title}>Add Widget</Text>
-              <Text style={styles.subtitle}>
-                Choose what you want to track on Explore.
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              activeOpacity={activeOpacity}
-              onPress={onClose}
-              style={styles.closeButton}
-              accessibilityRole="button"
-              accessibilityLabel="Close add widget"
-            >
-              <Ionicons
-                name="close"
-                size={22}
-                color={isDark ? Colors.white : Colors.black}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            style={styles.scroll}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            nestedScrollEnabled
-            contentContainerStyle={styles.options}
-          >
-            {EXPLORE_WIDGET_OPTIONS.map((option) => {
-              const isSelected =
-                option.allowDuplicates !== true && selectedSet.has(option.type);
-
-              return (
-                <WidgetCatalogCard
-                  key={option.type}
-                  option={option}
-                  isDark={isDark}
-                  isSelected={isSelected}
-                  styles={styles}
-                  onAddWidget={onAddWidget}
-                  onDragStart={handleDragStart}
-                  onDragMove={handleDragMove}
-                  onDragEnd={handleDragEnd}
-                  onDragCancel={clearDragState}
-                />
-              );
-            })}
-          </ScrollView>
-
-          <View
-            ref={dropZoneRef}
-            onLayout={measureDropZone}
-            style={[
-              styles.dropZone,
-              draggingOptionType && styles.dropZoneVisible,
-              dropZoneActive && styles.dropZoneActive,
-            ]}
-          >
-            <Ionicons
-              name={dropZoneActive ? "download" : "download-outline"}
-              size={18}
-              color={
-                dropZoneActive
-                  ? isDark
-                    ? Colors.black
-                    : Colors.white
-                  : isDark
-                    ? Colors.white
-                    : Colors.black
-              }
-            />
-            <Text
-              style={[
-                styles.dropZoneText,
-                dropZoneActive && styles.dropZoneTextActive,
-              ]}
-            >
-              {dropZoneActive ? "Release to add" : "Dashboard drop area"}
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Add Widget</Text>
+            <Text style={styles.subtitle}>
+              Tap Add or choose a size for your Explore dashboard.
             </Text>
           </View>
+
+          <TouchableOpacity
+            activeOpacity={activeOpacity}
+            onPress={dismissSheet}
+            style={styles.closeButton}
+            accessibilityRole="button"
+            accessibilityLabel="Close add widget"
+          >
+            <Ionicons
+              name="close"
+              size={22}
+              color={isDark ? Colors.white : Colors.black}
+            />
+          </TouchableOpacity>
         </View>
+
+        <BottomSheetScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[
+            styles.options,
+            { paddingBottom: bottom + 24 },
+          ]}
+        >
+          {EXPLORE_WIDGET_OPTIONS.map((option) => {
+            const isSelected =
+              option.allowDuplicates !== true && selectedSet.has(option.type);
+
+            return (
+              <WidgetCatalogCard
+                key={option.type}
+                option={option}
+                isDark={isDark}
+                isSelected={isSelected}
+                styles={styles}
+                onAddWidget={onAddWidget}
+              />
+            );
+          })}
+        </BottomSheetScrollView>
       </View>
-    </Modal>
+    </BottomSheetModal>
   );
 }
 
 const addWidgetModalStyles = (isDark: boolean) =>
   StyleSheet.create({
-    backdrop: {
-      flex: 1,
-      justifyContent: "flex-end",
-      backgroundColor: isDark ? "rgba(0,0,0,0.38)" : "rgba(0,0,0,0.22)",
+    sheetBackground: {
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      backgroundColor: isDark ? Colors.black : Colors.white,
     },
-    sheet: {
-      maxHeight: "86%",
-      paddingTop: 18,
+    handle: {
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      backgroundColor: isDark ? Colors.black : Colors.white,
+    },
+    handleIndicator: {
+      width: 38,
+      backgroundColor: Colors.midTone,
+    },
+    container: {
+      flex: 1,
       paddingHorizontal: 16,
-      paddingBottom: 18,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: isDark ? Colors.darkGray : Colors.lightGray,
-      borderTopLeftRadius: 16,
-      borderTopRightRadius: 16,
       backgroundColor: isDark ? Colors.black : Colors.white,
     },
     header: {
@@ -423,7 +270,8 @@ const addWidgetModalStyles = (isDark: boolean) =>
       alignItems: "flex-start",
       justifyContent: "space-between",
       gap: 16,
-      marginBottom: 14,
+      paddingTop: 4,
+      paddingBottom: 14,
     },
     headerText: {
       flex: 1,
@@ -449,14 +297,8 @@ const addWidgetModalStyles = (isDark: boolean) =>
         ? Colors.dark.itemBackground
         : Colors.light.itemBackground,
     },
-    scroll: {
-      flexGrow: 0,
-      flexShrink: 1,
-      minHeight: 0,
-    },
     options: {
       gap: 10,
-      paddingBottom: 12,
     },
     card: {
       flexDirection: "row",
@@ -474,10 +316,6 @@ const addWidgetModalStyles = (isDark: boolean) =>
     cardSelected: {
       borderColor: isDark ? Colors.dark.leafGreen : Colors.light.green,
       opacity: 0.72,
-    },
-    cardDragging: {
-      zIndex: 30,
-      opacity: 0.92,
     },
     iconWrap: {
       alignItems: "center",
@@ -552,38 +390,5 @@ const addWidgetModalStyles = (isDark: boolean) =>
       fontFamily: Fonts.BOLD,
       fontSize: 12,
       color: isDark ? Colors.white : Colors.black,
-    },
-    dropZone: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 8,
-      minHeight: 46,
-      marginTop: 12,
-      borderWidth: 1,
-      borderColor: isDark ? Colors.darkGray : Colors.lightGray,
-      borderStyle: "dashed",
-      borderRadius: 8,
-      backgroundColor: isDark
-        ? Colors.dark.itemBackground
-        : Colors.light.itemBackground,
-      opacity: 0.72,
-    },
-    dropZoneVisible: {
-      borderColor: isDark ? Colors.dark.leafGreen : Colors.light.green,
-      opacity: 1,
-    },
-    dropZoneActive: {
-      borderColor: isDark ? Colors.white : Colors.black,
-      borderStyle: "solid",
-      backgroundColor: isDark ? Colors.white : Colors.black,
-    },
-    dropZoneText: {
-      fontFamily: Fonts.SEMIBOLD,
-      fontSize: 13,
-      color: isDark ? Colors.white : Colors.black,
-    },
-    dropZoneTextActive: {
-      color: isDark ? Colors.black : Colors.white,
     },
   });

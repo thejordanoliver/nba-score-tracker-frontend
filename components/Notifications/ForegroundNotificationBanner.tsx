@@ -1,10 +1,15 @@
+import { GameNotificationTeamLogos } from "@/components/Notifications/GameNotificationTeamLogos";
 import { Colors } from "@/constants/styles";
 import {
   useNotificationBanners,
   useNotifications,
 } from "@/contexts/NotificationContext";
 import { usePreferences } from "@/contexts/PreferencesContext";
-import { getNotificationCenterHref } from "@/utils/notificationCenter";
+import { getNotificationGameTeams } from "@/utils/notification-team-presentation";
+import {
+  getNotificationCenterHref,
+  getNotificationLeagueLabel,
+} from "@/utils/notificationCenter";
 import { Ionicons } from "@expo/vector-icons";
 import { Href, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef } from "react";
@@ -50,6 +55,10 @@ export default function ForegroundNotificationBanner() {
   if (!banner) return null;
   const canonical = banner.notification;
   const isDark = resolvedColorScheme === "dark";
+  const leagueLabel = canonical ? getNotificationLeagueLabel(canonical) : null;
+  const gameTeams = canonical
+    ? getNotificationGameTeams(canonical, isDark)
+    : null;
 
   const open = () => {
     onDismiss(banner.id);
@@ -67,22 +76,44 @@ export default function ForegroundNotificationBanner() {
       <Pressable
         onPress={open}
         accessibilityRole="button"
-        accessibilityLabel={`${canonical?.title ?? "Notification"}. ${banner.message}`}
+        accessibilityLabel={`${leagueLabel ? `${leagueLabel}. ` : ""}${canonical?.title ?? "Notification"}. ${gameTeams?.matchup ? `${gameTeams.matchup}. ` : ""}${banner.message}`}
         style={[styles.banner, isDark ? styles.bannerDark : styles.bannerLight]}
       >
-        <View style={styles.icon}>
-          <Ionicons name="notifications" size={20} color={Colors.white} />
+        <View style={[styles.icon, gameTeams && styles.gameTeamIcon]}>
+          {gameTeams ? (
+            <GameNotificationTeamLogos
+              teams={gameTeams}
+              isDark={isDark}
+              size={29}
+            />
+          ) : (
+            <Ionicons name="notifications" size={20} color={Colors.white} />
+          )}
         </View>
         <View style={styles.copy}>
-          <Text
-            style={[styles.title, isDark && styles.textDark]}
-            numberOfLines={1}
-          >
-            {canonical?.title ?? "Tempo"}
-          </Text>
+          <View style={styles.titleRow}>
+            {leagueLabel && (
+              <Text style={styles.leagueLabel}>{leagueLabel}</Text>
+            )}
+
+            <Text
+              style={[styles.title, isDark && styles.textDark]}
+              numberOfLines={1}
+            >
+              {canonical?.title ?? "Tempo"}
+            </Text>
+          </View>
+          {gameTeams?.matchup && (
+            <Text
+              style={[styles.teamNames, isDark && styles.bodyDark]}
+              numberOfLines={1}
+            >
+              {gameTeams.matchup}
+            </Text>
+          )}
           <Text
             style={[styles.body, isDark && styles.bodyDark]}
-            numberOfLines={2}
+            numberOfLines={gameTeams ? 1 : 2}
           >
             {banner.message}
           </Text>
@@ -136,9 +167,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  gameTeamIcon: {
+    width: 48,
+    borderRadius: 0,
+    backgroundColor: "transparent",
+  },
   copy: { flex: 1, gap: 2 },
-  title: { color: "#111", fontSize: 15, fontWeight: "700" },
+  titleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  leagueLabel: {
+    flexShrink: 0,
+    overflow: "hidden",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: "#E31B23",
+    color: Colors.white,
+    fontSize: 9,
+    lineHeight: 12,
+    fontWeight: "800",
+    letterSpacing: 0.4,
+  },
+  title: {
+    flexShrink: 1,
+    color: "#111",
+    fontSize: 15,
+    fontWeight: "700",
+  },
   body: { color: "#555", fontSize: 13, lineHeight: 18 },
+  teamNames: { color: "#333", fontSize: 12, lineHeight: 16, fontWeight: "600" },
   textDark: { color: "#FFFFFF" },
   bodyDark: { color: "#D1D1D6" },
 });

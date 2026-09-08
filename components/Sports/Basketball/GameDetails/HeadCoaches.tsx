@@ -13,6 +13,7 @@ type CoachesProps = {
   homeCode: string;
   awayCode: string;
   isDark: boolean;
+  state: string
 };
 
 export default function HeadCoaches({
@@ -23,6 +24,7 @@ export default function HeadCoaches({
   homeCode,
   awayCode,
   isDark,
+  state
 }: CoachesProps) {
   const styles = coachesStyles(isDark);
 
@@ -114,6 +116,8 @@ export default function HeadCoaches({
       </Text>
     </View>
   );
+
+  if (state === "post") return null
 
   return (
     <View style={styles.container}>

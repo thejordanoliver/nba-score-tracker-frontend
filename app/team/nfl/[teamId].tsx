@@ -274,7 +274,6 @@ export default function TeamDetailScreen() {
         teamId={teamIdNum}
         teamLogo={teamLogo}
         league={league}
-        isDark={isDark}
       />
     </View>
   );

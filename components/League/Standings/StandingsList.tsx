@@ -436,7 +436,14 @@ export const StandingsList = ({
             <View style={styles.logo} />
           )}
 
-          <Text style={styles.teamName}>{teamCode}</Text>
+          <Text
+            style={styles.teamName}
+            numberOfLines={1}
+            adjustsFontSizeToFit={true}
+            minimumFontScale={0.5}
+          >
+            {teamCode}
+          </Text>
 
           <StatusBadge code={item.clincher} league={league} />
         </TouchableOpacity>

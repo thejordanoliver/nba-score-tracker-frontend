@@ -1,6 +1,10 @@
 import { Colors, Fonts, activeOpacity } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type {
+  ScheduleMonthKey,
+  ScheduleMonthOption,
+} from "types/schedule";
 import {
   Animated,
   Dimensions,
@@ -13,20 +17,11 @@ import {
 } from "react-native";
 import MonthSelectorSkeleton from "../Skeletons/MonthSelectorSkeleton";
 
-type MonthItem = {
-  key?: string;
-  month: number;
-  year: number;
-  label?: string;
-  count?: number;
-};
-
 type Props = {
-  months: MonthItem[];
-  selectedDate: Date | null;
-  onSelect: (month: number, year: number, index: number) => void;
+  months: ScheduleMonthOption[];
+  selected: ScheduleMonthKey | null;
+  onSelect: (key: ScheduleMonthKey) => void;
   loading?: boolean;
-  gameCountByMonth: Map<string, number>;
 };
 
 const ITEM_WIDTH = 70;
@@ -36,10 +31,9 @@ const ITEM_SPACING = 0;
 
 export default function MonthSelector({
   months,
-  selectedDate,
+  selected,
   onSelect,
   loading = false,
-  gameCountByMonth,
 }: Props) {
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
@@ -70,16 +64,12 @@ export default function MonthSelector({
   const styles = monthSelectorStyles(isDark, horizontalPadding);
 
   const selectedIndex = useMemo(() => {
-    if (!selectedDate || !months.length) return 0;
+    if (!selected || !months.length) return 0;
 
-    const index = months.findIndex(
-      (item) =>
-        item.month === selectedDate.getMonth() &&
-        item.year === selectedDate.getFullYear(),
-    );
+    const index = months.findIndex((item) => item.key === selected);
 
     return index === -1 ? 0 : index;
-  }, [months, selectedDate]);
+  }, [months, selected]);
 
   const safeSelectedIndex = useMemo(() => {
     if (!months.length) return 0;
@@ -115,8 +105,8 @@ export default function MonthSelector({
   );
 
   const handleSelectMonth = useCallback(
-    (month: number, year: number, index: number) => {
-      onSelect(month, year, index);
+    (key: ScheduleMonthKey, index: number) => {
+      onSelect(key);
 
       scrollRef.current?.scrollTo({
         x: computeScrollOffset(index),
@@ -184,23 +174,14 @@ export default function MonthSelector({
         />
 
         {months.map(
-          ({ key: monthKey, month, year, count: monthCount }, index) => {
+          ({ key, label, count }, index) => {
             const isSelected = index === safeSelectedIndex;
-
-            const key =
-              monthKey ?? `${year}-${String(month + 1).padStart(2, "0")}`;
-
-            const count = monthCount ?? gameCountByMonth.get(key) ?? 0;
-
-            const label = new Date(year, month, 1).toLocaleString("en-US", {
-              month: "short",
-            });
 
             return (
               <TouchableOpacity
                 key={key}
                 activeOpacity={activeOpacity}
-                onPress={() => handleSelectMonth(month, year, index)}
+                onPress={() => handleSelectMonth(key, index)}
                 style={styles.monthButton}
               >
                 <Text

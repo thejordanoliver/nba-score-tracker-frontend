@@ -80,7 +80,14 @@ export const FighterRow = ({
         </Pressable>
 
         <View style={styles.teamInfo}>
-          <Text style={styles.teamName}>{name}</Text>
+          <Text
+            style={styles.teamName}
+            numberOfLines={1}
+            adjustsFontSizeToFit={true}
+            minimumFontScale={0.5}
+          >
+            {name}
+          </Text>
         </View>
       </View>
 

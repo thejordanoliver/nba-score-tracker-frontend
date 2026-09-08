@@ -19,6 +19,7 @@ import { useHockeyGames } from "./HockeyHooks/useHockeyGames";
 import { useMMAEvents } from "./MMAHooks/useMMAEvents";
 import { useAllNews } from "./NewsHooks/useAllNews";
 import { useSoccerGames } from "./SoccerHooks/useSoccerGames";
+import { useTennisMatches } from "./TennisHooks/useTennisMatches";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -120,6 +121,18 @@ export function useHomeData(selectedTab: "scores" | "news") {
     date: selectedDate,
     league: "ufc",
   });
+
+  const {
+    matches: atpMatches,
+    loading: atpLoading,
+    refreshMatches: refreshATPMatches,
+  } = useTennisMatches(selectedDate, "atp");
+
+  const {
+    matches: wtaMatches,
+    loading: wtaLoading,
+    refreshMatches: refreshWTAMatches,
+  } = useTennisMatches(selectedDate, "wta");
 
   const {
     games: mlsGames,
@@ -337,6 +350,8 @@ export function useHomeData(selectedTab: "scores" | "news") {
         wcbb: filteredWomensCBB,
         wnba: filteredWNBA,
         ufc: filteredMMA,
+        atp: atpMatches,
+        wta: wtaMatches,
       };
 
       return HOME_SCORE_LEAGUES.map((id) => ({
@@ -362,6 +377,8 @@ export function useHomeData(selectedTab: "scores" | "news") {
       filteredWomensCBB,
       filteredWNBA,
       filteredMMA,
+      atpMatches,
+      wtaMatches,
     ],
   );
 
@@ -416,6 +433,8 @@ export function useHomeData(selectedTab: "scores" | "news") {
           refreshEuropaGames(),
           refreshBundesligaGames(),
           refreshMMAGames(),
+          refreshATPMatches(),
+          refreshWTAMatches(),
         ]);
       } else {
         await refreshNews();
@@ -450,7 +469,9 @@ export function useHomeData(selectedTab: "scores" | "news") {
     europaLoading ||
     bundesligaLoading ||
     championsLoading ||
-    mmaLoading;
+    mmaLoading ||
+    atpLoading ||
+    wtaLoading;
 
   return {
     selectedDate,

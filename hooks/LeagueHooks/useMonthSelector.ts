@@ -1,60 +1,55 @@
-import { Dispatch, SetStateAction, useEffect, useMemo } from "react";
-
-type MonthGroup = {
-  key: string;
-  year: number;
-  month: number;
-  label?: string;
-  count: number;
-};
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ScheduleMonthKey, ScheduleMonthOption } from "types/schedule";
+import {
+  resolveScheduleMonthSelection,
+  type ScheduleMonthSelection,
+} from "utils/teamSchedule";
 
 type UseTeamMonthSelectorParams = {
-  gamesByMonth: MonthGroup[];
-  selectedDate: Date | null;
-  setSelectedDate: Dispatch<SetStateAction<Date | null>>;
+  months: ScheduleMonthOption[];
+  scheduleIdentity: string;
 };
 
 export function useTeamMonthSelector({
-  gamesByMonth,
-  selectedDate,
-  setSelectedDate,
+  months,
+  scheduleIdentity,
 }: UseTeamMonthSelectorParams) {
-  const gameCountByMonth = useMemo(() => {
-    return new Map(gamesByMonth.map((group) => [group.key, group.count]));
-  }, [gamesByMonth]);
+  const [selection, setSelection] = useState<ScheduleMonthSelection>({
+    scheduleIdentity,
+    selectedMonthKey: null,
+  });
 
-  const monthsToShow = useMemo(() => {
-    return gamesByMonth.map((group) => ({
-      key: group.key,
-      year: group.year,
-      month: group.month,
-      label: group.label,
-      count: group.count,
-    }));
-  }, [gamesByMonth]);
+  const resolvedSelection = useMemo(
+    () =>
+      resolveScheduleMonthSelection(selection, scheduleIdentity, months),
+    [months, scheduleIdentity, selection],
+  );
 
   useEffect(() => {
-    if (selectedDate || monthsToShow.length === 0) return;
+    if (
+      selection.scheduleIdentity === resolvedSelection.scheduleIdentity &&
+      selection.selectedMonthKey === resolvedSelection.selectedMonthKey
+    ) {
+      return;
+    }
 
-    const today = new Date();
+    setSelection(resolvedSelection);
+  }, [resolvedSelection, selection]);
 
-    const currentMonthWithGames = monthsToShow.find(
-      ({ month, year }) =>
-        month === today.getMonth() && year === today.getFullYear(),
-    );
+  const selectMonth = useCallback(
+    (selectedMonthKey: ScheduleMonthKey) => {
+      if (!months.some((month) => month.key === selectedMonthKey)) return;
 
-    const startingMonth = currentMonthWithGames ?? monthsToShow[0];
-
-    setSelectedDate(new Date(startingMonth.year, startingMonth.month, 1));
-  }, [monthsToShow, selectedDate, setSelectedDate]);
-
-  const handleSelectMonth = (month: number, year: number) => {
-    setSelectedDate(new Date(year, month, 1));
-  };
+      setSelection({
+        scheduleIdentity,
+        selectedMonthKey,
+      });
+    },
+    [months, scheduleIdentity],
+  );
 
   return {
-    monthsToShow,
-    gameCountByMonth,
-    handleSelectMonth,
+    selectedMonthKey: resolvedSelection.selectedMonthKey,
+    selectMonth,
   };
 }

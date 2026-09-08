@@ -61,6 +61,10 @@ export const LEAGUE_TABS = {
 
   ufc: ["fights", "news", "champions", "forum"],
 
+  atp: ["scores", "news", "forum"],
+
+  wta: ["scores", "news", "forum"],
+
   mls: ["scores", "news", "standings", "forum"],
 
   epl: ["scores", "news", "standings", "forum"],
@@ -131,7 +135,5 @@ export function isTeam(value: string): value is Team {
 export function normalizeLeagueParam(value: string | string[] | undefined) {
   const rawValue = Array.isArray(value) ? value[0] : value;
 
-  return String(rawValue || "")
-    .trim()
-
+  return String(rawValue || "").trim();
 }

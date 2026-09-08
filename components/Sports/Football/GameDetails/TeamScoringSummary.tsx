@@ -40,17 +40,13 @@ export default function TeamScoringSummary({
   const styles = TeamScoringSummaryStyles(isDark);
   const global = globalStyles(isDark);
 
-  const [selectedTab, setSelectedTab] = useState<HomeAwayTabValue>("all");
+  const [selectedTab, setSelectedTab] = useState<HomeAwayTabValue>("away");
 
   const plays = useMemo(() => {
     return Array.isArray(scoringPlays) ? scoringPlays : [];
   }, [scoringPlays]);
 
   const filteredPlays = useMemo(() => {
-    if (selectedTab === "all") {
-      return plays;
-    }
-
     const selectedTeamId = selectedTab === "away" ? awayId : homeId;
 
     return plays.filter((play) => {
@@ -93,7 +89,7 @@ export default function TeamScoringSummary({
           selected={selectedTab}
           onTabPress={setSelectedTab}
           isDark={isDark}
-          showAllTab
+          showAllTab={false}
         />
 
         {!loading && filteredPlays.length === 0 ? (

@@ -1,47 +1,26 @@
 import HeadingTwo from "components/Headings/HeadingTwo";
 import { Colors, Fonts } from "constants/styles";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  FlatList,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-  type ListRenderItem,
-  type ViewStyle,
-  type ViewToken,
-} from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import type { Highlight } from "types/types";
 
-import {
-  HighlightVideoItem,
-  type HighlightVideoItemStyles,
-} from "./HighlightVideoItem";
+import { HighlightItem } from "./HighlightItem";
 
 type HighlightVideoProps = {
   highlights: Highlight[] | undefined;
   isDark: boolean;
 };
 
-const AUTO_ADVANCE_INTERVAL_MS = 10_000;
-const CARD_GAP = 15;
-const CARD_HEIGHT = 220;
-const MAX_CARD_WIDTH = 420;
-const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 60 } as const;
-
 export const Highlights = React.memo(function Highlights({
   highlights,
   isDark,
 }: HighlightVideoProps) {
-  const { width: windowWidth } = useWindowDimensions();
-  const cardWidth = Math.min(windowWidth * 0.8, MAX_CARD_WIDTH);
-  const snapInterval = cardWidth + CARD_GAP;
-  const styles = useMemo(() => createHighlightStyles(cardWidth), [cardWidth]);
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const listRef = useRef<FlatList<Highlight>>(null);
-  const currentIndexRef = useRef(0);
-  const highlightCount = highlights?.length ?? 0;
+
+  const styles = useMemo(() => HighlightsStyles(isDark), [isDark]);
 
   const handlePlay = useCallback((id: string) => {
+    // Only one video can be active at a time.
     setPlayingId(id);
   }, []);
 
@@ -49,161 +28,188 @@ export const Highlights = React.memo(function Highlights({
     setPlayingId((currentId) => (currentId === id ? null : currentId));
   }, []);
 
-  const onViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken<Highlight>[] }) => {
-      const firstVisibleItem = viewableItems.find(
-        (viewableItem) => viewableItem.index != null,
-      );
-
-      if (firstVisibleItem?.index != null) {
-        currentIndexRef.current = firstVisibleItem.index;
-      }
-
-      setPlayingId((currentId) => {
-        if (
-          currentId &&
-          !viewableItems.some((viewableItem) => viewableItem.item.id === currentId)
-        ) {
-          return null;
-        }
-
-        return currentId;
-      });
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (currentIndexRef.current >= highlightCount) {
-      currentIndexRef.current = 0;
-    }
-  }, [highlightCount]);
-
-  useEffect(() => {
-    if (highlightCount < 2 || playingId) return;
-
-    const interval = setInterval(() => {
-      const nextIndex = (currentIndexRef.current + 1) % highlightCount;
-
-      listRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-      currentIndexRef.current = nextIndex;
-    }, AUTO_ADVANCE_INTERVAL_MS);
-
-    return () => clearInterval(interval);
-  }, [highlightCount, playingId]);
-
-  const getItemLayout = useCallback(
-    (_data: ArrayLike<Highlight> | null | undefined, index: number) => ({
-      index,
-      length: snapInterval,
-      offset: snapInterval * index,
-    }),
-    [snapInterval],
-  );
-
-  const renderItem = useCallback<ListRenderItem<Highlight>>(
-    ({ item }) => (
-      <HighlightVideoItem
-        item={item}
-        isPlaying={playingId === item.id}
-        onEnd={handleEnd}
-        onPlay={handlePlay}
-        styles={styles}
-      />
-    ),
-    [handleEnd, handlePlay, playingId, styles],
-  );
-
-  if (!highlights?.length) return null;
+  if (!highlights?.length) {
+    return null;
+  }
 
   return (
-    <View>
+    <View style={styles.section}>
       <HeadingTwo isDark={isDark}>Highlights</HeadingTwo>
-      <View style={styles.wrapper}>
-        <FlatList
-          ref={listRef}
-          contentContainerStyle={styles.listContainer}
-          data={highlights}
-          decelerationRate="fast"
-          extraData={playingId}
-          getItemLayout={getItemLayout}
-          horizontal
-          initialNumToRender={2}
-          keyExtractor={(item) => item.id}
-          maxToRenderPerBatch={3}
-          onViewableItemsChanged={onViewableItemsChanged}
-          renderItem={renderItem}
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={snapInterval}
-          viewabilityConfig={VIEWABILITY_CONFIG}
-          windowSize={3}
-        />
+
+      <View style={styles.listContainer}>
+        {highlights.map((item, index) => (
+          <View
+            key={item.id}
+            style={[
+              styles.itemContainer,
+              index < highlights.length - 1 && styles.itemSeparator,
+            ]}
+          >
+            <HighlightItem
+              item={item}
+              isPlaying={playingId === item.id}
+              onEnd={handleEnd}
+              onPlay={handlePlay}
+              isDark={isDark}
+            />
+          </View>
+        ))}
       </View>
     </View>
   );
 });
 
-const createHighlightStyles = (
-  cardWidth: number,
-): HighlightVideoItemStyles & {
-  listContainer: ViewStyle;
-  wrapper: ViewStyle;
-} =>
-  StyleSheet.create({
-    listContainer: {
-      paddingLeft: 12,
-    },
-    wrapper: {
-      borderColor: Colors.midTone,
-      borderRadius: 8,
-      borderWidth: 1,
-      padding: 12,
-    },
-    cardWrapper: {
-      alignItems: "center",
-      backgroundColor: Colors.black,
-      borderRadius: 10,
-      height: CARD_HEIGHT,
-      justifyContent: "center",
-      marginRight: CARD_GAP,
-      overflow: "hidden",
-      width: cardWidth,
-    },
-    video: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: Colors.black,
-    },
-    thumbnailWrapper: {
-      height: "100%",
-      position: "relative",
+export const HighlightsStyles = (isDark: boolean) => {
+  const pressedBackgroundColor = isDark
+    ? Colors.dark.transparentItemBackground
+    : Colors.light.transparentItemBackground;
+  const textColor = isDark ? Colors.white : Colors.black;
+  const secondaryTextColor = isDark ? Colors.lightGray : Colors.darkGray;
+  const separatorColor = isDark ? Colors.lightGray : Colors.darkGray;
+
+  return StyleSheet.create({
+    section: {
       width: "100%",
     },
+
+    listContainer: {
+      borderColor: Colors.midTone,
+      borderRadius: 10,
+      borderWidth: 1,
+      overflow: "hidden",
+    },
+
+    itemContainer: {
+      width: "100%",
+    },
+
+    itemSeparator: {
+      borderBottomColor: separatorColor,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+
+    row: {
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+      width: "100%",
+    },
+
+    rowPressed: {
+      backgroundColor: pressedBackgroundColor,
+    },
+
+    rowContent: {
+      alignItems: "center",
+      flexDirection: "row",
+      width: "100%",
+    },
+
+    thumbnailWrapper: {
+      backgroundColor: Colors.black,
+      borderRadius: 7,
+      height: 68,
+      overflow: "hidden",
+      position: "relative",
+      width: 112,
+    },
+
     thumbnail: {
       height: "100%",
       width: "100%",
     },
-    playButtonOverlay: {
-      ...StyleSheet.absoluteFillObject,
+
+    thumbnailPlayOverlay: {
       alignItems: "center",
-      backgroundColor: "rgba(0,0,0,0.28)",
+      backgroundColor: "rgba(0,0,0,0.42)",
+      borderRadius: 18,
+      height: 34,
       justifyContent: "center",
-    },
-    headlineContainer: {
-      bottom: 0,
-      justifyContent: "flex-end",
-      left: 0,
-      padding: 10,
+      left: "50%",
+      marginLeft: -17,
+      marginTop: -17,
       position: "absolute",
-      right: 0,
+      top: "50%",
+      width: 34,
     },
-    headline: {
+
+    durationBadge: {
+      backgroundColor: "rgba(0,0,0,0.82)",
+      borderRadius: 4,
+      bottom: 4,
+      paddingHorizontal: 5,
+      paddingVertical: 2,
+      position: "absolute",
+      right: 4,
+    },
+
+    durationText: {
       color: Colors.white,
       fontFamily: Fonts.BOLD,
-      fontSize: 16,
+      fontSize: 10,
     },
+
+    infoContainer: {
+      flex: 1,
+      justifyContent: "center",
+      minWidth: 0,
+      paddingHorizontal: 12,
+    },
+
+    headline: {
+      color: textColor,
+      fontFamily: Fonts.BOLD,
+      fontSize: 14,
+      lineHeight: 18,
+    },
+
+    metadata: {
+      color: secondaryTextColor,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 11,
+      lineHeight: 15,
+      marginTop: 4,
+    },
+
+    playButton: {
+      alignItems: "center",
+      backgroundColor: isDark ? "rgba(255,255,255,0.12)" : Colors.black,
+      borderRadius: 19,
+      height: 38,
+      justifyContent: "center",
+      marginLeft: 4,
+      width: 38,
+    },
+
+    expandedVideoWrapper: {
+      aspectRatio: 16 / 9,
+      backgroundColor: Colors.black,
+      position: "relative",
+      width: "100%",
+    },
+
+    video: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: Colors.black,
+    },
+
+    closeButton: {
+      alignItems: "center",
+      backgroundColor: "rgba(0,0,0,0.72)",
+      borderRadius: 18,
+      height: 36,
+      justifyContent: "center",
+      position: "absolute",
+      right: 8,
+      top: 8,
+      width: 36,
+      zIndex: 10,
+    },
+
     unavailable: {
-      color: Colors.white,
-      padding: 10,
-      textAlign: "center",
+      color: secondaryTextColor,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 11,
+      marginTop: 4,
     },
   });
+};

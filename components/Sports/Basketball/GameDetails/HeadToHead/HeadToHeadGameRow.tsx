@@ -156,7 +156,14 @@ export default function HeadToHeadGameRow({
             style={styles.teamLogo}
             contentFit="contain"
           />
-          <Text style={styles.teamName}>{awayTeamCode}</Text>
+          <Text
+            style={styles.teamName}
+            numberOfLines={1}
+            adjustsFontSizeToFit={true}
+            minimumFontScale={0.5}
+          >
+            {awayTeamCode}
+          </Text>
         </View>
         <ScoreText score={awayScore} record={awayRecord} teamWins={awayWon} />
       </View>
@@ -173,7 +180,14 @@ export default function HeadToHeadGameRow({
             style={styles.teamLogo}
             contentFit="contain"
           />
-          <Text style={styles.teamName}>{homeTeamCode}</Text>
+          <Text
+            style={styles.teamName}
+            numberOfLines={1}
+            adjustsFontSizeToFit={true}
+            minimumFontScale={0.5}
+          >
+            {homeTeamCode}
+          </Text>
         </View>
       </View>
     </View>

@@ -69,6 +69,8 @@ export function CustomHeader({
   unreadNotificationCount,
   onOpenThemesSettings,
   onAddWidget,
+  onToggleWidgetEditing,
+  isWidgetEditing = false,
   teamId,
   teamCode,
   homeTeamCode,
@@ -82,6 +84,7 @@ export function CustomHeader({
   isFavorite,
   showFavoriteAction = false,
   favoritePending = false,
+  notificationPending = false,
   isNotified,
   selectedConferenceName,
   onToggleFavorite,
@@ -373,6 +376,8 @@ export function CustomHeader({
           showBackButton={showBackButton}
           onBack={onBack}
           onAddWidget={onAddWidget}
+          onToggleWidgetEditing={onToggleWidgetEditing}
+          isWidgetEditing={isWidgetEditing}
           onProfileMessages={onMessages ? handleProfileMessages : undefined}
           isDark={isDark}
           headerIconColor={headerIconColor}
@@ -441,6 +446,7 @@ export function CustomHeader({
           isPlayerScreen={isPlayerScreen}
           showFavoriteAction={showFavoriteAction}
           favoritePending={favoritePending}
+          notificationPending={notificationPending}
           favoriteIconColor={headerIconColor}
           onToggleFavorite={onToggleFavorite}
           onToggleNotifications={onToggleNotifications}

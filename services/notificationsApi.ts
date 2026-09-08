@@ -1,6 +1,8 @@
 import type { AppNotification, NotificationPage } from "@/types/notifications";
 import { apiClient } from "@/utils/apiClient";
 
+const NOTIFICATION_REQUEST_TIMEOUT_MS = 15_000;
+
 export async function getNotificationsPage(options: {
   cursor?: string | null;
   limit?: number;
@@ -10,6 +12,7 @@ export async function getNotificationsPage(options: {
       cursor: options.cursor || undefined,
       limit: options.limit,
     },
+    timeout: NOTIFICATION_REQUEST_TIMEOUT_MS,
   });
   return response.data;
 }

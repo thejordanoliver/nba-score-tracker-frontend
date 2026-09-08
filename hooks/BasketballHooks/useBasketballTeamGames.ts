@@ -1,17 +1,23 @@
 import { BasketballGame } from "@/types/basketball/basketball";
+import { useTeamMonthSelector } from "hooks/LeagueHooks/useMonthSelector";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLiveSportsSubscription } from "hooks/useLiveSportsSubscription";
+import type {
+  ScheduleMonthGroup,
+  ScheduleMonthKey,
+  ScheduleMonthOption,
+} from "types/schedule";
 import { apiClient } from "utils/apiClient";
+import { getFirstSeasonGame } from "utils/seasonGames";
+import {
+  buildScheduleMonthOptions,
+  getScheduleGamesForMonth,
+  isScheduleOpeningMonth,
+} from "utils/teamSchedule";
 
 export type BasketballTeamScheduleLeague = "nba" | "wnba" | "cbb" | "wcbb";
 
-export type BasketballScheduleMonth = {
-  key: string;
-  label: string;
-  year: number | null;
-  month: number | null;
-  games: BasketballGame[];
-};
+export type BasketballScheduleMonth = ScheduleMonthGroup<BasketballGame>;
 
 export type BasketballTeamScheduleTeam = {
   id?: string;
@@ -47,31 +53,17 @@ type FetchScheduleOptions = {
   silent?: boolean;
 };
 
-interface UseBasketballTeamGamesResult {
-  league: string | null;
-  team: BasketballTeamScheduleTeam | null;
-  season: Season | null;
+export interface UseBasketballTeamGamesResult {
   games: BasketballGame[];
-  months: BasketballScheduleMonth[];
+  months: ScheduleMonthOption[];
+  selectedMonthKey: ScheduleMonthKey | null;
+  selectMonth: (key: ScheduleMonthKey) => void;
+  firstSeasonGame: BasketballGame | null;
+  showCountdown: boolean;
   loading: boolean;
   refreshing: boolean;
   error: Error | null;
   refresh: () => Promise<void>;
-}
-
-function areScheduleResponsesEqual(
-  current: BasketballTeamScheduleResponse,
-  next: BasketballTeamScheduleResponse,
-): boolean {
-  if (current === next) {
-    return true;
-  }
-
-  try {
-    return JSON.stringify(current) === JSON.stringify(next);
-  } catch {
-    return false;
-  }
 }
 
 function hasValidValue(
@@ -104,6 +96,8 @@ export function useBasketballTeamGames(
       }
 
       try {
+        setError(null);
+
         if (isRefresh) {
           setRefreshing(true);
         } else if (!silent) {
@@ -125,15 +119,7 @@ export function useBasketballTeamGames(
           months: responseMonths,
         };
 
-        setError(null);
-
-        setData((currentData) => {
-          if (currentData && areScheduleResponsesEqual(currentData, nextData)) {
-            return currentData;
-          }
-
-          return nextData;
-        });
+        setData(nextData);
       } catch (err: any) {
         const message =
           err?.response?.data?.error ??
@@ -145,7 +131,10 @@ export function useBasketballTeamGames(
         } else {
           console.error("BASKETBALL TEAM SCHEDULE ERROR:", err);
           setError(new Error(message));
-          setData(null);
+
+          if (!isRefresh) {
+            setData(null);
+          }
         }
       } finally {
         if (isRefresh) {
@@ -164,7 +153,31 @@ export function useBasketballTeamGames(
     fetchSchedule();
   }, [fetchSchedule]);
 
-  const games = useMemo(() => data?.games ?? [], [data]);
+  const allGames = useMemo(() => data?.games ?? [], [data?.games]);
+  const monthGroups = useMemo(() => data?.months ?? [], [data?.months]);
+  const months = useMemo(
+    () => buildScheduleMonthOptions(monthGroups),
+    [monthGroups],
+  );
+  const scheduleIdentity = `${league}:${String(teamId ?? "")}:${String(
+    season ?? "",
+  )}`;
+  const { selectedMonthKey, selectMonth } = useTeamMonthSelector({
+    months,
+    scheduleIdentity,
+  });
+  const games = useMemo(
+    () => getScheduleGamesForMonth(monthGroups, selectedMonthKey),
+    [monthGroups, selectedMonthKey],
+  );
+  const firstSeasonGame = useMemo(
+    () => getFirstSeasonGame(allGames),
+    [allGames],
+  );
+  const showCountdown = isScheduleOpeningMonth(
+    firstSeasonGame,
+    selectedMonthKey,
+  );
 
   useLiveSportsSubscription<BasketballTeamScheduleResponse>({
     enabled: Boolean(league && hasValidValue(teamId) && hasValidValue(season)),
@@ -186,13 +199,7 @@ export function useBasketballTeamGames(
       };
 
       setError(null);
-      setData((currentData) => {
-        if (currentData && areScheduleResponsesEqual(currentData, nextData)) {
-          return currentData;
-        }
-
-        return nextData;
-      });
+      setData(nextData);
     },
   });
 
@@ -202,16 +209,28 @@ export function useBasketballTeamGames(
 
   return useMemo(
     () => ({
-      league: data?.league ?? null,
-      team: data?.team ?? null,
-      season: data?.season ?? null,
       games,
-      months: data?.months ?? [],
+      months,
+      selectedMonthKey,
+      selectMonth,
+      firstSeasonGame,
+      showCountdown,
       loading,
       refreshing,
       error,
       refresh,
     }),
-    [data, games, loading, refreshing, error, refresh],
+    [
+      games,
+      months,
+      selectedMonthKey,
+      selectMonth,
+      firstSeasonGame,
+      showCountdown,
+      loading,
+      refreshing,
+      error,
+      refresh,
+    ],
   );
 }

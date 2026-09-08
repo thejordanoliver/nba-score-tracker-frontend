@@ -423,6 +423,7 @@ export default function GameDetailsScreen(
               homeLogo={homeLogo}
               awayLogo={awayLogo}
               isDark={isDark}
+              state={state}
             />
 
             <Officials officials={officials} isDark={isDark} state={state} />

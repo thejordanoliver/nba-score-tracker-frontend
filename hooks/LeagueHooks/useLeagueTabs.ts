@@ -14,11 +14,14 @@ const FALLBACK_TEAM_TABS = [
 ] as const;
 
 export function useLeagueTabs(league: string) {
+  const normalizedLeague = league.trim().toLowerCase();
+
   const tabs = useMemo<readonly string[]>(() => {
     return (
-      LEAGUE_TABS[league as keyof typeof LEAGUE_TABS] ?? FALLBACK_LEAGUE_TABS
+      LEAGUE_TABS[normalizedLeague as keyof typeof LEAGUE_TABS] ??
+      FALLBACK_LEAGUE_TABS
     );
-  }, [league]);
+  }, [normalizedLeague]);
 
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0]);
 
@@ -34,7 +37,7 @@ export function useLeagueTabs(league: string) {
 }
 
 export function useTeamTabs(team: string) {
-  const normalizedTeam = team.toUpperCase();
+  const normalizedTeam = team.trim().toLowerCase();
 
   const tabs = useMemo<readonly string[]>(() => {
     return (

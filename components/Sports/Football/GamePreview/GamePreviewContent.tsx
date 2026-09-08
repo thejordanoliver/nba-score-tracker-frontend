@@ -45,6 +45,7 @@ type GamePreviewContentProps = {
     home: string[];
     away: string[];
   };
+  neutralSite: boolean | undefined;
   fieldPlay: PlayObject | null;
   drives: {
     previous: FootballDrive[];
@@ -68,7 +69,7 @@ type GamePreviewContentProps = {
   venueCapacity?: number | null;
   venueAttendance?: number | null;
   weather?: any;
-  state?: "pre" | "in" | "post" | null;
+  state: string;
   league: string;
   isDark: boolean;
 };
@@ -85,6 +86,7 @@ export default function GamePreviewContent({
   awayCode,
   awayLogo,
   lineScore,
+  neutralSite,
   teamStats,
   leaders,
   injuries,
@@ -163,6 +165,7 @@ export default function GamePreviewContent({
           drives={drives}
           play={fieldPlay}
           showPlay={Boolean(fieldPlay)}
+          neutralSite={neutralSite}
           isDark={isDark}
           state={state}
           league={league}
@@ -228,6 +231,7 @@ export default function GamePreviewContent({
           awayCoach={awayCoach}
           homeLogo={homeLogo}
           awayLogo={awayLogo}
+          state={state}
           isDark={isDark}
         />
         <Officials officials={officials ?? []} state={state} isDark={isDark} />

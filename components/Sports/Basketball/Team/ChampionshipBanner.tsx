@@ -1,4 +1,5 @@
 import { getWCBBTeam } from "@/constants/teamsWCBB";
+import { usePreferences } from "@/contexts/PreferencesContext";
 import { Championships } from "@/hooks/useTeams";
 import Fill from "assets/banners/Fill.png";
 import Outline from "assets/banners/Outline.png";
@@ -15,9 +16,7 @@ import { getWNBATeam } from "constants/teamsWNBA";
 import { Image, StyleSheet, Text, View } from "react-native";
 
 type Props = {
-  isDark: boolean;
   championships: Championships[] | undefined;
-  logo?: any;
   teamId?: string | number;
   teamName?: string;
   teamLogo?: any;
@@ -68,13 +67,14 @@ function getTeamByLeague(league: string, teamId?: string | number) {
 }
 
 export default function ChampionshipBanner({
-  isDark,
   championships,
   teamId,
   teamName,
   teamLogo,
   league = "nba",
 }: Props) {
+  const { resolvedColorScheme } = usePreferences();
+  const isDark = resolvedColorScheme === "dark";
   const team = getTeamByLeague(league, teamId);
   const styles = championshipBannerStyles(isDark);
 

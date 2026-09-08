@@ -40,7 +40,14 @@ export default function GameUniforms({
               style={styles.uniformsImage}
               contentFit="contain"
             />
-            <Text style={styles.teamName}>{awayTeam.name} Away</Text>
+            <Text
+              style={styles.teamName}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
+            >
+              {awayTeam.name} Away
+            </Text>
           </View>
 
           <Text style={styles.vs}>vs</Text>
@@ -51,7 +58,14 @@ export default function GameUniforms({
               style={styles.uniformsImage}
               contentFit="contain"
             />
-            <Text style={styles.teamName}>{homeTeam.name} Home</Text>
+            <Text
+              style={styles.teamName}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
+            >
+              {homeTeam.name} Home
+            </Text>
           </View>
         </View>
       </View>

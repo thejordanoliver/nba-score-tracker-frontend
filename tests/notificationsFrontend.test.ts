@@ -2,12 +2,19 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { AppNotification, NotificationType } from "../types/notifications";
-import { getNotificationCenterHref } from "../utils/notificationCenter";
+import {
+  getNotificationCenterHref,
+  getNotificationLeagueLabel,
+} from "../utils/notificationCenter";
 import {
   isNotificationForSession,
   mergeNotifications,
   reconcileHydratedUnreadCount,
 } from "../utils/notificationState";
+import {
+  hasEnabledNotificationSetting,
+  mergeNotificationSettings,
+} from "../utils/notification-settings";
 
 const notification = (
   type: NotificationType,
@@ -117,12 +124,45 @@ test("the central navigation mapper covers all notification types", () => {
       getNotificationCenterHref(
         notification(type, {
           entityId: "game/1",
-          data: { sport: "basketball", gameId: "game/1" },
+          data: { sport: "basketball", league: "nba", gameId: "game/1" },
         }),
       ),
-      "/game/basketball/game%2F1",
+      "/game/basketball/game%2F1?league=nba",
     );
   }
+});
+
+test("game notifications preserve supported league labels in their routes", () => {
+  for (const [sport, league] of [
+    ["football", "cfb"],
+    ["football", "nfl"],
+    ["basketball", "nba"],
+    ["basketball", "wcbb"],
+    ["basketball", "cbb"],
+  ] as const) {
+    const gameNotification = notification("game_final", {
+      entityId: "401234567",
+      data: { sport, league, gameId: "401234567" },
+    });
+
+    assert.equal(
+      getNotificationCenterHref(gameNotification),
+      `/game/${sport}/401234567?league=${league}`,
+    );
+    assert.equal(getNotificationLeagueLabel(gameNotification), league.toUpperCase());
+  }
+});
+
+test("game notification routing stays backward-compatible without a league", () => {
+  assert.equal(
+    getNotificationCenterHref(
+      notification("game_final", {
+        entityId: "401234567",
+        data: { sport: "football", gameId: "401234567" },
+      }),
+    ),
+    "/game/football/401234567",
+  );
 });
 
 test("the navigation mapper safely handles missing metadata", () => {
@@ -133,4 +173,45 @@ test("the navigation mapper safely handles missing metadata", () => {
     getNotificationCenterHref(notification("new_follower", { actorUserId: null })),
     "/(tabs)/profile",
   );
+});
+
+test("team notification settings merge across both teams for a game", () => {
+  const merged = mergeNotificationSettings([
+    {
+      gameStartEnabled: true,
+      touchdownEnabled: false,
+      quarterEndEnabled: false,
+      halftimeEnabled: false,
+      closeGameEnabled: false,
+      finalScoreEnabled: false,
+    },
+    {
+      gameStartEnabled: false,
+      touchdownEnabled: false,
+      quarterEndEnabled: false,
+      halftimeEnabled: false,
+      closeGameEnabled: false,
+      finalScoreEnabled: true,
+    },
+  ]);
+
+  assert.equal(merged?.gameStartEnabled, true);
+  assert.equal(merged?.finalScoreEnabled, true);
+});
+
+test("an all-off game override remains distinguishable from no settings", () => {
+  const allOff = mergeNotificationSettings([
+    {
+      gameStartEnabled: false,
+      touchdownEnabled: false,
+      quarterEndEnabled: false,
+      halftimeEnabled: false,
+      closeGameEnabled: false,
+      finalScoreEnabled: false,
+    },
+  ]);
+
+  assert.notEqual(allOff, null);
+  assert.equal(hasEnabledNotificationSetting(allOff), false);
+  assert.equal(mergeNotificationSettings([]), null);
 });

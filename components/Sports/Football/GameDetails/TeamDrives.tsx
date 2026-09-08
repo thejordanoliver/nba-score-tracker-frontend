@@ -3,13 +3,15 @@ import HomeAwayTabBar, {
 } from "@/components/TabBars/HomeAwayTabBar";
 import type { FootballDrive } from "@/hooks/FootballHooks/useFootballGameDetails";
 import { Colors } from "constants/styles";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { ImageSourcePropType } from "react-native";
 import { StyleSheet, View } from "react-native";
 import HeadingTwo from "../../../Headings/HeadingTwo";
 import DrivesList from "./DrivesList";
 
 type League = "nfl" | "cfb" | string;
+
+type TeamTab = Exclude<HomeAwayTabValue, "all">;
 
 type Props = {
   previousDrives?: FootballDrive[] | null;
@@ -25,6 +27,12 @@ type Props = {
   isDark: boolean;
   league?: League;
   state?: string;
+};
+
+type DriveTeam = {
+  id: string | null;
+  label: string;
+  logo: ImageSourcePropType;
 };
 
 const normalizeId = (id?: number | string | null): string | null => {
@@ -52,7 +60,7 @@ export default function TeamDrives({
 }: Props) {
   const styles = TeamDrivesStyles(isDark);
 
-  const [selectedTab, setSelectedTab] = useState<HomeAwayTabValue>("all");
+  const [selectedTab, setSelectedTab] = useState<TeamTab>("away");
 
   const previous = useMemo(() => {
     return Array.isArray(previousDrives) ? previousDrives : [];
@@ -62,11 +70,7 @@ export default function TeamDrives({
     return Array.isArray(currentDrives) ? currentDrives : [];
   }, [currentDrives]);
 
-  const allDrives = useMemo(() => {
-    return [...current, ...previous];
-  }, [current, previous]);
-
-  const teams = useMemo(
+  const teams = useMemo<Record<TeamTab, DriveTeam>>(
     () => ({
       away: {
         id: normalizeId(awayId),
@@ -82,47 +86,40 @@ export default function TeamDrives({
     [awayCode, awayId, awayLogo, homeCode, homeId, homeLogo],
   );
 
+  const filterDrivesByTeam = useCallback(
+    (drives: FootballDrive[], tab: TeamTab): FootballDrive[] => {
+      const selectedTeam = teams[tab];
+
+      if (!selectedTeam.id) {
+        return [];
+      }
+
+      return drives.filter((drive) => {
+        const driveTeamId = normalizeId(drive.team?.id);
+
+        return driveTeamId === selectedTeam.id;
+      });
+    },
+    [teams],
+  );
+
   const selectedCurrentDrives = useMemo(() => {
-    if (selectedTab === "all") {
-      return current;
-    }
-
-    const selectedTeam = teams[selectedTab];
-
-    if (!selectedTeam.id) {
-      return [];
-    }
-
-    return current.filter((drive) => {
-      const driveTeamId = normalizeId(drive.team?.id);
-
-      return driveTeamId === selectedTeam.id;
-    });
-  }, [current, selectedTab, teams]);
+    return filterDrivesByTeam(current, selectedTab);
+  }, [current, filterDrivesByTeam, selectedTab]);
 
   const selectedPreviousDrives = useMemo(() => {
-    if (selectedTab === "all") {
-      return previous;
+    return filterDrivesByTeam(previous, selectedTab);
+  }, [previous, filterDrivesByTeam, selectedTab]);
+
+  const handleTabPress = useCallback((tab: HomeAwayTabValue) => {
+    if (tab === "all") {
+      return;
     }
 
-    const selectedTeam = teams[selectedTab];
-
-    if (!selectedTeam.id) {
-      return [];
-    }
-
-    return previous.filter((drive) => {
-      const driveTeamId = normalizeId(drive.team?.id);
-
-      return driveTeamId === selectedTeam.id;
-    });
-  }, [previous, selectedTab, teams]);
+    setSelectedTab(tab);
+  }, []);
 
   if (state !== "post" && state !== "in") {
-    return null;
-  }
-
-  if (!loading && allDrives.length === 0) {
     return null;
   }
 
@@ -143,9 +140,9 @@ export default function TeamDrives({
             logo: homeLogo,
           }}
           selected={selectedTab}
-          onTabPress={setSelectedTab}
+          onTabPress={handleTabPress}
+          showAllTab={false}
           isDark={isDark}
-          showAllTab
         />
 
         <DrivesList

@@ -72,6 +72,21 @@ export type MMAProps = {
   gameStatusDescription?: string;
 };
 
+export type TennisProps = {
+  id: string | null;
+  isHome?: boolean;
+  name: string;
+  flag: string | null;
+  flags: string[];
+  country: string | null;
+  rank: number | null;
+  isWinner: boolean | null;
+  serving: boolean;
+  score: number;
+  gameStatusDescription?: string;
+  isDark: boolean;
+};
+
 export type RacingProps = {
   id?: number;
   name: string;
@@ -304,5 +319,125 @@ export const DriverRowStyles = (isDark: boolean, isTie?: boolean) =>
       fontSize: 12,
       color: isDark ? Colors.lightGray : Colors.darkGray,
       textAlign: "center",
+    },
+  });
+
+// Main static styles
+export const CompetitorRowStyles = (isDark: boolean, isTie?: boolean) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 8,
+    },
+    teamInfoContainer: {
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    teamInfo: {
+      justifyContent: "center",
+    },
+    flagStack: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    flagContainer: {
+      justifyContent: "center",
+      alignItems: "center",
+      width: 40,
+      height: 40,
+      borderRadius: 999,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: isDark ? Colors.white : Colors.black,
+      overflow: "hidden",
+      marginBottom: 4,
+    },
+
+    flag: {
+      width: 68,
+      height: 68,
+    },
+
+    overlappingFlag: {
+      marginLeft: -20,
+      backgroundColor: isDark
+        ? Colors.dark.itemBackground
+        : Colors.light.itemBackground,
+    },
+
+    nameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    name: {
+      width: 80,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 12,
+      color: isDark ? Colors.white : Colors.black,
+      textAlign: "center",
+    },
+    rank: {
+      fontSize: 10,
+      color: Colors.lightGray,
+    },
+    record: {
+      fontFamily: Fonts.REGULAR,
+      fontSize: 12,
+      color: isTie
+        ? isDark
+          ? Colors.white
+          : Colors.black
+        : isDark
+          ? Colors.white
+          : Colors.black,
+      textAlign: "center",
+    },
+    score: {
+      width: 60,
+      marginHorizontal: 16,
+      fontFamily: Fonts.BOLD,
+      fontSize: 36,
+      textAlign: "center",
+    },
+    preGameRecord: {
+      width: 80,
+      marginHorizontal: 8,
+      fontFamily: Fonts.BOLD,
+      fontSize: 20,
+      color: isDark ? Colors.white : Colors.black,
+      textAlign: "center",
+    },
+    scoreWrapper: {
+      position: "relative",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    serveIndicator: {
+      position: "absolute",
+      bottom: -10,
+      width: 7,
+      height: 7,
+      borderRadius: 999,
+      backgroundColor: isDark ? Colors.dark.limeGreen : Colors.light.green,
+    },
+    tennisScoreColumn: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    tennisLineScore: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 2,
+    },
+
+    tennisLineScoreItem: {
+      flexDirection: "row",
+      alignItems: "center",
     },
   });

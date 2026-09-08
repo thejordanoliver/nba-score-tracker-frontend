@@ -261,7 +261,12 @@ export default function FootballGameWidget({
       <View style={styles.container}>
         {showHeadline && (
           <View style={styles.headlineContainer}>
-            <Text style={styles.headline} numberOfLines={1}>
+            <Text
+              style={styles.headline}
+              numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
+            >
               {headline}
             </Text>
           </View>

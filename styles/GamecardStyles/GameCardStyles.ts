@@ -1,4 +1,4 @@
-import { Colors, Fonts } from "constants/styles";
+import { activeOpacity, Colors, Fonts } from "constants/styles";
 import { StyleSheet } from "react-native";
 
 export const gameCardStyles = (isDark: boolean, isChampionship?: boolean) => {
@@ -6,7 +6,7 @@ export const gameCardStyles = (isDark: boolean, isChampionship?: boolean) => {
   const subTextColor = isDark ? Colors.lightGray : Colors.darkGray;
   const accentRed = isDark ? Colors.dark.lightRed : Colors.light.red;
   const borderColor = isDark ? Colors.lightGray : Colors.darkGray;
-
+  const liveColor = isDark ? Colors.dark.limeGreen : Colors.light.green;
   const headlineColor = isChampionship
     ? isDark
       ? Colors.white
@@ -61,7 +61,7 @@ export const gameCardStyles = (isDark: boolean, isChampionship?: boolean) => {
     },
 
     teamName: {
-      width: 100,
+      width: 70,
       marginTop: 4,
       fontFamily: Fonts.REGULAR,
       fontSize: 12,
@@ -238,6 +238,246 @@ export const gameCardStyles = (isDark: boolean, isChampionship?: boolean) => {
       width: 22,
       height: 22,
       resizeMode: "contain",
+    },
+
+    flagStack: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    flagContainer: {
+      justifyContent: "center",
+      alignItems: "center",
+      width: 40,
+      height: 40,
+      borderRadius: 999,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: isDark ? Colors.white : Colors.black,
+      overflow: "hidden",
+    },
+
+    flag: {
+      width: 68,
+      height: 68,
+    },
+
+    overlappingFlag: {
+      marginLeft: -20,
+      backgroundColor: isDark
+        ? Colors.dark.itemBackground
+        : Colors.light.itemBackground,
+    },
+
+    tiebreak: {
+      color: textColor,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 8,
+    },
+
+    serveIndicator: {
+      position: "absolute",
+      bottom: -10,
+      width: 7,
+      height: 7,
+      borderRadius: 999,
+      backgroundColor: liveColor,
+    },
+    tennisScoreColumn: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    tennisLineScore: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 2,
+    },
+
+    tennisLineScoreItem: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    tennisLineScoreDivider: {
+      width: StyleSheet.hairlineWidth,
+      height: 14,
+      backgroundColor: borderColor,
+    },
+
+    setCell: {
+      minWidth: 18,
+      minHeight: 18,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    setScore: {
+      color: textColor,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 11,
+      fontVariant: ["tabular-nums"],
+    },
+  });
+};
+
+export const tennisCardStyles = (isDark: boolean, isGrid = false) => {
+  const textColor = isDark ? Colors.white : Colors.black;
+  const subTextColor = isDark ? Colors.lightGray : Colors.darkGray;
+  const liveColor = isDark ? Colors.dark.limeGreen : Colors.light.green;
+
+  return StyleSheet.create({
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 8,
+      borderRadius: 8,
+      backgroundColor: isDark
+        ? Colors.dark.itemBackground
+        : Colors.light.itemBackground,
+    },
+
+    teamSection: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+      justifyContent: "center",
+    },
+
+    logo: {
+      width: 40,
+      height: 40,
+      resizeMode: "contain",
+    },
+
+    competitorName: {
+      width: 100,
+      marginTop: 4,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 12,
+      color: textColor,
+      textAlign: "center",
+    },
+
+    rank: {
+      fontSize: 10,
+      color: subTextColor,
+    },
+
+    teamScore: {
+      flex: 1,
+      fontFamily: Fonts.BOLD,
+      fontSize: 28,
+      textAlign: "center",
+      backgroundColor: "red",
+    },
+
+    centerColumn: {
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      paddingHorizontal: isGrid ? 4 : 8,
+      gap: 5,
+    },
+
+    competitor: {
+      justifyContent: "center",
+    },
+
+    competitorTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+    },
+
+    status: {
+      color: subTextColor,
+      fontFamily: Fonts.REGULAR,
+      fontSize: isGrid ? 10 : 12,
+      textAlign: "center",
+      fontVariant: ["tabular-nums"],
+    },
+
+    liveStatus: {
+      color: liveColor,
+      fontFamily: Fonts.BOLD,
+    },
+
+    scoreboard: {
+      gap: 2,
+      alignItems: "center",
+    },
+
+    scoreRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    setCell: {
+      width: isGrid ? 20 : 24,
+      minHeight: 23,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    mutedSetCell: {
+      opacity: 0.4,
+    },
+
+    setScore: {
+      color: textColor,
+      fontFamily: Fonts.REGULAR,
+      fontSize: isGrid ? 12 : 15,
+      fontVariant: ["tabular-nums"],
+    },
+
+    winningSetScore: {
+      fontFamily: Fonts.BOLD,
+    },
+
+    tiebreak: {
+      color: textColor,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 8,
+    },
+
+    serveIndicator: {
+      width: 7,
+      height: 7,
+      borderRadius: 999,
+      backgroundColor: liveColor,
+    },
+
+    iconColor: {
+      color: textColor,
+    },
+
+    footer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+
+    broadcast: {
+      flex: 1,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 10,
+      color: subTextColor,
+      textAlign: "left",
+    },
+
+    court: {
+      flex: 1,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 10,
+      color: subTextColor,
+      textAlign: "right",
+    },
+
+    pressed: {
+      opacity: activeOpacity,
     },
   });
 };

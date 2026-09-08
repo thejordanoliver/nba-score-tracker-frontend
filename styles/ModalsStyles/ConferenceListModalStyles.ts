@@ -9,6 +9,13 @@ export const ConferenceListModalStyles = (isDark: boolean) =>
       overflow: "hidden",
       backgroundColor: isDark ? Colors.black : Colors.white,
     },
+    blurViewContainer: {
+      flex: 1,
+      padding: 12,
+      paddingTop: 40,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    },
     handleStyle: {
       position: "absolute",
       top: 0,
@@ -27,7 +34,6 @@ export const ConferenceListModalStyles = (isDark: boolean) =>
       borderRadius: 2,
       backgroundColor: Colors.midTone,
     },
-
     header: {
       position: "absolute",
       top: 0,

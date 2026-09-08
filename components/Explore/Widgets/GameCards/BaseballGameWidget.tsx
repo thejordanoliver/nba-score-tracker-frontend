@@ -137,7 +137,14 @@ export default function BaseballGameWidget({
     <View style={styles.teamWrapper}>
       <Image style={styles.teamLogo} source={awayLogo} />
       <Text style={styles.teamName} numberOfLines={1}>
-        <Text style={styles.teamName}>{awayRank} </Text>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
+          {awayRank}{" "}
+        </Text>
         {awayName}
       </Text>
     </View>
@@ -147,7 +154,14 @@ export default function BaseballGameWidget({
     <View style={styles.teamWrapper}>
       <Image style={styles.teamLogo} source={homeLogo} />
       <Text style={styles.teamName} numberOfLines={1}>
-        <Text style={styles.teamName}>{homeRank} </Text>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
+          {homeRank}{" "}
+        </Text>
         {homeName}
       </Text>
     </View>
@@ -198,7 +212,12 @@ export default function BaseballGameWidget({
     <View style={styles.container}>
       {showHeadline && (
         <View style={styles.headlineContainer}>
-          <Text style={styles.headline} numberOfLines={1}>
+          <Text
+            style={styles.headline}
+            numberOfLines={1}
+            adjustsFontSizeToFit={true}
+            minimumFontScale={0.5}
+          >
             {headline}
           </Text>
         </View>

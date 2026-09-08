@@ -31,7 +31,7 @@ export default function BasketballGameCard({
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
   const handlePress = () => {
-      console.log(league);
+    console.log(league);
     router.push({
       pathname: "/game/basketball/[game]",
       params: {
@@ -41,7 +41,6 @@ export default function BasketballGameCard({
       },
     });
   };
-
 
   const gameDate = safeDate(game.date);
   const formattedDate = formatDate(gameDate);
@@ -78,8 +77,6 @@ export default function BasketballGameCard({
           : isGLEAGUE
             ? getGLeagueTeam(awayId)
             : getNBATeam(awayId);
-
-            
 
   const homeName = homeTeam?.shortName || homeTeam?.name || game.home?.name;
   const awayName = awayTeam?.shortName || awayTeam?.name || game.away?.name;
@@ -230,7 +227,12 @@ export default function BasketballGameCard({
           contentFit="contain"
           accessibilityLabel={`${awayName} logo`}
         />
-        <Text style={styles.teamName}>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
           {awayRank && <Text style={styles.rank}>{awayRank} </Text>}
           {awayName}
         </Text>
@@ -262,7 +264,12 @@ export default function BasketballGameCard({
           contentFit="contain"
           accessibilityLabel={`${homeName} logo`}
         />
-        <Text style={styles.teamName}>
+        <Text
+          style={styles.teamName}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.5}
+        >
           {homeRank && <Text style={styles.rank}>{homeRank} </Text>}
           {homeName}
         </Text>

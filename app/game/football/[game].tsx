@@ -5,6 +5,7 @@ import TeamDrives from "@/components/Sports/Football/GameDetails/TeamDrives";
 import TeamScoringSummary from "@/components/Sports/Football/GameDetails/TeamScoringSummary";
 import { getCFBTeam, getCFBTeamLogo } from "@/constants/teamsCFB";
 import { getUFLTeam, getUFLTeamLogo } from "@/constants/teamsUFL";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { useLastFiveGames } from "@/hooks/BaseballHooks/useLastFiveGames";
 import { useFootballGameDetails } from "@/hooks/FootballHooks/useFootballGameDetails";
 import { useLiveVotes } from "@/hooks/useLiveVotes";
@@ -93,25 +94,75 @@ function parseGameParam(value?: string | string[]): FootballGame | undefined {
   }
 }
 
+function getRouteGameId(value?: string | string[]) {
+  const rawValue = getFirstParam(value);
+
+  if (!rawValue || rawValue === "undefined" || rawValue === "null") {
+    return null;
+  }
+
+  const decodedValue = safeDecode(rawValue).trim();
+  return decodedValue && !decodedValue.startsWith("{") ? decodedValue : null;
+}
+
+function getRouteLeague(value?: string | string[]) {
+  const league = getFirstParam(value)?.trim().toLowerCase();
+  return league && /^[a-z0-9][a-z0-9._-]*$/.test(league) ? league : null;
+}
+
 export default function GameDetailsScreen(
   props: Partial<FootballGameCardProps> = {},
 ) {
   const styles = gameDetailsScreenStyles;
   const params = useLocalSearchParams<RouteParams>();
   const { resolvedColorScheme } = usePreferences();
+  const { isGameNotified, openGameNotificationSettings } = useNotifications();
   const isDark = resolvedColorScheme === "dark";
   const navigation = useNavigation();
   const { opacityAnim, handleScrollStart, handleScrollEnd } = useScrollFade();
 
-  const game = useMemo(() => {
+  const routeGame = useMemo(() => {
     return (
       props.game ?? parseGameParam(params.data) ?? parseGameParam(params.game)
     );
   }, [params.data, params.game, props.game]);
 
-  const LEAGUE = game?.league?.code ?? "nfl";
+  const LEAGUE = (
+    routeGame?.league?.code ??
+    getRouteLeague(params.league) ??
+    "nfl"
+  ).toLowerCase();
   const isCFB = LEAGUE === "cfb";
   const isNFL = LEAGUE === "nfl";
+
+  const rawGameId = routeGame?.id ?? getRouteGameId(params.game);
+  const parsedGameId = Number(rawGameId);
+  const gameId = Number.isFinite(parsedGameId) ? parsedGameId : 0;
+  const { score, details, loading } = useFootballGameDetails(LEAGUE, gameId);
+
+  const game = useMemo(() => {
+    if (routeGame) return routeGame;
+    if (!score) return undefined;
+
+    return {
+      id: Number(score.gameId),
+      date: score.date,
+      league: { code: LEAGUE },
+      home: {
+        ...score.home,
+        logo: score.home.logo ?? "",
+        primaryColor: score.home.color,
+        conferenceId: null,
+      },
+      away: {
+        ...score.away,
+        logo: score.away.logo ?? "",
+        primaryColor: score.away.color,
+        conferenceId: null,
+      },
+      situation: { isRedZone: false },
+    };
+  }, [LEAGUE, routeGame, score]);
 
   const gameDateObj = useMemo(() => {
     return game?.date ? new Date(game.date) : null;
@@ -122,8 +173,6 @@ export default function GameDetailsScreen(
   const formattedTime = formatTime(gameDate);
   const showGameChat = shouldShowGameChat(gameDateObj);
   const holidayLabel = getHolidayLabel(gameDate);
-  const gameId = game?.id ?? 0;
-
   const home = game?.home;
   const away = game?.away;
 
@@ -164,10 +213,22 @@ export default function GameDetailsScreen(
       ? getCFBTeamLogo(awayId, true)
       : getUFLTeamLogo(awayId, true);
 
-  const homeCode = useMemo(() => homeTeam?.code ?? "", [homeTeam?.code]);
-  const awayCode = useMemo(() => awayTeam?.code ?? "", [awayTeam?.code]);
-  const homeName = useMemo(() => homeTeam?.name ?? "", [homeTeam?.name]);
-  const awayName = useMemo(() => awayTeam?.name ?? "", [awayTeam?.name]);
+  const homeCode = useMemo(
+    () => homeTeam?.code ?? home?.code ?? "",
+    [home?.code, homeTeam?.code],
+  );
+  const awayCode = useMemo(
+    () => awayTeam?.code ?? away?.code ?? "",
+    [away?.code, awayTeam?.code],
+  );
+  const homeName = useMemo(
+    () => homeTeam?.name ?? home?.name ?? "",
+    [home?.name, homeTeam?.name],
+  );
+  const awayName = useMemo(
+    () => awayTeam?.name ?? away?.name ?? "",
+    [away?.name, awayTeam?.name],
+  );
 
   const awayColor = useMemo(() => awayTeam?.color ?? "", [awayTeam?.color]);
   const homeColor = useMemo(() => homeTeam?.color ?? "", [homeTeam?.color]);
@@ -181,11 +242,17 @@ export default function GameDetailsScreen(
   const homeCoach = homeTeamDetails?.coach;
   const awayCoach = awayTeamDetails?.coach;
 
-  const { score, details, loading } = useFootballGameDetails(LEAGUE, gameId);
-
   const isLoading = loading || !game || !home || !away || !score || !details;
 
   const state = score?.status.state ?? "pre";
+  const gameNotificationsEnabled = isGameNotified(
+    "football",
+    LEAGUE,
+    gameId,
+    homeId,
+    awayId,
+  );
+
   const gameStatusDescription = score?.status.gameStatusDescription ?? "";
   const gameStatusDetail = score?.status.shortDetail ?? "";
   const isCanceled = gameStatusDescription === "Canceled";
@@ -314,6 +381,17 @@ export default function GameDetailsScreen(
           homeColor={homeColor}
           awayColor={awayColor}
           isNeutralSite={neutralSite}
+          league={LEAGUE}
+          isNotified={gameNotificationsEnabled}
+          onToggleNotifications={() =>
+            openGameNotificationSettings(
+              "football",
+              LEAGUE,
+              gameId,
+              homeId,
+              awayId,
+            )
+          }
         />
       ),
     });
@@ -330,9 +408,12 @@ export default function GameDetailsScreen(
     homeCode,
     awayColor,
     homeColor,
+    gameId,
+    gameNotificationsEnabled,
     isLoading,
     navigation,
     neutralSite,
+    openGameNotificationSettings,
   ]);
 
   if (isLoading) {
@@ -547,6 +628,7 @@ export default function GameDetailsScreen(
               homeLogo={homeLogo}
               awayLogo={awayLogo}
               isDark={isDark}
+              state={state}
             />
 
             <Officials officials={officials} isDark={isDark} state={state} />

@@ -26,6 +26,7 @@ import CustomTabBar from "../components/CustomTabBar";
 import BadgeUnlockedModal from "../components/Profile/Badges/BadgeUnlockedModal";
 import ForegroundNotificationBanner from "../components/Notifications/ForegroundNotificationBanner";
 import { Colors } from "../constants/styles";
+import { ExploreWidgetsProvider } from "../contexts/ExploreWidgetsContext";
 import { FavoriteTeamsProvider } from "../contexts/FavoriteTeamsContext";
 import { MessagesProvider } from "../contexts/MessagesContext";
 import {
@@ -323,11 +324,13 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PreferencesProvider>
         <FavoriteTeamsProvider>
-          <NotificationProvider>
+          <ExploreWidgetsProvider>
             <BottomSheetModalProvider>
-              <AppLayout />
+              <NotificationProvider>
+                <AppLayout />
+              </NotificationProvider>
             </BottomSheetModalProvider>
-          </NotificationProvider>
+          </ExploreWidgetsProvider>
         </FavoriteTeamsProvider>
       </PreferencesProvider>
     </GestureHandlerRootView>

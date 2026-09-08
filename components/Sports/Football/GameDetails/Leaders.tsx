@@ -45,7 +45,7 @@ type Props = {
   awayId: string | number;
   isDark: boolean;
   league: string;
-  state?: "pre" | "in" | "post" | null;
+  state?: string | null;
   loading?: boolean;
   error?: boolean;
 };
@@ -519,7 +519,7 @@ export default function GameLeaders({
           const player = entry.athlete;
 
           const playerId = player.id ?? player.espnId;
-        
+
           const playerName =
             player.shortName ??
             player.displayName ??

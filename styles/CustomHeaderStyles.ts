@@ -24,6 +24,27 @@ export const customHeaderStyles = (isDark: boolean, screenWidth: number) => {
       width: isTablet ? 32 : 24,
     },
 
+    exploreHeaderActions: {
+      flexDirection: "row",
+      alignItems: "center",
+
+      gap: isTablet ? 4 : 2,
+    },
+
+    exploreHeaderActionButton: {
+      alignItems: "center",
+      justifyContent: "center",
+
+      width: isTablet ? 38 : 34,
+      height: isTablet ? 38 : 34,
+
+      borderRadius: isTablet ? 19 : 17,
+    },
+
+    exploreHeaderActionButtonSelected: {
+      backgroundColor: isDark ? Colors.white : Colors.black,
+    },
+
     profileHeaderPlaceholder: {
       width: isTablet ? 40 : 32,
     },

@@ -25,6 +25,7 @@ import { getWCBBTeam, getWCBBTeamLogo } from "@/constants/teamsWCBB";
 import { getWNBATeam, getWNBATeamLogo } from "@/constants/teamsWNBA";
 import { useLastFiveGames } from "@/hooks/BaseballHooks/useLastFiveGames";
 import { useBasketballGameDetails } from "@/hooks/BasketballHooks/useBasketballGameDetails";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { useLiveVotes } from "@/hooks/useLiveVotes";
 import useTeamDetails from "@/hooks/useTeams";
 import { useVenue } from "@/hooks/useVenue";
@@ -96,26 +97,82 @@ function parseGameParam(value?: string | string[]): BasketballGame | undefined {
   }
 }
 
+function getRouteGameId(value?: string | string[]) {
+  const rawValue = getFirstParam(value);
+
+  if (!rawValue || rawValue === "undefined" || rawValue === "null") {
+    return null;
+  }
+
+  const decodedValue = safeDecode(rawValue).trim();
+  return decodedValue && !decodedValue.startsWith("{") ? decodedValue : null;
+}
+
+function getRouteLeague(value?: string | string[]) {
+  const league = getFirstParam(value)?.trim().toLowerCase();
+  return league && /^[a-z0-9][a-z0-9._-]*$/.test(league) ? league : null;
+}
+
 export default function GameDetailsScreen(
   props: Partial<BasketballGameCardProps> = {},
 ) {
   const styles = gameDetailsScreenStyles;
   const params = useLocalSearchParams<RouteParams>();
   const { resolvedColorScheme } = usePreferences();
+  const {
+    isGameNotified,
+    openGameNotificationSettings,
+  } = useNotifications();
   const isDark = resolvedColorScheme === "dark";
   const navigation = useNavigation();
   const { opacityAnim, handleScrollStart, handleScrollEnd } = useScrollFade();
 
-  const game = useMemo(() => {
+  const routeGame = useMemo(() => {
     return (
       props.game ?? parseGameParam(params.data) ?? parseGameParam(params.game)
     );
   }, [params.data, params.game, props.game]);
 
-  const LEAGUE = game?.league?.code ?? "nba";
+  const LEAGUE = (
+    routeGame?.league?.code ?? getRouteLeague(params.league) ?? "nba"
+  ).toLowerCase();
   const isWNBA = LEAGUE === "wnba";
   const isWCBB = LEAGUE === "wcbb";
   const isCBB = LEAGUE === "cbb";
+
+  const rawGameId = routeGame?.id ?? getRouteGameId(params.game);
+  const parsedGameId = Number(rawGameId);
+  const gameId = Number.isFinite(parsedGameId) ? parsedGameId : 0;
+  const { details, score } = useBasketballGameDetails(LEAGUE, gameId);
+
+  const game = useMemo(() => {
+    if (routeGame) return routeGame;
+    if (!score) return undefined;
+
+    const toGameTeam = (team: typeof score.home) => ({
+      ...team,
+      id: Number(team.id),
+      espnId: Number(team.id),
+      name: team.fullName ?? team.name,
+      shortName: team.shortName,
+      city: "",
+      state: "",
+      logo: "",
+      primaryColor: "",
+      secondaryColor: "",
+      nbaAPIID: 0,
+      rank: team.rank ?? 0,
+    });
+
+    return {
+      id: Number(score.gameId),
+      date: score.date ?? "",
+      league: { code: LEAGUE },
+      home: toGameTeam(score.home),
+      away: toGameTeam(score.away),
+      attendance: 0,
+    };
+  }, [LEAGUE, routeGame, score]);
 
   const gameDateObj = game?.date ? new Date(game.date) : null;
   const gameDate = safeDate(game?.date);
@@ -123,10 +180,6 @@ export default function GameDetailsScreen(
   const formattedTime = formatTime(gameDate);
   const holidayLabel = getHolidayLabel(gameDate);
   const showGameChat = shouldShowGameChat(gameDateObj);
-  const gameId = Number(game?.id) ?? 0;
-
-  const { details, score } = useBasketballGameDetails(LEAGUE, gameId);
-
   const home = game?.home;
   const away = game?.away;
   const homeId = home?.id ?? 0;
@@ -219,6 +272,13 @@ export default function GameDetailsScreen(
   const awayTimeouts = score?.away.timeouts ?? 0;
   const gameStatusDescription = score?.status.gameStatusDescription ?? "";
   const state = score?.status.state ?? null;
+  const gameNotificationsEnabled = isGameNotified(
+    "basketball",
+    LEAGUE,
+    gameId,
+    homeId,
+    awayId,
+  );
   const gameStatusDetail = score?.status.gameStatusDetail ?? "";
   const period = formatPeriod({
     period: score?.status.period ?? 0,
@@ -264,7 +324,7 @@ export default function GameDetailsScreen(
   const venueAddress = venue?.address ?? baseVenueAddress;
   const venueCapacity = venue?.capacity ?? null;
   const venueImage = venue?.image ?? baseVenue?.images?.[0]?.href;
-  const venueAttendance = game?.attendance || null;
+  const venueAttendance = details?.attendance ?? game?.attendance ?? null;
   const venueCity = venue?.city ?? baseVenue?.address?.city;
   const venueRegion =
     venue?.state ?? baseVenue?.address?.state ?? baseVenue?.address?.country;
@@ -300,6 +360,16 @@ export default function GameDetailsScreen(
           awayColor={awayColor}
           isNeutralSite={!!neutralSite}
           league={LEAGUE}
+          isNotified={gameNotificationsEnabled}
+          onToggleNotifications={() =>
+            openGameNotificationSettings(
+              "basketball",
+              LEAGUE,
+              gameId,
+              homeId,
+              awayId,
+            )
+          }
         />
       ),
     });
@@ -315,9 +385,12 @@ export default function GameDetailsScreen(
     homeHeaderLogo,
     home,
     homeId,
+    gameId,
+    gameNotificationsEnabled,
     isLoading,
     navigation,
     neutralSite,
+    openGameNotificationSettings,
   ]);
 
   if (isLoading) {
