@@ -82,8 +82,8 @@ export type TennisProps = {
   rank: number | null;
   isWinner: boolean | null;
   serving: boolean;
-  score: number;
-  gameStatusDescription?: string;
+  score: number | null;
+  state?: string | null;
   isDark: boolean;
 };
 

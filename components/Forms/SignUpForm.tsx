@@ -5,6 +5,7 @@ import FavoriteTeamsSelector from "components/Favorites/FavoriteTeamsSelector";
 import { Colors, globalStyles } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Controller, type Control, useWatch } from "react-hook-form";
 import {
   Animated,
   Easing,
@@ -18,7 +19,7 @@ import {
   View,
 } from "react-native";
 import { formStyles } from "styles/FormStyles";
-import type { FavoriteTeamKey } from "types/favorites";
+import type { SignupFormValues } from "schemas/auth/signupSchema";
 import type { LeagueType } from "types/types";
 
 import { getNBATeamLogo } from "@/constants/teams";
@@ -35,28 +36,17 @@ import Button from "../Buttons/Button";
 import SelectionCard from "../Favorites/SelectionCard";
 import TabBar from "../TabBars/TabBar";
 
-export type SignupData = {
-  fullName: string;
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  favoriteTeams: FavoriteTeamKey[];
-  favoriteSports: FavoriteSportId[];
-  profileImage: string | null;
-  bannerImage: string | null;
-};
-
 export type SignupStepsProps = {
-  signupData: SignupData;
+  control: Control<SignupFormValues>;
   signupStep: number;
-  onChangeSignupData: (data: Partial<SignupData>) => void;
-  onNextStep: () => void;
+  onNextStep: () => Promise<void>;
   onToggleFavorite: (league: string, id: string) => void;
+  onToggleFavoriteSport: (sport: FavoriteSportId) => void;
   onOpenImagePickerFor: (target: "profile" | "banner") => void;
   isGridView: boolean;
   fadeAnim: Animated.Value;
   isSubmitting: boolean;
+  isValidating: boolean;
   onSubmit: () => Promise<void>;
 };
 
@@ -109,14 +99,15 @@ type FavoritesTab = (typeof FAVORITES_TABS)[number];
 
 export default function SignUpForm({
   signupStep,
-  signupData,
-  onChangeSignupData,
+  control,
   onNextStep,
   onToggleFavorite,
+  onToggleFavoriteSport,
   onOpenImagePickerFor,
   isGridView,
   fadeAnim,
   isSubmitting,
+  isValidating,
   onSubmit,
 }: SignupStepsProps) {
   const { resolvedColorScheme } = usePreferences();
@@ -134,6 +125,29 @@ export default function SignUpForm({
 
   const [selectedFavoritesTab, setSelectedFavoritesTab] =
     useState<FavoritesTab>("teams");
+
+  const [
+    fullName,
+    username,
+    email,
+    password,
+    favoriteTeams,
+    favoriteSports,
+    profileImage,
+    bannerImage,
+  ] = useWatch({
+    control,
+    name: [
+      "fullName",
+      "username",
+      "email",
+      "password",
+      "favoriteTeams",
+      "favoriteSports",
+      "profileImage",
+      "bannerImage",
+    ],
+  });
 
   useEffect(() => {
     Animated.timing(progress, {
@@ -174,19 +188,6 @@ export default function SignUpForm({
     [setSearch],
   );
 
-  const handleToggleFavoriteSport = useCallback(
-    (sport: FavoriteSportId) => {
-      const isFavorite = signupData.favoriteSports.includes(sport);
-
-      onChangeSignupData({
-        favoriteSports: isFavorite
-          ? signupData.favoriteSports.filter((favorite) => favorite !== sport)
-          : [...signupData.favoriteSports, sport],
-      });
-    },
-    [onChangeSignupData, signupData.favoriteSports],
-  );
-
   const findFavoriteTeam = useCallback(
     (league: LeagueType | null, id: string) =>
       allTeams.find((team) => {
@@ -207,41 +208,69 @@ export default function SignUpForm({
       case 0:
         return (
           <View style={styles.formWrapper}>
-            <View style={styles.input}>
-              <TextInput
-                placeholder="Name"
-                value={signupData.fullName}
-                onChangeText={(value) =>
-                  onChangeSignupData({
-                    fullName: value,
-                  })
-                }
-                style={styles.inputText}
-                placeholderTextColor={Colors.midTone}
-                autoComplete="name"
-                textContentType="name"
-                returnKeyType="next"
-              />
-            </View>
+            <Controller
+              control={control}
+              name="fullName"
+              render={({ field, fieldState }) => (
+                <View style={styles.field}>
+                  <View
+                    style={[styles.input, fieldState.error && styles.inputError]}
+                  >
+                    <TextInput
+                      placeholder="Name"
+                      ref={field.ref}
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      onBlur={field.onBlur}
+                      style={styles.inputText}
+                      placeholderTextColor={Colors.midTone}
+                      autoComplete="name"
+                      textContentType="name"
+                      returnKeyType="next"
+                    />
+                  </View>
 
-            <View style={styles.input}>
-              <TextInput
-                placeholder="Username"
-                value={signupData.username}
-                onChangeText={(value) =>
-                  onChangeSignupData({
-                    username: value.toLowerCase(),
-                  })
-                }
-                style={styles.inputText}
-                placeholderTextColor={Colors.midTone}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="username-new"
-                textContentType="username"
-                returnKeyType="next"
-              />
-            </View>
+                  {fieldState.error?.message && (
+                    <Text style={styles.fieldErrorText}>
+                      {fieldState.error.message}
+                    </Text>
+                  )}
+                </View>
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="username"
+              render={({ field, fieldState }) => (
+                <View style={styles.field}>
+                  <View
+                    style={[styles.input, fieldState.error && styles.inputError]}
+                  >
+                    <TextInput
+                      placeholder="Username"
+                      ref={field.ref}
+                      value={field.value}
+                      onChangeText={(value) => field.onChange(value.toLowerCase())}
+                      onBlur={field.onBlur}
+                      style={styles.inputText}
+                      placeholderTextColor={Colors.midTone}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      autoComplete="username-new"
+                      textContentType="username"
+                      returnKeyType="next"
+                    />
+                  </View>
+
+                  {fieldState.error?.message && (
+                    <Text style={styles.fieldErrorText}>
+                      {fieldState.error.message}
+                    </Text>
+                  )}
+                </View>
+              )}
+            />
           </View>
         );
 
@@ -249,65 +278,107 @@ export default function SignUpForm({
       case 1:
         return (
           <View style={styles.formWrapper}>
-            <View style={styles.input}>
-              <TextInput
-                placeholder="johndoe@example.com"
-                keyboardType="email-address"
-                value={signupData.email}
-                onChangeText={(value) =>
-                  onChangeSignupData({
-                    email: value,
-                  })
-                }
-                style={styles.inputText}
-                placeholderTextColor={Colors.midTone}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="email"
-                textContentType="emailAddress"
-                returnKeyType="next"
-              />
-            </View>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field, fieldState }) => (
+                <View style={styles.field}>
+                  <View
+                    style={[styles.input, fieldState.error && styles.inputError]}
+                  >
+                    <TextInput
+                      placeholder="johndoe@example.com"
+                      keyboardType="email-address"
+                      ref={field.ref}
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      onBlur={field.onBlur}
+                      style={styles.inputText}
+                      placeholderTextColor={Colors.midTone}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      autoComplete="email"
+                      textContentType="emailAddress"
+                      returnKeyType="next"
+                    />
+                  </View>
 
-            <View style={styles.input}>
-              <TextInput
-                placeholder="Password"
-                secureTextEntry
-                value={signupData.password}
-                onChangeText={(value) =>
-                  onChangeSignupData({
-                    password: value,
-                  })
-                }
-                style={styles.inputText}
-                placeholderTextColor={Colors.midTone}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="new-password"
-                textContentType="newPassword"
-                returnKeyType="next"
-              />
-            </View>
+                  {fieldState.error?.message && (
+                    <Text style={styles.fieldErrorText}>
+                      {fieldState.error.message}
+                    </Text>
+                  )}
+                </View>
+              )}
+            />
 
-            <View style={styles.input}>
-              <TextInput
-                placeholder="Confirm Password"
-                secureTextEntry
-                value={signupData.confirmPassword}
-                onChangeText={(value) =>
-                  onChangeSignupData({
-                    confirmPassword: value,
-                  })
-                }
-                style={styles.inputText}
-                placeholderTextColor={Colors.midTone}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="new-password"
-                textContentType="newPassword"
-                returnKeyType="done"
-              />
-            </View>
+            <Controller
+              control={control}
+              name="password"
+              render={({ field, fieldState }) => (
+                <View style={styles.field}>
+                  <View
+                    style={[styles.input, fieldState.error && styles.inputError]}
+                  >
+                    <TextInput
+                      placeholder="Password"
+                      secureTextEntry
+                      ref={field.ref}
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      onBlur={field.onBlur}
+                      style={styles.inputText}
+                      placeholderTextColor={Colors.midTone}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      autoComplete="new-password"
+                      textContentType="newPassword"
+                      returnKeyType="next"
+                    />
+                  </View>
+
+                  {fieldState.error?.message && (
+                    <Text style={styles.fieldErrorText}>
+                      {fieldState.error.message}
+                    </Text>
+                  )}
+                </View>
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="confirmPassword"
+              render={({ field, fieldState }) => (
+                <View style={styles.field}>
+                  <View
+                    style={[styles.input, fieldState.error && styles.inputError]}
+                  >
+                    <TextInput
+                      placeholder="Confirm Password"
+                      secureTextEntry
+                      ref={field.ref}
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      onBlur={field.onBlur}
+                      style={styles.inputText}
+                      placeholderTextColor={Colors.midTone}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      autoComplete="new-password"
+                      textContentType="newPassword"
+                      returnKeyType="done"
+                    />
+                  </View>
+
+                  {fieldState.error?.message && (
+                    <Text style={styles.fieldErrorText}>
+                      {fieldState.error.message}
+                    </Text>
+                  )}
+                </View>
+              )}
+            />
           </View>
         );
 
@@ -325,27 +396,21 @@ export default function SignUpForm({
             {selectedFavoritesTab === "teams" ? (
               <FavoriteTeamsSelector
                 teams={filteredTeams}
-                favorites={signupData.favoriteTeams}
+                favorites={favoriteTeams}
                 toggleFavorite={onToggleFavorite}
                 isGridView={isGridView}
                 fadeAnim={fadeAnim}
-                search={search}
                 itemWidth={itemWidth}
-                setSearch={setSearch}
               />
             ) : (
               <FavoriteSportsSelector
-                favorites={signupData.favoriteSports}
+                favorites={favoriteSports}
                 loading={false}
-                ready
                 saving={isSubmitting}
-                error={null}
-                onRetry={() => undefined}
-                toggleFavorite={handleToggleFavoriteSport}
+                toggleFavorite={onToggleFavoriteSport}
                 isGridView={isGridView}
                 fadeAnim={fadeAnim}
                 search={search}
-                setSearch={setSearch}
                 itemWidth={itemWidth}
               />
             )}
@@ -364,10 +429,10 @@ export default function SignUpForm({
               accessibilityRole="button"
               accessibilityLabel="Select banner image"
             >
-              {signupData.bannerImage ? (
+              {bannerImage ? (
                 <Image
                   source={{
-                    uri: signupData.bannerImage,
+                    uri: bannerImage,
                   }}
                   style={styles.bannerImage}
                 />
@@ -386,10 +451,10 @@ export default function SignUpForm({
               accessibilityRole="button"
               accessibilityLabel="Select profile picture"
             >
-              {signupData.profileImage ? (
+              {profileImage ? (
                 <Image
                   source={{
-                    uri: signupData.profileImage,
+                    uri: profileImage,
                   }}
                   style={styles.imagePreview}
                 />
@@ -411,10 +476,10 @@ export default function SignUpForm({
           >
             <Text style={styles.reviewText}>Banner Image</Text>
             <View style={styles.imageUploadBox}>
-              {signupData.bannerImage && (
+              {bannerImage && (
                 <Image
                   source={{
-                    uri: signupData.bannerImage,
+                    uri: bannerImage,
                   }}
                   style={{
                     width: "100%",
@@ -426,10 +491,10 @@ export default function SignUpForm({
             </View>
             <Text style={styles.reviewText}>Profile Picture</Text>
             <View style={styles.profileImageUploadBox}>
-              {signupData.profileImage && (
+              {profileImage && (
                 <Image
                   source={{
-                    uri: signupData.profileImage,
+                    uri: profileImage,
                   }}
                   style={styles.imagePreview}
                 />
@@ -437,31 +502,31 @@ export default function SignUpForm({
             </View>
             <Text style={styles.heading}>Name</Text>
             <View style={styles.reviewInput}>
-              <Text style={styles.reviewText}>{signupData.fullName}</Text>
+              <Text style={styles.reviewText}>{fullName}</Text>
             </View>
             <Text style={styles.heading}>Username</Text>
             <View style={styles.reviewInput}>
-              <Text style={styles.reviewText}>{signupData.username}</Text>
+              <Text style={styles.reviewText}>{username}</Text>
             </View>
             <Text style={styles.heading}>Email</Text>
             <View style={styles.reviewInput}>
-              <Text style={styles.reviewText}>{signupData.email}</Text>
+              <Text style={styles.reviewText}>{email}</Text>
             </View>
             <Text style={styles.heading}>Password</Text>
             <View style={styles.reviewInput}>
               <Text style={styles.reviewText}>
-                {signupData.password.replace(/./g, "*")}
+                {password.replace(/./g, "*")}
               </Text>
             </View>
             <Text style={styles.heading}>Favorite Teams</Text>
 
-            {signupData.favoriteTeams.length === 0 && (
+            {favoriteTeams.length === 0 && (
               <View style={global.emptyContainer}>
                 <Text style={global.emptyText}>No teams selected</Text>
               </View>
             )}
 
-            {signupData.favoriteTeams.map((favoriteId) => {
+            {favoriteTeams.map((favoriteId) => {
               let league: LeagueType | null = null;
               let id: string = favoriteId;
 
@@ -495,13 +560,13 @@ export default function SignUpForm({
             })}
 
             <Text style={styles.heading}>Favorite Leagues</Text>
-            {signupData.favoriteSports.length === 0 && (
+            {favoriteSports.length === 0 && (
               <View style={global.emptyContainer}>
                 <Text style={global.emptyText}>No leagues selected</Text>
               </View>
             )}
             <View style={styles.favoritesContainer}>
-              {signupData.favoriteSports.map((sport) => {
+              {favoriteSports.map((sport) => {
                 const config = LEAGUE_CONFIG[sport];
 
                 if (!config) {
@@ -526,7 +591,7 @@ export default function SignUpForm({
                     item={leagueItem}
                     logo={leagueLogo}
                     isSelected
-                    onPress={() => handleToggleFavoriteSport(sport)}
+                    onPress={() => onToggleFavoriteSport(sport)}
                     isGridView={false}
                     itemWidth={itemWidth}
                   />
@@ -578,9 +643,9 @@ export default function SignUpForm({
             return;
           }
 
-          onNextStep();
+          await onNextStep();
         }}
-        disabled={isSubmitting}
+        disabled={isSubmitting || isValidating}
       >
         {signupStep === TOTAL_STEPS
           ? isSubmitting

@@ -30,11 +30,7 @@ export default function TabLayout() {
           },
           tabBarBackground: () => (
             <View style={styles.blurContainer}>
-              <BlurView
-                intensity={100}
-                tint={isDark ? "dark" : "light"}
-                style={StyleSheet.absoluteFill}
-              />
+              <BlurView intensity={10} style={StyleSheet.absoluteFill} />
               <View
                 style={[
                   StyleSheet.absoluteFill,

@@ -1,7 +1,7 @@
 import { Colors, Fonts, activeOpacity } from "@/constants/styles";
 import React, {
   useCallback,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -97,6 +97,8 @@ export default function WeekSelector({
   const scrollViewRef = useRef<ScrollView>(null);
 
   const indicatorX = useRef(new Animated.Value(0)).current;
+  const hasPositionedIndicatorRef = useRef(false);
+  const hasAlignedScrollRef = useRef(false);
 
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -155,13 +157,21 @@ export default function WeekSelector({
   /**
    * Move the selected pill only after a real selected week exists.
    */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (safeSelectedIndex == null || !groups.length) {
       return;
     }
 
+    const targetValue = safeSelectedIndex * itemStep;
+
+    if (!hasPositionedIndicatorRef.current) {
+      indicatorX.setValue(targetValue);
+      hasPositionedIndicatorRef.current = true;
+      return;
+    }
+
     const animation = Animated.spring(indicatorX, {
-      toValue: safeSelectedIndex * itemStep,
+      toValue: targetValue,
       useNativeDriver: true,
       tension: 90,
       friction: 12,
@@ -179,7 +189,7 @@ export default function WeekSelector({
    *
    * This intentionally does nothing while selectedWeekIndex is null.
    */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (
       safeSelectedIndex == null ||
       !scrollViewRef.current ||
@@ -191,8 +201,10 @@ export default function WeekSelector({
 
     scrollViewRef.current.scrollTo({
       x: computeScrollOffset(safeSelectedIndex),
-      animated: true,
+      animated: hasAlignedScrollRef.current,
     });
+
+    hasAlignedScrollRef.current = true;
   }, [safeSelectedIndex, containerWidth, groups.length, computeScrollOffset]);
 
   if (loading && !groups.length) {

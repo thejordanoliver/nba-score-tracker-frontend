@@ -71,6 +71,12 @@ export const NotificationsCenterStyles = (isDark: boolean) =>
       borderRadius: 0,
     },
 
+    profileImage: {
+      width: "100%",
+      height: "100%",
+      borderRadius: 21,
+    },
+
     unreadDot: {
       position: "absolute",
       top: 2,

@@ -161,7 +161,7 @@ export function getFootballSeason(date = new Date()) {
 export function getRecruitYear(date = new Date()) {
   const year = date.getFullYear();
   const month = date.getMonth();
-  return month < 7 ? year + 1 : year;
+  return month > 3 ? year + 1 : year;
 }
 
 export const getHolidayLabel = (

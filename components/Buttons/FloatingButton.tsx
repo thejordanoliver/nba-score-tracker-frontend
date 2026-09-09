@@ -31,20 +31,19 @@ function FloatingButton({ isOpen, onPress, icon }: Props) {
       pointerEvents={isOpen ? "none" : "auto"}
       style={[styles.floatingButtonWrapper, { opacity: opacityAnim }]}
     >
-      <BlurView intensity={100} style={StyleSheet.absoluteFill}>
-
       <TouchableOpacity
         style={styles.floatingButton}
         onPress={onPress}
         activeOpacity={activeOpacity}
-        >
-        <Ionicons
-          name={icon || "chatbubble"}
-          size={24}
-          color={isDark ? Colors.black : Colors.white}
+      >
+        <BlurView intensity={25} style={StyleSheet.absoluteFill}/>
+          <Ionicons
+            name={icon || "chatbubble"}
+            size={24}
+            color={isDark ? Colors.white : Colors.black}
           />
+   
       </TouchableOpacity>
-          </BlurView>
     </Animated.View>
   );
 }
@@ -63,12 +62,15 @@ const FloatingButtonStyles = (isDark: boolean) =>
       elevation: 999,
     },
     floatingButton: {
+      overflow: "hidden",
       alignItems: "center",
       justifyContent: "center",
       width: 64,
       height: 64,
       marginHorizontal: 20,
       borderRadius: 32,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: isDark ? Colors.white : Colors.black,
       shadowColor: Colors.black,
       shadowOffset: { width: 0, height: 3 },
       shadowOpacity: isDark ? 0.5 : 0.3,

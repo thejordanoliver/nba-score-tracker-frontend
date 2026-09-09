@@ -13,17 +13,20 @@ export type CFBTeamRank = {
   recordSummary: string;
 
   team: {
-    id: string;
-    nickname?: string;
-    name?: string;
-    code?: string;
-    abbreviation?: string;
-    shortDisplayName?: string;
-    location?: string;
-
-    logos?: {
-      href: string;
-    }[];
+    id: number;
+    espnId: number;
+    name: string;
+    shortName: string;
+    code: string;
+    location: string;
+    conferenceId: number;
+    conference: {
+      id: number;
+      logo: string;
+      name: string;
+      groupId: number;
+      shortName: string;
+    };
 
     groups?: {
       id: string;
@@ -47,6 +50,7 @@ export type CFBRankPoll = {
   type: "ap" | "coaches" | "cfp" | "fcs";
   shortName: string;
   ranks: CFBTeamRank[];
+  outsideTop25: CFBTeamRank[];
   droppedOut: CFBTeamRank[];
 };
 
@@ -61,6 +65,7 @@ type RawPoll = {
   description?: unknown;
   id?: unknown;
   ranks?: unknown;
+  outsideTop25?: unknown;
   droppedOut?: unknown;
 };
 
@@ -223,23 +228,20 @@ const normalizePoll = (
       type,
       shortName: POLL_NAMES[type],
       ranks: [],
+      outsideTop25: [],
       droppedOut: [],
     };
   }
 
   return {
-    // Intentionally use our normalized type.
-    // ESPN's type cannot currently be trusted for FCS.
     type,
-
     shortName:
       toStringValue(poll.shortName) ||
       toStringValue(poll.name) ||
       toStringValue(poll.displayName) ||
       POLL_NAMES[type],
-
     ranks: toTeamRanks(poll.ranks),
-
+    outsideTop25: toTeamRanks(poll.outsideTop25),
     droppedOut: toTeamRanks(poll.droppedOut),
   };
 };
@@ -269,7 +271,6 @@ export const useCFBRankings = () => {
 
     const normalized = normalizeRankings(response.data);
 
-   
     return normalized;
   }, []);
 

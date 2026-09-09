@@ -149,11 +149,7 @@ export default function CustomTabBar({ isDark }: TabBarProps) {
   return (
     <View style={styles.tabBarWrapper}>
       <View style={styles.tabBarContainer}>
-        <BlurView
-          intensity={100}
-          tint={isDark ? "dark" : "light"}
-          style={StyleSheet.absoluteFill}
-        />
+        <BlurView intensity={100} style={StyleSheet.absoluteFill} />
 
         <View
           style={[

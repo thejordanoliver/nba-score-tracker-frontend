@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Fonts, activeOpacity } from "constants/styles";
 import { getCFBTeamLogo } from "constants/teamsCFB";
 import { usePreferences } from "contexts/PreferencesContext";
+import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef } from "react";
@@ -321,11 +322,12 @@ export default function RecruitCard({ recruit, index, league }: Props) {
             </View>
 
             <View style={styles.rankingBadge}>
+              <BlurView intensity={100} style={StyleSheet.absoluteFill} />
               <Text
                 style={[
                   styles.rankingText,
                   isFiveStar && {
-                    color: "#FFD700",
+                    color: isDark ? Colors.dark.gold : Colors.light.gold,
                   },
                 ]}
               >
@@ -358,8 +360,8 @@ export default function RecruitCard({ recruit, index, league }: Props) {
                   color={
                     filled
                       ? isDark
-                        ? Colors.dark.yellow
-                        : Colors.light.yellow
+                        ? Colors.dark.gold
+                        : Colors.light.gold
                       : isDark
                         ? Colors.lightGray
                         : Colors.darkGray
@@ -528,10 +530,15 @@ const recruitCardStyles = (isDark: boolean) =>
     },
 
     rankingBadge: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 8,
-      backgroundColor: Colors.darkGray,
+      overflow: "hidden",
+      alignItems: "center",
+      justifyContent: "center",
+      width: 44,
+      height: 44,
+      borderWidth: 1,
+      borderColor: isDark ? Colors.darkGray : Colors.lightGray,
+      borderRadius: 999,
+      borderCurve: "circular",
       shadowColor: "#000",
       shadowOffset: {
         width: 0,
@@ -545,7 +552,7 @@ const recruitCardStyles = (isDark: boolean) =>
     rankingText: {
       fontFamily: Fonts.BOLD,
       fontSize: 18,
-      color: Colors.white,
+      color: isDark ? Colors.white : Colors.black,
     },
 
     contentRow: {

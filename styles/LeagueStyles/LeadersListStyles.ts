@@ -2,6 +2,9 @@ import { Colors, Fonts } from "constants/styles";
 import { StyleSheet } from "react-native";
 export const leadersListStyles = (isDark: boolean) =>
   StyleSheet.create({
+    contentContainerStyle: {
+      paddingBottom: 100,
+    },
     categoryContainer: {
       paddingHorizontal: 12,
       paddingTop: 6,

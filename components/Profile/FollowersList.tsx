@@ -42,7 +42,7 @@ export default function FollowersList({
     );
   }
 
-  if (!users || users.length === 0) {
+  if (!users) {
     return (
       <View style={global.emptyContainer}>
         <Text style={global.emptyText}>No users found.</Text>

@@ -373,11 +373,12 @@ export default function RecruitsList({
   if (loading && !refreshing) {
     return (
       <View style={styles.container}>
+        <View style={styles.headerLayer}>{listHeaderComponent}</View>
+
         <FlatList
           ref={listRef}
           data={Array.from({ length: 10 })}
           keyExtractor={(_, i) => `skel-${i}`}
-          ListHeaderComponent={listHeaderComponent}
           renderItem={() =>
             view === "players" ? (
               <RecruitCardSkeleton />
@@ -398,20 +399,19 @@ export default function RecruitsList({
   if (error) {
     return (
       <View style={styles.container}>
+        <View style={styles.headerLayer}>{listHeaderComponent}</View>
+
         <FlatList
           ref={listRef}
           data={[]}
           keyExtractor={(_, i) => `error-${i}`}
           ListHeaderComponent={
-            <>
-              {listHeaderComponent}
-              <View style={styles.center}>
-                <Text style={styles.errorText}>
-                  Error: {getErrorMessage(error)}
-                </Text>
-                <Text style={styles.helperText}>Pull down to try again.</Text>
-              </View>
-            </>
+            <View style={styles.center}>
+              <Text style={styles.errorText}>
+                Error: {getErrorMessage(error)}
+              </Text>
+              <Text style={styles.helperText}>Pull down to try again.</Text>
+            </View>
           }
           renderItem={() => null}
           refreshing={refreshing}
@@ -427,18 +427,17 @@ export default function RecruitsList({
   if (activeFilteredLength === 0) {
     return (
       <View style={styles.container}>
+        <View style={styles.headerLayer}>{listHeaderComponent}</View>
+
         <FlatList
           ref={listRef}
           data={[]}
           keyExtractor={(_, i) => `empty-${i}`}
           ListHeaderComponent={
-            <>
-              {listHeaderComponent}
-              <View style={styles.center}>
-                <Text style={styles.emptyText}>{emptyTitle}</Text>
-                <Text style={styles.helperText}>Pull down to refresh.</Text>
-              </View>
-            </>
+            <View style={styles.center}>
+              <Text style={styles.emptyText}>{emptyTitle}</Text>
+              <Text style={styles.helperText}>Pull down to refresh.</Text>
+            </View>
           }
           renderItem={() => null}
           refreshing={refreshing}

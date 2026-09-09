@@ -5,6 +5,7 @@ import { getNBATeamLogo, getTeamByESPNId } from "constants/teams";
 import { getNFLTeamByESPNId, getNFLTeamLogo } from "constants/teamsNFL";
 import { getWNBATeamByESPNId, getWNBATeamLogo } from "constants/teamsWNBA";
 import { usePreferences } from "contexts/PreferencesContext";
+import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Image, StyleSheet, Text, View } from "react-native";
@@ -217,6 +218,7 @@ export default function DraftCard({
         >
           <Text style={styles.pickIsIn}>{label}</Text>
           <View style={styles.rankingBadge}>
+            <BlurView intensity={100} style={StyleSheet.absoluteFill} />
             <Text style={styles.rankingText}>#{player.overall}</Text>
           </View>
         </View>
@@ -240,6 +242,7 @@ export default function DraftCard({
         </View>
 
         <View style={styles.rankingBadge}>
+          <BlurView intensity={100} style={StyleSheet.absoluteFill} />
           <Text style={styles.rankingText}>#{player.overall}</Text>
         </View>
       </View>
@@ -357,12 +360,20 @@ const draftCardStyles = (isDark: boolean) =>
     },
 
     rankingBadge: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 8,
-      backgroundColor: Colors.darkGray,
+      overflow: "hidden",
+      alignItems: "center",
+      justifyContent: "center",
+      width: 44,
+      height: 44,
+      borderWidth: 1,
+      borderColor: isDark ? Colors.darkGray : Colors.lightGray,
+      borderRadius: 999,
+      borderCurve: "circular",
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
       shadowOpacity: 0.25,
       shadowRadius: 3,
       elevation: 4,
@@ -371,7 +382,7 @@ const draftCardStyles = (isDark: boolean) =>
     rankingText: {
       fontFamily: Fonts.BOLD,
       fontSize: 18,
-      color: Colors.white,
+      color: isDark ? Colors.white : Colors.black,
     },
 
     playerBioRow: {

@@ -1,16 +1,20 @@
 import { GameNotificationTeamLogos } from "@/components/Notifications/GameNotificationTeamLogos";
-import { Colors } from "@/constants/styles";
+import { Colors, PLACEHOLDER_AVATAR } from "@/constants/styles";
 import {
   useNotificationBanners,
   useNotifications,
 } from "@/contexts/NotificationContext";
 import { usePreferences } from "@/contexts/PreferencesContext";
+import { parseImageUrl } from "@/utils/imageUtils";
 import { getNotificationGameTeams } from "@/utils/notification-team-presentation";
 import {
+  getNotificationActorProfileImage,
   getNotificationCenterHref,
   getNotificationLeagueLabel,
+  shouldShowNotificationActorProfileImage,
 } from "@/utils/notificationCenter";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { Href, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
@@ -59,6 +63,11 @@ export default function ForegroundNotificationBanner() {
   const gameTeams = canonical
     ? getNotificationGameTeams(canonical, isDark)
     : null;
+  const actorProfileImage =
+    canonical && shouldShowNotificationActorProfileImage(canonical)
+      ? (parseImageUrl(getNotificationActorProfileImage(canonical)) ??
+        PLACEHOLDER_AVATAR)
+      : null;
 
   const open = () => {
     onDismiss(banner.id);
@@ -85,6 +94,13 @@ export default function ForegroundNotificationBanner() {
               teams={gameTeams}
               isDark={isDark}
               size={29}
+            />
+          ) : actorProfileImage ? (
+            <Image
+              source={{ uri: actorProfileImage }}
+              style={styles.profileImage}
+              contentFit="cover"
+              transition={150}
             />
           ) : (
             <Ionicons name="notifications" size={20} color={Colors.white} />
@@ -171,6 +187,11 @@ const styles = StyleSheet.create({
     width: 48,
     borderRadius: 0,
     backgroundColor: "transparent",
+  },
+  profileImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 18,
   },
   copy: { flex: 1, gap: 2 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 6 },

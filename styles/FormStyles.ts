@@ -60,6 +60,10 @@ export const formStyles = (isDark: boolean) => {
       gap: SPACING.md,
     },
 
+    field: {
+      gap: SPACING.xs,
+    },
+
     row: {
       flexDirection: "column",
       gap: SPACING.sm,
@@ -97,11 +101,23 @@ export const formStyles = (isDark: boolean) => {
       borderColor: focusBorder,
     },
 
+    inputError: {
+      borderWidth: 1,
+      borderColor: isDark ? Colors.dark.lightRed : Colors.light.red,
+    },
+
     inputText: {
       flex: 1,
       fontFamily: Fonts.REGULAR,
       fontSize: 16,
       color: text,
+    },
+
+    fieldErrorText: {
+      paddingHorizontal: SPACING.xs,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 13,
+      color: isDark ? Colors.dark.lightRed : Colors.light.red,
     },
 
     reviewInput: {

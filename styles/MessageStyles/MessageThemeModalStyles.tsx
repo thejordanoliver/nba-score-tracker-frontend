@@ -73,7 +73,7 @@ export const MessageThemeModalStyles = (isDark: boolean) =>
       minHeight: 66,
       paddingHorizontal: 12,
       paddingVertical: 10,
-      borderWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
       borderColor: isDark ? Colors.darkGray : Colors.lightGray,
       borderRadius: 8,
     },

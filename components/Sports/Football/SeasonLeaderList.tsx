@@ -65,7 +65,7 @@ export default function SeasonLeadersList({
   return (
     <FlatList
       data={cacheRef.current[league] ?? categories}
-      contentContainerStyle={{ paddingBottom: 100 }}
+      contentContainerStyle={styles.contentContainerStyle}
       keyExtractor={(item) => item.categoryName}
       renderItem={({ item }) => {
         if (!item.leaders || item.leaders.length === 0) {
@@ -74,9 +74,7 @@ export default function SeasonLeadersList({
 
         return (
           <View style={styles.categoryContainer}>
-            <HeadingTwo isDark={isDark} style={{ marginBottom: 12 }}>
-              {item.categoryName} Leaders
-            </HeadingTwo>
+            <HeadingTwo isDark={isDark}>{item.categoryName} Leaders</HeadingTwo>
 
             <View style={styles.playersList}>
               {item.leaders.slice(0, 5).map((player) => {

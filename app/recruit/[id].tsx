@@ -2,7 +2,6 @@ import { CustomHeader } from "@/components/CustomHeader";
 import OfferList from "@/components/League/Recruiting/OfferLists";
 import PredictionRing from "@/components/League/Recruiting/PredictionRing";
 import RecruitHeader from "@/components/League/Recruiting/RecruitHeader";
-import StarRating from "@/components/League/Recruiting/StarRating";
 import { getCBBTeam, getCBBTeamLogo } from "@/constants/teamsCBB";
 import { useRecruit } from "@/hooks/RecruitHooks/useRecruit";
 import CustomActivityIndicator from "components/CustomActivityIndicator";
@@ -28,11 +27,11 @@ export default function RecruitDetailScreen() {
   const global = globalStyles(isDark);
   const navigation = useNavigation();
   const { data: player, loading, error } = useRecruit(recruitId, league);
-  const team = league === "CFB" ? getCFBTeam(teamId) : getCBBTeam(teamId);
+  const team = league === "cfb" ? getCFBTeam(teamId) : getCBBTeam(teamId);
   const teamCode = team?.code;
   const teamColor = team?.color ?? Colors.midTone;
   const teamLogo =
-    league === "CFB"
+    league === "cfb"
       ? getCFBTeamLogo(teamId, isDark)
       : getCBBTeamLogo(teamId, isDark);
 
@@ -113,8 +112,6 @@ export default function RecruitDetailScreen() {
   return (
     <ScrollView contentContainerStyle={styles.contentContainerStyle}>
       <RecruitHeader player={player} isDark={isDark} />
-
-      <StarRating recruit={player} isDark={isDark} />
 
       {shouldShowPrediction && predictionTeamId && (
         <PredictionRing

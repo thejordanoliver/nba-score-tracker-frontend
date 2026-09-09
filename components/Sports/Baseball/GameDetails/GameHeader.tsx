@@ -4,7 +4,7 @@ import { CenterInfo } from "./CenterInfo";
 import { TeamRow } from "./TeamRow";
 
 type Props = {
-  state?: "pre" | "in" | "post" | null;
+  state: string | null;
   homeRank: number | undefined | null;
   awayRank: number | undefined | null;
   homeName: string;

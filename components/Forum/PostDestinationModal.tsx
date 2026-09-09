@@ -1,3 +1,4 @@
+import { snapPoints } from "@/utils/modalUtils";
 import { Ionicons } from "@expo/vector-icons";
 import {
   BottomSheetBackdrop,
@@ -17,7 +18,6 @@ import type { ForumPostDestination } from "types/forum";
 import { normalizeForumPostLeague } from "utils/forumPostDestination";
 import SearchBar from "../SearchBars/SearchBar";
 import PillTabs from "../TabBars/PillTabs";
-import { snapPoints } from "@/utils/modalUtils";
 
 type DestinationMode = ForumPostDestination["kind"];
 
@@ -80,7 +80,7 @@ export default function PostDestinationModal({
   const { favorites, allTeams } = useFavoriteTeamsContext();
   const [mode, setMode] = useState<DestinationMode>("league");
   const [query, setQuery] = useState("");
-  const styles = useMemo(() => postDestinationStyles(isDark), [isDark]);
+  const styles = useMemo(() => PostDestinationModalStyles(isDark), [isDark]);
 
   const leagueOptions = useMemo<DestinationOption[]>(
     () =>
@@ -329,7 +329,7 @@ export default function PostDestinationModal({
   );
 }
 
-const postDestinationStyles = (isDark: boolean) =>
+export const PostDestinationModalStyles = (isDark: boolean) =>
   StyleSheet.create({
     background: {
       borderTopLeftRadius: 24,
@@ -438,8 +438,7 @@ const postDestinationStyles = (isDark: boolean) =>
       alignItems: "center",
       gap: 12,
       minHeight: 62,
-      paddingHorizontal: 12,
-      paddingVertical: 9,
+      padding: 12,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderColor: isDark ? Colors.darkGray : Colors.lightGray,
     },

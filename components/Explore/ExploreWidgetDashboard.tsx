@@ -31,6 +31,7 @@ import {
 import type {
   ExploreWidgetConfig,
   ExploreWidgetGame,
+  ExploreStandingsLeague,
   ExploreWidgetSize,
   ExploreWidgetType,
 } from "types/widgets";
@@ -39,6 +40,7 @@ import SortableWidgetGrid, {
 } from "./SortableWidgetGrid";
 import CreatePostWidget from "./Widgets/CreatePostWidget";
 import FavoriteTeamsWidget from "./Widgets/FavoriteTeamsWidget";
+import StandingsWidget from "./Widgets/StandingsWidget";
 import WidgetSlider, {
   WidgetEditControls,
   type WidgetSlide,
@@ -56,6 +58,10 @@ type ExploreWidgetDashboardProps = {
   onAddWidget: () => void;
   onRemoveWidget: (widgetId: string) => void;
   onResizeWidget: (widgetId: string, size: ExploreWidgetSize) => void;
+  onSetStandingsLeague: (
+    widgetId: string,
+    league: ExploreStandingsLeague,
+  ) => void;
   onMoveWidget: (widgetId: string, direction: -1 | 1) => void;
   onReorderWidgets: (widgets: ExploreWidgetConfig[]) => void;
   isEditing: boolean;
@@ -155,6 +161,7 @@ export default function ExploreWidgetDashboard({
   onAddWidget,
   onRemoveWidget,
   onResizeWidget,
+  onSetStandingsLeague,
   onMoveWidget,
   onReorderWidgets,
   isEditing,
@@ -356,6 +363,22 @@ export default function ExploreWidgetDashboard({
             size={widget.size}
             width={width}
             height={height}
+            {...editProps}
+          />
+        </View>
+      );
+    } else if (widget.type === "standings") {
+      content = (
+        <View style={dashboardStyles.section}>
+          <StandingsWidget
+            isDark={isDark}
+            size={widget.size}
+            width={width}
+            height={height}
+            league={widget.standingsLeague ?? "nba"}
+            onChangeLeague={(league) =>
+              onSetStandingsLeague(widget.id, league)
+            }
             {...editProps}
           />
         </View>

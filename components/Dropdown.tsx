@@ -105,11 +105,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
       {visible ? (
         <Animated.View style={styles.dropdownPanel}>
-          <BlurView
-            intensity={100}
-            tint={isDark ? "dark" : "light"}
-            style={styles.blurView}
-          />
+          <BlurView intensity={100} style={styles.blurView} />
 
           <ScrollView
             style={styles.optionsScrollView}

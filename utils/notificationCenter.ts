@@ -21,6 +21,27 @@ export const getNotificationLeagueLabel = (
   notification: AppNotification,
 ): string | null => getNotificationLeague(notification)?.toUpperCase() ?? null;
 
+export const shouldShowNotificationActorProfileImage = (
+  notification: AppNotification,
+): boolean =>
+  notification.type === "new_follower" ||
+  notification.type === "post_like" ||
+  notification.type === "post_comment" ||
+  notification.type === "comment_reply" ||
+  notification.type === "message";
+
+export const getNotificationActorProfileImage = (
+  notification: AppNotification,
+): string | null => {
+  if (!shouldShowNotificationActorProfileImage(notification)) return null;
+
+  const profileImage =
+    dataString(notification, "profileImage") ??
+    dataString(notification, "profile_image");
+
+  return profileImage?.trim() || null;
+};
+
 /** The single navigation policy used by both inbox rows and foreground banners. */
 export const getNotificationCenterHref = (
   notification: AppNotification,

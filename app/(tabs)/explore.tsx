@@ -50,6 +50,7 @@ export default function ExplorePage() {
     addWidget,
     removeWidget,
     resizeWidget,
+    setStandingsLeague,
     moveWidget,
     reorderWidgets,
     ensureWidgetData,
@@ -154,6 +155,7 @@ export default function ExplorePage() {
           onAddWidget={openWidgetModal}
           onRemoveWidget={removeWidget}
           onResizeWidget={resizeWidget}
+          onSetStandingsLeague={setStandingsLeague}
           onMoveWidget={moveWidget}
           onReorderWidgets={reorderWidgets}
           isEditing={widgetsEditing}

@@ -50,13 +50,13 @@ export const CompetitorRow = ({
   isWinner,
   serving,
   score,
-  gameStatusDescription,
+  state,
   isDark,
 }: TennisProps) => {
   const styles = CompetitorRowStyles(isDark);
 
-  const inProgress = gameStatusDescription === "In Progress";
-  const isFinal = gameStatusDescription === "Final";
+  const isFinal = state === "post";
+  const inProgress = state === "in";
 
   const competitorFlags = flags.length ? flags : flag ? [flag] : [];
 
@@ -91,14 +91,13 @@ export const CompetitorRow = ({
 
   return (
     <View style={styles.row}>
-
-      {isHome && (
+      {isHome && inProgress && (
         <View style={styles.scoreWrapper}>
           {serving && <View style={styles.serveIndicator} />}
           <Text style={[styles.score, getScoreStyle()]}>{score}</Text>
         </View>
       )}
-      
+
       <View style={styles.teamInfoContainer}>
         <FlagStack
           competitor={{
@@ -121,7 +120,7 @@ export const CompetitorRow = ({
         </View>
       </View>
 
-      {!isHome && (
+      {!isHome && inProgress && (
         <View style={styles.scoreWrapper}>
           {serving && <View style={styles.serveIndicator} />}
           <Text style={[styles.score, getScoreStyle()]}>{score}</Text>

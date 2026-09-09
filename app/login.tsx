@@ -1,16 +1,25 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation, useRouter } from "expo-router";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { type FieldErrors, useForm } from "react-hook-form";
 import { Animated, View } from "react-native";
 
 import ConfirmModal from "../components/ConfirmModal";
 import CropEditorModal from "../components/CropEditorModal";
 import { CustomHeader } from "../components/CustomHeader";
 import SignInForm from "../components/Forms/SignInForm";
-import SignUpForm, { type SignupData } from "../components/Forms/SignUpForm";
+import SignUpForm from "../components/Forms/SignUpForm";
 import TabBar from "../components/TabBars/TabBar";
+import type { FavoriteSportId } from "../constants/leagues";
 import { usePreferences } from "../contexts/PreferencesContext";
 import { useAuth } from "../hooks/UserHooks/useAuth";
+import {
+  SIGNUP_ACCOUNT_FIELDS,
+  SIGNUP_CREDENTIAL_FIELDS,
+  signupSchema,
+  type SignupFormValues,
+} from "../schemas/auth/signupSchema";
 import { formStyles } from "../styles/FormStyles";
 import type { AlertConfig } from "../types/alert";
 import { buildFavoriteTeamKey } from "../types/favorites";
@@ -31,7 +40,7 @@ const SIGNUP_HEADER_TITLES: Record<number, string> = {
   4: "Review Details",
 };
 
-const INITIAL_SIGNUP_DATA: SignupData = {
+const INITIAL_SIGNUP_DATA: SignupFormValues = {
   fullName: "",
   username: "",
   email: "",
@@ -108,7 +117,24 @@ export default function LoginScreen() {
 
   const [signupStep, setSignupStep] = useState(0);
 
-  const [signupData, setSignupData] = useState<SignupData>(INITIAL_SIGNUP_DATA);
+  const {
+    control: signupControl,
+    formState: {
+      isSubmitting: isSigningUp,
+      isValidating: isSignupValidating,
+    },
+    getValues: getSignupValues,
+    handleSubmit: handleSignupSubmit,
+    setError: setSignupError,
+    setValue: setSignupValue,
+    trigger: triggerSignup,
+  } = useForm<SignupFormValues>({
+    defaultValues: INITIAL_SIGNUP_DATA,
+    mode: "onTouched",
+    reValidateMode: "onChange",
+    resolver: zodResolver(signupSchema),
+    shouldUnregister: false,
+  });
 
   const [username, setUsername] = useState("");
 
@@ -116,7 +142,7 @@ export default function LoginScreen() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const [isGridView, setIsGridView] = useState(true);
 
@@ -189,27 +215,20 @@ export default function LoginScreen() {
         return;
       }
 
-      setSignupData((previous) => {
-        if (cropTarget === "profile") {
-          return {
-            ...previous,
-            profileImage: croppedUri,
-          };
-        }
+      const fieldName =
+        cropTarget === "profile" ? "profileImage" : "bannerImage";
 
-        return {
-          ...previous,
-          bannerImage: croppedUri,
-        };
+      setSignupValue(fieldName, croppedUri, {
+        shouldDirty: true,
       });
 
       closeCropEditor();
     },
-    [closeCropEditor, cropTarget],
+    [closeCropEditor, cropTarget, setSignupValue],
   );
 
   const handleLogin = useCallback(async () => {
-    if (isSubmitting) {
+    if (isSigningIn) {
       return;
     }
 
@@ -234,7 +253,7 @@ export default function LoginScreen() {
     }
 
     try {
-      setIsSubmitting(true);
+      setIsSigningIn(true);
 
       await login(normalizedUsername, password);
     } catch (error: unknown) {
@@ -246,9 +265,9 @@ export default function LoginScreen() {
         ),
       });
     } finally {
-      setIsSubmitting(false);
+      setIsSigningIn(false);
     }
-  }, [isSubmitting, login, password, showAlert, username]);
+  }, [isSigningIn, login, password, showAlert, username]);
 
   const appendImage = useCallback(
     (formData: FormData, uri: string | null, target: CropTarget) => {
@@ -271,78 +290,14 @@ export default function LoginScreen() {
     [],
   );
 
-  const handleSignup = useCallback(async () => {
-    if (isSubmitting) {
-      return;
-    }
-
-    const fullName = signupData.fullName.trim();
-
-    const username = signupData.username.trim().toLowerCase();
-
-    const email = signupData.email.trim().toLowerCase();
-
-    if (!fullName) {
-      showAlert({
-        title: "Name required",
-        message: "Please enter your name.",
-      });
-
-      return;
-    }
-
-    if (!username) {
-      showAlert({
-        title: "Username required",
-        message: "Please enter a username.",
-      });
-
-      return;
-    }
-
-    if (!email) {
-      showAlert({
-        title: "Email required",
-        message: "Please enter your email address.",
-      });
-
-      return;
-    }
-
-    if (!signupData.password) {
-      showAlert({
-        title: "Password required",
-        message: "Please enter a password.",
-      });
-
-      return;
-    }
-
-    if (!signupData.confirmPassword) {
-      showAlert({
-        title: "Confirm password",
-        message: "Please confirm your password.",
-      });
-
-      return;
-    }
-
-    if (signupData.password !== signupData.confirmPassword) {
-      showAlert({
-        title: "Passwords don’t match",
-        message: "Make sure both password fields match.",
-      });
-
-      return;
-    }
-
+  const handleSignup = useCallback(async (signupData: SignupFormValues) => {
     const formData = new FormData();
 
-    formData.append("fullName", fullName);
+    formData.append("fullName", signupData.fullName);
 
-    formData.append("username", username);
+    formData.append("username", signupData.username);
 
-    formData.append("email", email);
+    formData.append("email", signupData.email);
 
     formData.append("password", signupData.password);
 
@@ -358,41 +313,95 @@ export default function LoginScreen() {
     appendImage(formData, signupData.bannerImage, "banner");
 
     try {
-      setIsSubmitting(true);
-
       await signup(formData);
     } catch (error: unknown) {
+      const message = getErrorMessage(
+        error,
+        "Your account could not be created. Please try again.",
+      );
+
+      if (message.startsWith("Full name")) {
+        setSignupError("fullName", { type: "server", message });
+        setSignupStep(0);
+        return;
+      }
+
+      if (message.startsWith("Username")) {
+        setSignupError("username", { type: "server", message });
+        setSignupStep(0);
+        return;
+      }
+
+      if (message.startsWith("A valid email")) {
+        setSignupError("email", { type: "server", message });
+        setSignupStep(1);
+        return;
+      }
+
+      if (message.startsWith("Password")) {
+        setSignupError("password", { type: "server", message });
+        setSignupStep(1);
+        return;
+      }
+
       showAlert({
         title: "Signup failed",
-        message: getErrorMessage(
-          error,
-          "Your account could not be created. Please try again.",
-        ),
+        message,
       });
-    } finally {
-      setIsSubmitting(false);
     }
-  }, [appendImage, isSubmitting, showAlert, signup, signupData]);
+  }, [appendImage, setSignupError, showAlert, signup]);
 
-  const handleToggleFavorite = useCallback((league: string, id: string) => {
-    const key = buildFavoriteTeamKey(league, id);
+  const handleInvalidSignup = useCallback(
+    (errors: FieldErrors<SignupFormValues>) => {
+      if (errors.fullName || errors.username) {
+        setSignupStep(0);
+        return;
+      }
 
-    if (!key) {
-      return;
-    }
+      if (errors.email || errors.password || errors.confirmPassword) {
+        setSignupStep(1);
+      }
+    },
+    [],
+  );
 
-    setSignupData((previous) => {
-      const isFavorite = previous.favoriteTeams.includes(key);
+  const handleToggleFavorite = useCallback(
+    (league: string, id: string) => {
+      const key = buildFavoriteTeamKey(league, id);
 
-      return {
-        ...previous,
+      if (!key) {
+        return;
+      }
 
-        favoriteTeams: isFavorite
-          ? previous.favoriteTeams.filter((favorite) => favorite !== key)
-          : [...previous.favoriteTeams, key],
-      };
-    });
-  }, []);
+      const favorites = getSignupValues("favoriteTeams");
+      const isFavorite = favorites.includes(key);
+
+      setSignupValue(
+        "favoriteTeams",
+        isFavorite
+          ? favorites.filter((favorite) => favorite !== key)
+          : [...favorites, key],
+        { shouldDirty: true },
+      );
+    },
+    [getSignupValues, setSignupValue],
+  );
+
+  const handleToggleFavoriteSport = useCallback(
+    (sport: FavoriteSportId) => {
+      const favorites = getSignupValues("favoriteSports");
+      const isFavorite = favorites.includes(sport);
+
+      setSignupValue(
+        "favoriteSports",
+        isFavorite
+          ? favorites.filter((favorite) => favorite !== sport)
+          : [...favorites, sport],
+        { shouldDirty: true },
+      );
+    },
+    [getSignupValues, setSignupValue],
+  );
 
   const toggleLayout = useCallback(() => {
     Animated.timing(fadeAnim, {
@@ -419,9 +428,29 @@ export default function LoginScreen() {
     setSignupStep(0);
   }, []);
 
-  const handleNextSignupStep = useCallback(() => {
+  const handleNextSignupStep = useCallback(async () => {
+    if (signupStep === 0) {
+      const isValid = await triggerSignup(SIGNUP_ACCOUNT_FIELDS, {
+        shouldFocus: true,
+      });
+
+      if (!isValid) {
+        return;
+      }
+    }
+
+    if (signupStep === 1) {
+      const isValid = await triggerSignup(SIGNUP_CREDENTIAL_FIELDS, {
+        shouldFocus: true,
+      });
+
+      if (!isValid) {
+        return;
+      }
+    }
+
     setSignupStep((current) => Math.min(current + 1, SIGNUP_MAX_STEP));
-  }, []);
+  }, [signupStep, triggerSignup]);
 
   const handlePreviousSignupStep = useCallback(() => {
     setSignupStep((current) => Math.max(current - 1, 0));
@@ -502,21 +531,20 @@ export default function LoginScreen() {
             />
           ) : (
             <SignUpForm
-              signupData={signupData}
+              control={signupControl}
               signupStep={signupStep}
-              onChangeSignupData={(updates) =>
-                setSignupData((previous) => ({
-                  ...previous,
-                  ...updates,
-                }))
-              }
               onNextStep={handleNextSignupStep}
               onToggleFavorite={handleToggleFavorite}
+              onToggleFavoriteSport={handleToggleFavoriteSport}
               onOpenImagePickerFor={openImagePickerFor}
               isGridView={isGridView}
               fadeAnim={fadeAnim}
-              isSubmitting={isSubmitting}
-              onSubmit={handleSignup}
+              isSubmitting={isSigningUp}
+              isValidating={isSignupValidating}
+              onSubmit={handleSignupSubmit(
+                handleSignup,
+                handleInvalidSignup,
+              )}
             />
           )}
         </View>

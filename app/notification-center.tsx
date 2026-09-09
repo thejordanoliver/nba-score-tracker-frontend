@@ -1,18 +1,22 @@
 import { CustomHeader } from "@/components/CustomHeader";
 import { GameNotificationTeamLogos } from "@/components/Notifications/GameNotificationTeamLogos";
-import { Colors } from "@/constants/styles";
+import { Colors, PLACEHOLDER_AVATAR } from "@/constants/styles";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { usePreferences } from "@/contexts/PreferencesContext";
 import { NotificationsCenterStyles } from "@/styles/NotificationCenterStyles";
 import type { AppNotification, NotificationType } from "@/types/notifications";
+import { parseImageUrl } from "@/utils/imageUtils";
 import { getNotificationGameTeams } from "@/utils/notification-team-presentation";
 import {
+  getNotificationActorProfileImage,
   getNotificationCenterHref,
   getNotificationLeagueLabel,
+  shouldShowNotificationActorProfileImage,
 } from "@/utils/notificationCenter";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { formatDistance } from "date-fns/formatDistance";
+import { Image } from "expo-image";
 import { Href, useNavigation, useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import {
@@ -85,6 +89,11 @@ const NotificationRow = memo(function NotificationRow({
   const href = getNotificationCenterHref(notification);
   const leagueLabel = getNotificationLeagueLabel(notification);
   const gameTeams = getNotificationGameTeams(notification, isDark);
+  const actorProfileImage =
+    shouldShowNotificationActorProfileImage(notification)
+      ? (parseImageUrl(getNotificationActorProfileImage(notification)) ??
+        PLACEHOLDER_AVATAR)
+      : null;
   const isPressable = href !== null;
   const isUnread = !readAt;
   const createdAt = new Date(notification.createdAt);
@@ -124,6 +133,13 @@ const NotificationRow = memo(function NotificationRow({
       >
         {gameTeams ? (
           <GameNotificationTeamLogos teams={gameTeams} isDark={isDark} />
+        ) : actorProfileImage ? (
+          <Image
+            source={{ uri: actorProfileImage }}
+            style={styles.profileImage}
+            contentFit="cover"
+            transition={150}
+          />
         ) : (
           <Ionicons
             name={iconName}

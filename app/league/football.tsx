@@ -11,8 +11,8 @@ import WeekSelector, {
 } from "@/components/League/WeekSelector";
 import NewsList from "@/components/News/NewsList";
 import { ConferenceStandingsList } from "@/components/Sports/Basketball/Standings/ConferenceStandingsList";
-import { CFPBracket } from "@/components/Sports/Football/Playoffs/CFBPlayoffs/CFPBracket";
 import GamesList from "@/components/Sports/Football/Games/GamesList";
+import { CFPBracket } from "@/components/Sports/Football/Playoffs/CFBPlayoffs/CFPBracket";
 import { NFLPlayoffBracket } from "@/components/Sports/Football/Playoffs/NFLPlayoffs/NFLPlayoffBracket";
 import SeasonLeadersList from "@/components/Sports/Football/SeasonLeaderList";
 import { CFBStandingsList } from "@/components/Sports/Football/Standings/CFBStandingsList";
@@ -397,22 +397,23 @@ function CFBLeagueScreen() {
   const league = "cfb";
   const favoriteHeaderProps = useLeagueFavoriteHeader(league);
   const currentSeason = getFootballSeason();
+  const currentRecruitCycle = String(getRecruitYear());
   const navigation = useNavigation();
   const conferenceModalRef = useRef<ConferenceListModalRef>(null);
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
   const styles = LeagueScreenStyles(isDark);
   const [screenRefreshing, setScreenRefreshing] = useState(false);
-  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState<number | null>(
+    null,
+  );
   const [selectedConference, setSelectedConference] =
     useState<SelectedConference>("top25");
   const [isConferenceModalOpen, setIsConferenceModalOpen] = useState(false);
   const [recruitView, setRecruitView] = useState<"players" | "teams">(
     "players",
   );
-  const [recruitYear, setRecruitYear] = useState(() =>
-    String(getRecruitYear()),
-  );
+  const [recruitYear, setRecruitYear] = useState(() => currentRecruitCycle);
   const [recruitTeam, setRecruitTeam] = useState("all");
   const { tabs, selectedTab, setSelectedTab } = useLeagueTabs(league);
   const pagerRef = useRef<PagerView>(null);
@@ -429,7 +430,10 @@ function CFBLeagueScreen() {
     setSelectedTab(indexToTab(index));
   };
 
-  const { calendar } = useLeagueCalendar(league, "football");
+  const { calendar, loading: calendarLoading } = useLeagueCalendar(
+    league,
+    "football",
+  );
 
   const selectedConferenceName = useMemo(() => {
     return getCFBConferenceSelectionName(selectedConference);
@@ -477,9 +481,41 @@ function CFBLeagueScreen() {
       });
   }, [calendar, currentSeason]);
 
-  const selectedWeek = weekGroups[selectedWeekIndex];
-  const selectedWeekNumber = selectedWeek?.week.number ?? 1;
-  const selectedSeasonType = selectedWeek?.season.type ?? 2;
+  const activeWeekIndex = useMemo(() => {
+    if (!calendar?.length || !weekGroups.length) {
+      return null;
+    }
+
+    const now = dayjs();
+
+    const activeCalendarWeek = calendar.find(
+      (week) =>
+        week.stage !== "Off Season" &&
+        now.isBetween(dayjs(week.startDate), dayjs(week.endDate), null, "[]"),
+    );
+
+    if (!activeCalendarWeek) {
+      return null;
+    }
+
+    const activeSeasonType = getSeasonTypeFromStage(activeCalendarWeek.stage);
+
+    const index = weekGroups.findIndex(
+      (group) =>
+        group.week.number === activeCalendarWeek.weekNumber &&
+        group.season.type === activeSeasonType,
+    );
+
+    return index >= 0 ? index : null;
+  }, [calendar, weekGroups]);
+
+  const resolvedWeekIndex = selectedWeekIndex ?? activeWeekIndex;
+
+  const selectedWeek =
+    resolvedWeekIndex != null ? weekGroups[resolvedWeekIndex] : undefined;
+
+  const selectedWeekNumber = selectedWeek?.week.number;
+  const selectedSeasonType = selectedWeek?.season.type;
 
   const {
     games: selectedWeekGames,
@@ -495,6 +531,7 @@ function CFBLeagueScreen() {
       selectedConference !== "top25" && selectedConference != null
         ? selectedConference
         : undefined,
+    enabled: selectedWeekNumber != null && selectedSeasonType != null,
   });
 
   const displayedGames = useMemo(() => {
@@ -536,48 +573,17 @@ function CFBLeagueScreen() {
     useConferenceStandings(league, selectedConferenceGroupId);
 
   useEffect(() => {
-    if (!weekGroups.length) {
-      setSelectedWeekIndex(0);
-      return;
-    }
+    setSelectedWeekIndex((currentIndex) => {
+      if (currentIndex == null) {
+        return null;
+      }
 
-    setSelectedWeekIndex((currentIndex) =>
-      currentIndex < weekGroups.length ? currentIndex : 0,
-    );
+      return currentIndex < weekGroups.length ? currentIndex : null;
+    });
   }, [weekGroups.length]);
 
   useEffect(() => {
-    if (!calendar?.length || !weekGroups.length) {
-      return;
-    }
-
-    const now = dayjs();
-
-    const activeCalendarWeek = calendar.find(
-      (week) =>
-        week.stage !== "Off Season" &&
-        now.isBetween(dayjs(week.startDate), dayjs(week.endDate), null, "[]"),
-    );
-
-    if (!activeCalendarWeek) {
-      return;
-    }
-
-    const activeSeasonType = getSeasonTypeFromStage(activeCalendarWeek.stage);
-
-    const matchingGroupIndex = weekGroups.findIndex(
-      (group) =>
-        group.week.number === activeCalendarWeek.weekNumber &&
-        group.season.type === activeSeasonType,
-    );
-
-    if (matchingGroupIndex >= 0) {
-      setSelectedWeekIndex(matchingGroupIndex);
-    }
-  }, [calendar, weekGroups]);
-
-  useEffect(() => {
-    setSelectedWeekIndex(0);
+    setSelectedWeekIndex(null);
 
     setSelectedConference("top25");
 
@@ -642,15 +648,15 @@ function CFBLeagueScreen() {
           <View key="scores" style={styles.contentArea}>
             <WeekSelector
               groups={weekGroups}
-              loading={gamesLoading}
-              selectedWeekIndex={selectedWeekIndex}
+              loading={calendarLoading || gamesLoading}
+              selectedWeekIndex={resolvedWeekIndex}
               onSelectWeek={setSelectedWeekIndex}
               isDark={isDark}
             />
 
             <GamesList
               games={displayedGames}
-              loading={gamesLoading}
+              loading={calendarLoading || gamesLoading}
               refreshing={screenRefreshing || gamesRefreshing}
               onRefresh={handleRefresh}
               showHeaders={false}

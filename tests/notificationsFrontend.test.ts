@@ -3,8 +3,10 @@ import test from "node:test";
 
 import type { AppNotification, NotificationType } from "../types/notifications";
 import {
+  getNotificationActorProfileImage,
   getNotificationCenterHref,
   getNotificationLeagueLabel,
+  shouldShowNotificationActorProfileImage,
 } from "../utils/notificationCenter";
 import {
   isNotificationForSession,
@@ -173,6 +175,48 @@ test("the navigation mapper safely handles missing metadata", () => {
     getNotificationCenterHref(notification("new_follower", { actorUserId: null })),
     "/(tabs)/profile",
   );
+});
+
+test("social notifications expose the actor profile image", () => {
+  for (const type of [
+    "new_follower",
+    "post_like",
+    "post_comment",
+    "comment_reply",
+    "message",
+  ] as const) {
+    const socialNotification = notification(type, {
+      data: { profileImage: "https://images.example.com/actor.jpg" },
+    });
+
+    assert.equal(
+      shouldShowNotificationActorProfileImage(socialNotification),
+      true,
+    );
+    assert.equal(
+      getNotificationActorProfileImage(socialNotification),
+      "https://images.example.com/actor.jpg",
+    );
+  }
+
+  assert.equal(
+    getNotificationActorProfileImage(
+      notification("new_follower", {
+        data: { profile_image: "https://images.example.com/legacy.jpg" },
+      }),
+    ),
+    "https://images.example.com/legacy.jpg",
+  );
+  assert.equal(
+    shouldShowNotificationActorProfileImage(notification("message")),
+    true,
+  );
+  assert.equal(getNotificationActorProfileImage(notification("message")), null);
+  assert.equal(
+    shouldShowNotificationActorProfileImage(notification("badge")),
+    false,
+  );
+  assert.equal(getNotificationActorProfileImage(notification("badge")), null);
 });
 
 test("team notification settings merge across both teams for a game", () => {

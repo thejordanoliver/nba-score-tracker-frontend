@@ -279,7 +279,10 @@ export default function UserProfileScreen() {
             error={badgesError}
             onRetry={refreshBadges}
             onPressSeeAll={() => {
-              router.push("/badges");
+              router.push({
+                pathname: "/badges",
+                params: { userId },
+              });
             }}
           />
         </View>

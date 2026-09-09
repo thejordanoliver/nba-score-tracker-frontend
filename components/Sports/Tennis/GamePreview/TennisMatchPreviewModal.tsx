@@ -18,7 +18,11 @@ type Props = {
   onClose: () => void;
 };
 
-export default function GamePreviewModal({ visible, match, onClose }: Props) {
+export default function TennisMatchPreviewModal({
+  visible,
+  match,
+  onClose,
+}: Props) {
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
   const sheetRef = useRef<BottomSheetModal>(null);
@@ -38,35 +42,43 @@ export default function GamePreviewModal({ visible, match, onClose }: Props) {
   const formattedTime = formatTime(gameDate);
   const broadcast = getBroadcastDisplay(match.broadcasts);
 
+  const state = match?.status.state ?? "";
   const gameStatusDescription = match?.status.description ?? "";
   const gameStatusDetail = match?.status.detail ?? "";
   const tbd = gameStatusDetail.includes("TBD") ? "TBD" : null;
 
-  const competitors = match.competitors.slice(0, 2);
-  const leftCompetitor = competitors[0];
-  const rightCompetitor = competitors[1];
+  const competitors = match?.competitors.slice(0, 2);
+  const leftCompetitor = competitors?.[0];
+  const rightCompetitor = competitors?.[1];
 
-  const leftCompetitorId = leftCompetitor.id;
-  const rightCompetitorId = rightCompetitor.id;
+  const leftCompetitorId = leftCompetitor?.id ?? "";
+  const rightCompetitorId = rightCompetitor?.id ?? "";
 
-  const leftCompetitorName = leftCompetitor.shortName;
-  const rightCompetitorName = rightCompetitor.shortName;
-  const leftScore = leftCompetitor.score;
-  const rightScore = rightCompetitor.score;
-  const leftServing = leftCompetitor.serving;
-  const rightServing = rightCompetitor.serving;
-  const leftFlag = leftCompetitor.flag;
-  const leftFlags = leftCompetitor.flags;
-  const rightFlag = rightCompetitor.flag;
-  const rightFlags = rightCompetitor.flags;
-  const leftCompetitorCountry = leftCompetitor.country;
-  const rightCompetitorCountry = rightCompetitor.country;
-  const leftWins = leftCompetitor.winner ?? false;
-  const rightWins = rightCompetitor.winner ?? false;
-  const leftRank = leftCompetitor.rank;
-  const rightRank = rightCompetitor.rank;
+  const leftCompetitorName = leftCompetitor?.shortName ?? "";
+  const rightCompetitorName = rightCompetitor?.shortName ?? "";
 
-  const headline = match.tournamentShortName;
+  const leftCompetitorCountry = leftCompetitor?.country ?? "";
+  const rightCompetitorCountry = rightCompetitor?.country ?? "";
+
+  const leftCompetitorFlag = leftCompetitor?.flag ?? "";
+  const rightCompetitorFlag = rightCompetitor?.flag ?? "";
+
+  const leftCompetitorFlags = leftCompetitor?.flags ?? [];
+  const rightCompetitorFlags = rightCompetitor?.flags ?? [];
+
+  const headline = match?.tournamentShortName;
+
+  const leftCompetitorScore = leftCompetitor?.score ?? null;
+  const rightCompetitorScore = rightCompetitor?.score ?? null;
+
+  const leftCompetitorServing = leftCompetitor?.serving ?? false;
+  const rightCompetitorServing = rightCompetitor?.serving ?? false;
+
+  const leftCompetitorWins = leftCompetitor?.winner ?? false;
+  const rightCompetitorWins = rightCompetitor?.winner ?? false;
+
+  const leftCompetitorRank = leftCompetitor?.rank ?? null;
+  const rightCompetitorRank = rightCompetitor?.rank ?? null;
 
   const isLoading = !match;
 
@@ -105,23 +117,21 @@ export default function GamePreviewModal({ visible, match, onClose }: Props) {
 
               {/* --- Header Section --- */}
               <View style={styles.gameHeaderContainer}>
-                {/* Away Team Row */}
                 <CompetitorRow
                   id={leftCompetitorId}
                   name={leftCompetitorName}
                   country={leftCompetitorCountry}
-                  flag={leftFlag}
-                  flags={leftFlags}
-                  rank={leftRank}
-                  score={leftScore}
-                  isWinner={leftWins}
-                  serving={leftServing}
-                  gameStatusDescription={gameStatusDescription}
+                  flag={leftCompetitorFlag}
+                  flags={leftCompetitorFlags}
+                  rank={leftCompetitorRank}
+                  score={leftCompetitorScore}
+                  isWinner={leftCompetitorWins}
+                  serving={leftCompetitorServing}
+                  state={state}
                   isDark={isDark}
                   isHome={false}
                 />
 
-                {/* Game Info */}
                 <GameInfo
                   date={formattedDate}
                   time={tbd || formattedTime}
@@ -131,18 +141,17 @@ export default function GamePreviewModal({ visible, match, onClose }: Props) {
                   isDark={isDark}
                 />
 
-                {/* Home Team Row */}
                 <CompetitorRow
                   id={rightCompetitorId}
                   name={rightCompetitorName}
                   country={rightCompetitorCountry}
-                  flag={rightFlag}
-                  flags={rightFlags}
-                  rank={rightRank}
-                  score={rightScore}
-                  isWinner={rightWins}
-                  serving={rightServing}
-                  gameStatusDescription={gameStatusDescription}
+                  flag={rightCompetitorFlag}
+                  flags={rightCompetitorFlags}
+                  rank={rightCompetitorRank}
+                  score={rightCompetitorScore}
+                  isWinner={rightCompetitorWins}
+                  serving={rightCompetitorServing}
+                  state={state}
                   isDark={isDark}
                   isHome={true}
                 />

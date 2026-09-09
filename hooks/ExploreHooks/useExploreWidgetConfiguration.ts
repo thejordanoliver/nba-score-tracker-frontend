@@ -5,6 +5,7 @@ import {
 } from "constants/exploreWidgets";
 import type {
   ExploreWidgetConfig,
+  ExploreStandingsLeague,
   ExploreWidgetSize,
   ExploreWidgetType,
 } from "types/widgets";
@@ -96,6 +97,7 @@ export function useExploreWidgetConfiguration(userId: number | null) {
             createdAt: Date.now(),
             size,
             order: ordered.length,
+            standingsLeague: type === "standings" ? "nba" : undefined,
           },
         ];
       });
@@ -114,6 +116,19 @@ export function useExploreWidgetConfiguration(userId: number | null) {
       setWidgets((previous) =>
         previous.map((widget) =>
           widget.id === widgetId ? { ...widget, size } : widget,
+        ),
+      );
+    },
+    [],
+  );
+
+  const setStandingsLeague = useCallback(
+    (widgetId: string, league: ExploreStandingsLeague) => {
+      setWidgets((previous) =>
+        previous.map((widget) =>
+          widget.id === widgetId && widget.type === "standings"
+            ? { ...widget, standingsLeague: league }
+            : widget,
         ),
       );
     },
@@ -170,6 +185,7 @@ export function useExploreWidgetConfiguration(userId: number | null) {
     addWidget,
     removeWidget,
     resizeWidget,
+    setStandingsLeague,
     moveWidget,
     reorderWidgets,
   };

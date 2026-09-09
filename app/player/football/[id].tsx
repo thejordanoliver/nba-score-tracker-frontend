@@ -67,6 +67,7 @@ export default function PlayerDetailScreen() {
   const isCFB = league === "cfb";
   const styles = playerScreenStyles;
   const playerId = Number(id);
+ 
   const { player, loading, error } = usePlayerById(playerId, league);
   const isActive = player?.active;
   const team = isNFL ? getNFLTeam(teamId) : getCFBTeam(teamId);

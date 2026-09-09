@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getDefaultWidgetSize,
   getWidgetTitle,
+  isExploreStandingsLeague,
   isExploreWidgetSize,
   isExploreWidgetType,
   widgetAllowsDuplicates,
@@ -90,6 +91,13 @@ export function normalizeStoredWidgets(value: unknown): ExploreWidgetConfig[] {
           typeof widget.order === "number"
             ? widget.order
             : Number.MAX_SAFE_INTEGER,
+        standingsLeague:
+          type === "standings" &&
+          isExploreStandingsLeague(widget.standingsLeague)
+            ? widget.standingsLeague
+            : type === "standings"
+              ? "nba"
+              : undefined,
       };
     })
     .filter((widget) => {

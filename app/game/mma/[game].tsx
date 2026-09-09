@@ -4,6 +4,7 @@ import {
   GameLiveChatOverlay,
   GameLocation,
 } from "@/components/Sports/Basketball/GameDetails";
+import { useLiveVotes } from "@/hooks/useLiveVotes";
 import { useVenue } from "@/hooks/useVenue";
 import { useWeather } from "@/hooks/useWeather";
 import {
@@ -109,6 +110,8 @@ export default function GameDetailsScreen(
   const holidayLabel = getHolidayLabel(gameDate);
 
   const gameId = game?.id ?? 0;
+  const { votes: liveVotes, castVote: castLiveVote } = useLiveVotes(gameId);
+
   const firstFighter = game?.competitors?.[0];
   const secondFighter = game?.competitors?.[1];
   const firstFighterId = Number(firstFighter?.id);
@@ -274,6 +277,8 @@ export default function GameDetailsScreen(
         {!dontShowDetails && (
           <View style={styles.innerContainer}>
             <FanPrediction
+              votes={liveVotes}
+              castVote={castLiveVote}
               gameId={gameId}
               awayId={secondFighterId}
               awayCode={secondFighterLastName}

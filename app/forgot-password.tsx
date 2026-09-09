@@ -1,6 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -17,17 +20,54 @@ import Button from "../components/Buttons/Button";
 import { Colors, Fonts } from "../constants/styles";
 import { usePreferences } from "../contexts/PreferencesContext";
 import {
+  FORGOT_PASSWORD_CODE_FIELDS,
+  FORGOT_PASSWORD_EMAIL_FIELDS,
+  forgotPasswordSchema,
+  type ForgotPasswordFormValues,
+} from "../schemas/auth/forgotPasswordSchema";
+import {
   forgotPassword,
   resetPassword,
   verifyResetCode,
 } from "../utils/apiClient";
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const CODE_PATTERN = /^\d{6}$/;
 const RESEND_COOLDOWN_SECONDS = 60;
 const CODE_EXPIRATION_MINUTES = 10;
 
 type ResetStep = "email" | "code" | "password";
+type RequestAction = "requesting" | "resending" | "verifying" | null;
+
+const INITIAL_VALUES: ForgotPasswordFormValues = {
+  email: "",
+  code: "",
+  password: "",
+  confirmPassword: "",
+};
+
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (isAxiosError(error)) {
+    const responseData = error.response?.data as
+      | { error?: unknown; message?: unknown }
+      | undefined;
+
+    if (typeof responseData?.error === "string" && responseData.error.trim()) {
+      return responseData.error;
+    }
+
+    if (
+      typeof responseData?.message === "string" &&
+      responseData.message.trim()
+    ) {
+      return responseData.message;
+    }
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return fallback;
+}
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -36,24 +76,32 @@ export default function ForgotPasswordScreen() {
   const styles = authStyles(isDark);
 
   const [step, setStep] = useState<ResetStep>("email");
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [requestAction, setRequestAction] = useState<RequestAction>(null);
+  const [globalError, setGlobalError] = useState("");
   const [success, setSuccess] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
+  const redirectTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
-  const trimmedCode = code.trim();
-  const isValidResetPassword =
-    Boolean(email.trim()) &&
-    CODE_PATTERN.test(trimmedCode) &&
-    password.length >= 8 &&
-    confirmPassword.length >= 8 &&
-    password === confirmPassword;
+  const {
+    clearErrors,
+    control,
+    formState: { isSubmitting, isValid, isValidating },
+    getValues,
+    handleSubmit,
+    reset,
+    setError: setFieldError,
+    trigger,
+  } = useForm<ForgotPasswordFormValues>({
+    defaultValues: INITIAL_VALUES,
+    mode: "onChange",
+    reValidateMode: "onChange",
+    resolver: zodResolver(forgotPasswordSchema),
+    shouldUnregister: false,
+  });
+
+  const isRequestBusy = requestAction !== null || isSubmitting;
+  const isBusy = isRequestBusy || isValidating;
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -65,43 +113,31 @@ export default function ForgotPasswordScreen() {
     return () => clearInterval(interval);
   }, [resendCooldown]);
 
-  const validateEmail = () => {
-    if (!normalizedEmail) {
-      setError("Email is required.");
-      return false;
-    }
-
-    if (!EMAIL_PATTERN.test(normalizedEmail)) {
-      setError("Enter a valid email address.");
-      return false;
-    }
-
-    return true;
-  };
-
-  const validateCode = () => {
-    if (!trimmedCode) {
-      setError("Code is required.");
-      return false;
-    }
-
-    if (!CODE_PATTERN.test(trimmedCode)) {
-      setError("Enter the 6-digit code from your email.");
-      return false;
-    }
-
-    return true;
-  };
+  useEffect(
+    () => () => {
+      if (redirectTimeout.current) {
+        clearTimeout(redirectTimeout.current);
+      }
+    },
+    [],
+  );
 
   const requestCode = async ({ isResend = false } = {}) => {
-    setError("");
+    setGlobalError("");
     setSuccess("");
 
-    if (!validateEmail()) return;
+    const fieldsAreValid = await trigger(FORGOT_PASSWORD_EMAIL_FIELDS, {
+      shouldFocus: !isResend,
+    });
+
+    if (!fieldsAreValid) return;
+
+    const normalizedEmail = getValues("email").trim().toLowerCase();
 
     try {
-      setLoading(true);
+      setRequestAction(isResend ? "resending" : "requesting");
       await forgotPassword(normalizedEmail);
+      clearErrors("code");
       setStep("code");
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setSuccess(
@@ -109,133 +145,166 @@ export default function ForgotPasswordScreen() {
           ? "A new code has been sent."
           : "Check your email for a 6-digit code.",
       );
-    } catch (err: any) {
-      setError(
-        err.response?.data?.error ??
-          err.response?.data?.message ??
+    } catch (error: unknown) {
+      setGlobalError(
+        getApiErrorMessage(
+          error,
           "Unable to send reset code. Please try again.",
+        ),
       );
     } finally {
-      setLoading(false);
+      setRequestAction(null);
     }
   };
 
   const verifyCode = async () => {
-    setError("");
+    setGlobalError("");
     setSuccess("");
 
-    if (!validateEmail() || !validateCode()) return;
+    const fieldsAreValid = await trigger(FORGOT_PASSWORD_CODE_FIELDS, {
+      shouldFocus: true,
+    });
+
+    if (!fieldsAreValid) return;
+
+    const normalizedEmail = getValues("email").trim().toLowerCase();
+    const trimmedCode = getValues("code").trim();
 
     try {
-      setLoading(true);
+      setRequestAction("verifying");
       await verifyResetCode(normalizedEmail, trimmedCode);
       setStep("password");
       setSuccess("Code verified. Enter a new password.");
-    } catch (err: any) {
-      setError(
-        err.response?.data?.error ??
-          err.response?.data?.message ??
-          "Invalid or expired code. Please try again.",
+    } catch (error: unknown) {
+      const message = getApiErrorMessage(
+        error,
+        "Unable to verify the code. Please try again.",
       );
+
+      if (message === "Invalid or expired reset code") {
+        setFieldError("code", { type: "server", message });
+      } else {
+        setGlobalError(message);
+      }
     } finally {
-      setLoading(false);
+      setRequestAction(null);
     }
   };
 
-  const updatePassword = async () => {
-    setError("");
+  const updatePassword = async (values: ForgotPasswordFormValues) => {
+    setGlobalError("");
     setSuccess("");
 
-    if (!validateEmail() || !validateCode()) return;
-
-    if (!password) {
-      setError("Password is required.");
-      return;
-    }
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-
-    if (!confirmPassword) {
-      setError("Confirm password is required.");
-      return;
-    }
-
-    if (confirmPassword.length < 8) {
-      setError("Confirm password must be at least 8 characters.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords must match.");
-      return;
-    }
-
     try {
-      setLoading(true);
-      await resetPassword(normalizedEmail, trimmedCode, password);
+      await resetPassword(values.email, values.code, values.password);
       setSuccess("Password updated. Redirecting to login...");
-      setTimeout(() => {
+
+      redirectTimeout.current = setTimeout(() => {
+        reset(INITIAL_VALUES);
         router.replace("/login");
       }, 1200);
-    } catch (err: any) {
-      setError(
-        err.response?.data?.error ??
-          err.response?.data?.message ??
-          "Unable to update password. Please try again.",
+    } catch (error: unknown) {
+      const message = getApiErrorMessage(
+        error,
+        "Unable to update password. Please try again.",
       );
-    } finally {
-      setLoading(false);
+
+      if (message === "Invalid or expired reset code") {
+        setFieldError("code", { type: "server", message });
+        setStep("code");
+        return;
+      }
+
+      if (message.startsWith("Password")) {
+        setFieldError("password", { type: "server", message });
+        return;
+      }
+
+      setGlobalError(message);
     }
   };
 
   const renderEmailStep = () => (
     <>
-      <View style={styles.input}>
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Email"
-          placeholderTextColor={Colors.midTone}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="email-address"
-          textContentType="emailAddress"
-          style={styles.inputText}
-          editable={!loading}
-        />
-      </View>
+      <Controller
+        control={control}
+        name="email"
+        render={({ field, fieldState }) => (
+          <View style={styles.field}>
+            <View style={[styles.input, fieldState.error && styles.inputError]}>
+              <TextInput
+                ref={field.ref}
+                value={field.value}
+                onChangeText={(value) => {
+                  field.onChange(value);
+                  setGlobalError("");
+                }}
+                onBlur={field.onBlur}
+                placeholder="Email"
+                placeholderTextColor={Colors.midTone}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                textContentType="emailAddress"
+                style={styles.inputText}
+                editable={!isRequestBusy}
+              />
+            </View>
+
+            {fieldState.error?.message && (
+              <Text style={styles.fieldErrorText}>
+                {fieldState.error.message}
+              </Text>
+            )}
+          </View>
+        )}
+      />
 
       <Button
         isDark={isDark}
         onPress={() => requestCode()}
-        disabled={loading}
+        disabled={isBusy}
         style={styles.button}
       >
-        {loading ? "Sending..." : "Send Code"}
+        {requestAction === "requesting" ? "Sending..." : "Send Code"}
       </Button>
     </>
   );
 
   const renderCodeStep = () => (
     <>
-      <View style={styles.input}>
-        <TextInput
-          value={code}
-          onChangeText={(value) =>
-            setCode(value.replace(/\D/g, "").slice(0, 6))
-          }
-          placeholder="6-digit code"
-          placeholderTextColor={Colors.midTone}
-          keyboardType="number-pad"
-          textContentType="oneTimeCode"
-          maxLength={6}
-          style={[styles.inputText, styles.codeInputText]}
-          editable={!loading}
-        />
-      </View>
+      <Controller
+        control={control}
+        name="code"
+        render={({ field, fieldState }) => (
+          <View style={styles.field}>
+            <View style={[styles.input, fieldState.error && styles.inputError]}>
+              <TextInput
+                ref={field.ref}
+                value={field.value}
+                onChangeText={(value) => {
+                  field.onChange(value.replace(/\D/g, "").slice(0, 6));
+                  setGlobalError("");
+                }}
+                onBlur={field.onBlur}
+                placeholder="6-digit code"
+                placeholderTextColor={Colors.midTone}
+                keyboardType="number-pad"
+                textContentType="oneTimeCode"
+                maxLength={6}
+                style={[styles.inputText, styles.codeInputText]}
+                editable={!isRequestBusy}
+              />
+            </View>
+
+            {fieldState.error?.message && (
+              <Text style={styles.fieldErrorText}>
+                {fieldState.error.message}
+              </Text>
+            )}
+          </View>
+        )}
+      />
 
       <Text style={styles.helperText}>
         Codes expire after {CODE_EXPIRATION_MINUTES} minutes.
@@ -244,21 +313,21 @@ export default function ForgotPasswordScreen() {
       <Button
         isDark={isDark}
         onPress={verifyCode}
-        disabled={loading}
+        disabled={isBusy}
         style={styles.button}
       >
-        {loading ? "Verifying..." : "Verify Code"}
+        {requestAction === "verifying" ? "Verifying..." : "Verify Code"}
       </Button>
 
       <Pressable
         onPress={() => requestCode({ isResend: true })}
-        disabled={loading || resendCooldown > 0}
+        disabled={isBusy || resendCooldown > 0}
         style={styles.linkButton}
       >
         <Text
           style={[
             styles.linkText,
-            (loading || resendCooldown > 0) && styles.disabledLinkText,
+            (isBusy || resendCooldown > 0) && styles.disabledLinkText,
           ]}
         >
           {resendCooldown > 0
@@ -271,55 +340,91 @@ export default function ForgotPasswordScreen() {
 
   const renderPasswordStep = () => (
     <>
-      <View style={styles.input}>
-        <TextInput
-          value={password}
-          onChangeText={(value) => {
-            setPassword(value);
-            setSuccess("");
-          }}
-          placeholder="New password"
-          placeholderTextColor={Colors.midTone}
-          secureTextEntry={!showPassword}
-          textContentType="newPassword"
-          style={styles.inputText}
-          editable={!loading}
-        />
-        <Pressable
-          onPress={() => setShowPassword((value) => !value)}
-          accessibilityLabel={showPassword ? "Hide password" : "Show password"}
-        >
-          <Ionicons
-            name={showPassword ? "eye-off" : "eye"}
-            size={20}
-            color={isDark ? Colors.white : Colors.black}
-          />
-        </Pressable>
-      </View>
+      <Controller
+        control={control}
+        name="password"
+        render={({ field, fieldState }) => (
+          <View style={styles.field}>
+            <View style={[styles.input, fieldState.error && styles.inputError]}>
+              <TextInput
+                ref={field.ref}
+                value={field.value}
+                onChangeText={(value) => {
+                  field.onChange(value);
+                  setGlobalError("");
+                  setSuccess("");
+                }}
+                onBlur={field.onBlur}
+                placeholder="New password"
+                placeholderTextColor={Colors.midTone}
+                secureTextEntry={!showPassword}
+                textContentType="newPassword"
+                style={styles.inputText}
+                editable={!isRequestBusy}
+              />
+              <Pressable
+                onPress={() => setShowPassword((value) => !value)}
+                accessibilityLabel={
+                  showPassword ? "Hide password" : "Show password"
+                }
+              >
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={20}
+                  color={isDark ? Colors.white : Colors.black}
+                />
+              </Pressable>
+            </View>
 
-      <View style={styles.input}>
-        <TextInput
-          value={confirmPassword}
-          onChangeText={(value) => {
-            setConfirmPassword(value);
-            setSuccess("");
-          }}
-          placeholder="Confirm password"
-          placeholderTextColor={Colors.midTone}
-          secureTextEntry={!showPassword}
-          textContentType="newPassword"
-          style={styles.inputText}
-          editable={!loading}
-        />
-      </View>
+            {fieldState.error?.message && (
+              <Text style={styles.fieldErrorText}>
+                {fieldState.error.message}
+              </Text>
+            )}
+          </View>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="confirmPassword"
+        render={({ field, fieldState }) => (
+          <View style={styles.field}>
+            <View style={[styles.input, fieldState.error && styles.inputError]}>
+              <TextInput
+                ref={field.ref}
+                value={field.value}
+                onChangeText={(value) => {
+                  field.onChange(value);
+                  setGlobalError("");
+                  setSuccess("");
+                }}
+                onBlur={field.onBlur}
+                placeholder="Confirm password"
+                placeholderTextColor={Colors.midTone}
+                secureTextEntry={!showPassword}
+                textContentType="newPassword"
+                style={styles.inputText}
+                editable={!isRequestBusy}
+              />
+            </View>
+
+            {fieldState.error?.message && (
+              <Text style={styles.fieldErrorText}>
+                {fieldState.error.message}
+              </Text>
+            )}
+          </View>
+        )}
+      />
 
       <Button
         isDark={isDark}
-        onPress={updatePassword}
-        disabled={loading || !isValidResetPassword}
+        onPress={handleSubmit(updatePassword)}
+        disabled={isBusy || !isValid}
         style={styles.button}
       >
-        {loading ? "Updating..." : "Update Password"}
+        {isSubmitting ? "Updating..." : "Update Password"}
       </Button>
     </>
   );
@@ -344,12 +449,14 @@ export default function ForgotPasswordScreen() {
                 {step === "code" && renderCodeStep()}
                 {step === "password" && renderPasswordStep()}
 
-                {!!error && <Text style={styles.errorText}>{error}</Text>}
+                {!!globalError && (
+                  <Text style={styles.errorText}>{globalError}</Text>
+                )}
                 {!!success && <Text style={styles.successText}>{success}</Text>}
 
                 <Pressable
                   onPress={() => router.replace("/login")}
-                  disabled={loading}
+                  disabled={isRequestBusy}
                   style={styles.linkButton}
                 >
                   <Text style={styles.linkText}>Back to Login</Text>
@@ -427,6 +534,9 @@ const authStyles = (isDark: boolean) => {
     form: {
       gap: 12,
     },
+    field: {
+      gap: 4,
+    },
     input: {
       flexDirection: "row",
       alignItems: "center",
@@ -436,6 +546,9 @@ const authStyles = (isDark: boolean) => {
       borderColor: border,
       borderRadius: 8,
       backgroundColor: surface,
+    },
+    inputError: {
+      borderColor: isDark ? Colors.dark.lightRed : Colors.light.red,
     },
     inputText: {
       flex: 1,
@@ -460,6 +573,12 @@ const authStyles = (isDark: boolean) => {
       fontSize: 15,
       color: isDark ? Colors.dark.lightRed : Colors.light.red,
       textAlign: "center",
+    },
+    fieldErrorText: {
+      paddingHorizontal: 4,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 13,
+      color: isDark ? Colors.dark.lightRed : Colors.light.red,
     },
     successText: {
       fontFamily: Fonts.REGULAR,

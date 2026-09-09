@@ -157,7 +157,7 @@ export default function MessageThemeModal({
     <BottomSheetModal
       ref={sheetRef}
       index={0}
-      snapPoints={[snapPoints[4]]}
+      snapPoints={[snapPoints[2]]}
       enableDynamicSizing={false}
       enablePanDownToClose
       onDismiss={onClose}

@@ -19,6 +19,7 @@ import {
   type ExploreWidgetGame,
   type ExploreWidgetLeague,
   type ExploreWidgetSize,
+  type ExploreStandingsLeague,
   type ExploreWidgetsResponse,
   type ExploreWidgetType,
 } from "types/widgets";
@@ -38,6 +39,10 @@ type ExploreWidgetsContextValue = {
   ) => void;
   removeWidget: (widgetId: string) => void;
   resizeWidget: (widgetId: string, size: ExploreWidgetSize) => void;
+  setStandingsLeague: (
+    widgetId: string,
+    league: ExploreStandingsLeague,
+  ) => void;
   moveWidget: (widgetId: string, direction: -1 | 1) => void;
   reorderWidgets: (widgets: ExploreWidgetConfig[]) => void;
   ensureWidgetData: () => Promise<void>;
@@ -107,6 +112,7 @@ export function ExploreWidgetsProvider({ children }: { children: ReactNode }) {
     addWidget,
     removeWidget,
     resizeWidget,
+    setStandingsLeague,
     moveWidget,
     reorderWidgets,
   } = useExploreWidgetConfiguration(userId);
@@ -341,6 +347,7 @@ export function ExploreWidgetsProvider({ children }: { children: ReactNode }) {
       addWidget,
       removeWidget,
       resizeWidget,
+      setStandingsLeague,
       moveWidget,
       reorderWidgets,
       ensureWidgetData,
@@ -358,6 +365,7 @@ export function ExploreWidgetsProvider({ children }: { children: ReactNode }) {
       removeWidget,
       reorderWidgets,
       resizeWidget,
+      setStandingsLeague,
       widgets,
       widgetsReady,
     ],

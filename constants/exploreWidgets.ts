@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import type {
+  ExploreStandingsLeague,
   ExploreWidgetConfig,
   ExploreWidgetLeague,
   ExploreWidgetSize,
   ExploreWidgetType,
 } from "types/widgets";
+import { EXPLORE_STANDINGS_LEAGUES } from "types/widgets";
 
 type ExploreWidgetRegistryEntry = {
   title: string;
@@ -61,6 +63,17 @@ export const EXPLORE_WIDGET_REGISTRY: Record<
     sizes: ["small"],
     emptyCopy: "Create a post and join the conversation.",
   },
+
+  standings: {
+    title: "Standings",
+    description: "Follow the latest league tables from your Explore board.",
+    badge: "Live",
+    icon: "podium-outline",
+    defaultSize: "medium",
+    sizes: ["medium", "large"],
+    emptyCopy: "Standings are not available for this league right now.",
+  },
+
   nba_games: {
     title: "NBA Games",
     description: "Track recent and upcoming games for favorite NBA teams.",
@@ -184,6 +197,7 @@ export type ExploreGameWidgetType = (typeof EXPLORE_GAME_WIDGET_TYPES)[number];
 
 const widgetTypeSet = new Set<string>(EXPLORE_WIDGET_TYPES);
 const widgetSizeSet = new Set<string>(EXPLORE_WIDGET_SIZES);
+const standingsLeagueSet = new Set<string>(EXPLORE_STANDINGS_LEAGUES);
 
 export function isExploreWidgetType(
   value: unknown,
@@ -195,6 +209,12 @@ export function isExploreWidgetSize(
   value: unknown,
 ): value is ExploreWidgetSize {
   return typeof value === "string" && widgetSizeSet.has(value);
+}
+
+export function isExploreStandingsLeague(
+  value: unknown,
+): value is ExploreStandingsLeague {
+  return typeof value === "string" && standingsLeagueSet.has(value);
 }
 
 export function getDefaultWidgetSize(

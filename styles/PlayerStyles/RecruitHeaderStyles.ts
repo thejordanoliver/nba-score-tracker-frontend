@@ -12,6 +12,7 @@ export const recruitHeaderStyles = (isDark: boolean, accent: string) => {
 
   return StyleSheet.create({
     container: {
+      paddingVertical: 12,
       alignItems: "center",
       justifyContent: "center",
     },

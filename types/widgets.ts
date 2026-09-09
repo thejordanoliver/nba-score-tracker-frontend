@@ -14,7 +14,8 @@ export type ExploreWidgetType =
   | "cfb_games"
   | "favorite_games"
   | "favorite_teams"
-  | "create_post";
+  | "create_post"
+  | "standings";
 
 export type ExploreWidgetSize = "small" | "medium" | "large";
 
@@ -25,7 +26,20 @@ export type ExploreWidgetConfig = {
   createdAt: number;
   size: ExploreWidgetSize;
   order: number;
+  standingsLeague?: ExploreStandingsLeague;
 };
+
+export const EXPLORE_STANDINGS_LEAGUES = [
+  "nba",
+  "wnba",
+  "nfl",
+  "ufl",
+  "mlb",
+  "nhl",
+] as const;
+
+export type ExploreStandingsLeague =
+  (typeof EXPLORE_STANDINGS_LEAGUES)[number];
 
 export const EXPLORE_WIDGET_LEAGUES = [
   "nba",

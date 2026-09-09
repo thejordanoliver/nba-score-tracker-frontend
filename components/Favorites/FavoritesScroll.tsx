@@ -522,7 +522,6 @@ export default function FavoritesScroll({
         contentContainerStyle={styles.container}
         directionalLockEnabled
         nestedScrollEnabled
-        decelerationRate="fast"
         activationDistance={10}
         autoscrollThreshold={56}
         autoscrollSpeed={180}

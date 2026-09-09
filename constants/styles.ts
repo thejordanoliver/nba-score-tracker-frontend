@@ -168,6 +168,7 @@ export const globalStyles = (isDark: boolean) =>
       justifyContent: "center",
       padding: 12,
     },
+   
     emptyIconContainer: {
       alignItems: "center",
       justifyContent: "center",

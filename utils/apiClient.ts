@@ -190,11 +190,20 @@ apiClient.interceptors.response.use(
     const requestUrl = originalRequest?.url;
 
     const isAuthError = status === 401 || status === 403;
+    const isInvalidCurrentPassword =
+      status === 401 &&
+      getRequestPath(requestUrl) === "/api/users/me/password" &&
+      error.response?.data?.error === "Invalid current password";
 
     // Important:
     // Do NOT refresh/redirect for login/signup/reset routes.
     // A 401 from /api/login means "Wrong password", not "expired session".
-    if (!originalRequest || shouldSkipAuthRefresh(requestUrl)) {
+    // The password-change route also uses 401 for a bad current password.
+    if (
+      !originalRequest ||
+      shouldSkipAuthRefresh(requestUrl) ||
+      isInvalidCurrentPassword
+    ) {
       return Promise.reject(error);
     }
 

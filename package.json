@@ -12,6 +12,7 @@
     "test:schedule": "node --experimental-strip-types --experimental-default-type=module --test tests/teamScheduleSelection.test.ts",
     "test:widget-grid": "tsx --test tests/exploreWidgetGridLayout.test.ts",
     "test:dm-privacy": "node --experimental-strip-types --experimental-default-type=module --test tests/dmPrivacyFrontend.test.ts",
+    "test:auth-forms": "tsx --test tests/authFormSchemas.test.ts",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
@@ -25,6 +26,7 @@
     "@expo/vector-icons": "^15.0.2",
     "@giphy/react-native-sdk": "^5.0.1",
     "@gorhom/bottom-sheet": "^5.2.6",
+    "@hookform/resolvers": "^5.9.1",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/slider": "5.0.1",
     "@react-native-masked-view/masked-view": "0.3.2",
@@ -61,6 +63,7 @@
     "luxon": "^3.7.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-hook-form": "^7.87.0",
     "react-native": "0.81.5",
     "react-native-calendars": "^1.1313.0",
     "react-native-circular-progress-indicator": "^4.4.2",
@@ -85,6 +88,7 @@
     "sanitize-html": "^2.17.0",
     "socket.io-client": "^4.8.1",
     "uuid": "^13.0.0",
+    "zod": "^4.5.4",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

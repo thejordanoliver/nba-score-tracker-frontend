@@ -1,12 +1,14 @@
 import Button from "@/components/Buttons/Button";
 import { CustomHeader } from "@/components/CustomHeader";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigation } from "@react-navigation/native";
 import HeadingTwo from "components/Headings/HeadingTwo";
 import { Colors, Fonts } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";
 import { goBack } from "expo-router/build/global-state/routing";
 import { useAccountDetails } from "hooks/UserHooks/useAccountDetails";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
   Alert,
@@ -16,22 +18,44 @@ import {
   View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import {
+  changePasswordSchema,
+  type ChangePasswordFormValues,
+} from "schemas/auth/changePasswordSchema";
+
+const INITIAL_VALUES: ChangePasswordFormValues = {
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+};
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return "Failed to update password";
+}
 
 export default function AccountDetailsScreen() {
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
   const navigation = useNavigation();
   const styles = accountDetailsStyles(isDark);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const { isLoading, currentUserId, userData, changePassword } =
+    useAccountDetails();
   const {
-    isLoading,
-    currentUserId,
-    userData,
-    isChangingPassword,
-    changePassword,
-  } = useAccountDetails();
+    control,
+    formState: { isSubmitting },
+    handleSubmit,
+    reset,
+    setError,
+  } = useForm<ChangePasswordFormValues>({
+    defaultValues: INITIAL_VALUES,
+    mode: "onTouched",
+    reValidateMode: "onChange",
+    resolver: zodResolver(changePasswordSchema),
+  });
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -39,39 +63,37 @@ export default function AccountDetailsScreen() {
     });
   }, [navigation, isDark]);
 
-  const handleChangePassword = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert("Error", "Please fill out all fields.");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      Alert.alert("Error", "New passwords do not match.");
-      return;
-    }
-
-    if (newPassword === currentPassword) {
-      Alert.alert(
-        "Error",
-        "New password cannot be the same as current password.",
-      );
-      return;
-    }
-
-    if (newPassword.length < 8) {
-      Alert.alert("Error", "New password must be at least 8 characters long.");
-      return;
-    }
-
+  const handleChangePassword = async (values: ChangePasswordFormValues) => {
     try {
-      await changePassword(currentPassword, newPassword);
+      await changePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      });
+      reset();
       Alert.alert("Success", "Password updated successfully.");
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
 
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err: any) {
-      Alert.alert("Error", err.message);
+      if (message === "Current and new password are required") {
+        setError("currentPassword", { type: "server", message });
+        setError("newPassword", { type: "server", message });
+        return;
+      }
+
+      if (message === "Invalid current password") {
+        setError("currentPassword", { type: "server", message });
+        return;
+      }
+
+      if (
+        message === "New password must be different" ||
+        message === "Password must be between 8 and 128 characters"
+      ) {
+        setError("newPassword", { type: "server", message });
+        return;
+      }
+
+      Alert.alert("Error", message);
     }
   };
 
@@ -143,45 +165,99 @@ export default function AccountDetailsScreen() {
       <HeadingTwo isDark={isDark}>Password</HeadingTwo>
       <Text style={styles.text}>••••••••</Text>
 
-      <View style={styles.input}>
-        <TextInput
-          placeholder="Current Password"
-          secureTextEntry
-          value={currentPassword}
-          onChangeText={setCurrentPassword}
-          placeholderTextColor={Colors.midTone}
-          style={styles.inputText}
-          autoCapitalize="none"
-        />
-      </View>
+      <Controller
+        control={control}
+        name="currentPassword"
+        render={({ field, fieldState }) => (
+          <View style={styles.field}>
+            <View
+              style={[styles.input, fieldState.error && styles.inputError]}
+            >
+              <TextInput
+                ref={field.ref}
+                placeholder="Current Password"
+                secureTextEntry
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                placeholderTextColor={Colors.midTone}
+                style={styles.inputText}
+                autoCapitalize="none"
+              />
+            </View>
+
+            {fieldState.error?.message && (
+              <Text style={styles.fieldErrorText}>
+                {fieldState.error.message}
+              </Text>
+            )}
+          </View>
+        )}
+      />
 
       {/* Change Password Inputs */}
 
-      <View style={styles.input}>
-        <TextInput
-          placeholder="New Password"
-          placeholderTextColor={Colors.midTone}
-          secureTextEntry
-          value={newPassword}
-          onChangeText={setNewPassword}
-          style={styles.inputText}
-        />
-      </View>
+      <Controller
+        control={control}
+        name="newPassword"
+        render={({ field, fieldState }) => (
+          <View style={styles.field}>
+            <View
+              style={[styles.input, fieldState.error && styles.inputError]}
+            >
+              <TextInput
+                ref={field.ref}
+                placeholder="New Password"
+                placeholderTextColor={Colors.midTone}
+                secureTextEntry
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                style={styles.inputText}
+              />
+            </View>
 
-      <View style={styles.input}>
-        <TextInput
-          placeholder="Confirm New Password"
-          placeholderTextColor={Colors.midTone}
-          secureTextEntry
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          style={styles.inputText}
-        />
-      </View>
+            {fieldState.error?.message && (
+              <Text style={styles.fieldErrorText}>
+                {fieldState.error.message}
+              </Text>
+            )}
+          </View>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="confirmPassword"
+        render={({ field, fieldState }) => (
+          <View style={styles.field}>
+            <View
+              style={[styles.input, fieldState.error && styles.inputError]}
+            >
+              <TextInput
+                ref={field.ref}
+                placeholder="Confirm New Password"
+                placeholderTextColor={Colors.midTone}
+                secureTextEntry
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                style={styles.inputText}
+              />
+            </View>
+
+            {fieldState.error?.message && (
+              <Text style={styles.fieldErrorText}>
+                {fieldState.error.message}
+              </Text>
+            )}
+          </View>
+        )}
+      />
 
       <Button
-        onPress={handleChangePassword}
-        disabled={isChangingPassword}
+        onPress={handleSubmit(handleChangePassword)}
+        disabled={isSubmitting}
         isDark={isDark}
       >
         Change Password
@@ -200,6 +276,9 @@ const accountDetailsStyles = (isDark: boolean) =>
       paddingHorizontal: 12,
       paddingTop: 20,
     },
+    field: {
+      gap: 4,
+    },
     input: {
       flexDirection: "row",
       alignItems: "center",
@@ -212,12 +291,21 @@ const accountDetailsStyles = (isDark: boolean) =>
         ? Colors.dark.itemBackground
         : Colors.light.itemBackground,
     },
+    inputError: {
+      borderColor: isDark ? Colors.dark.lightRed : Colors.light.red,
+    },
 
     inputText: {
       flex: 1,
       fontFamily: Fonts.REGULAR,
       fontSize: 16,
       color: isDark ? Colors.white : Colors.black,
+    },
+    fieldErrorText: {
+      paddingHorizontal: 4,
+      fontFamily: Fonts.REGULAR,
+      fontSize: 13,
+      color: isDark ? Colors.dark.lightRed : Colors.light.red,
     },
 
     button: {
