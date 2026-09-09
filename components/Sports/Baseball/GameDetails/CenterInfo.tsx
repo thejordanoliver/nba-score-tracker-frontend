@@ -5,7 +5,7 @@ import { gameInfoStyles } from "styles/GameDetailStyles/GameInfoStyles";
 import { BasesIndicator } from "./BasesIndicator";
 
 type CenterInfoProps = {
-  state?: "pre" | "in" | "post" | null;
+  state: string | null;
   gameStatusDescription: string;
   gameStatusDetail: string;
   date: string;

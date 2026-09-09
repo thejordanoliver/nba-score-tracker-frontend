@@ -136,7 +136,7 @@ export default function BaseballGamePreviewModal({
   const { details, score } = useBaseballGameDetails(LEAGUE, gameId);
 
   const broadcast = getBroadcastDisplay(game?.broadcasts);
-  const state = score?.status?.state;
+  const state = score?.status?.state ?? "";
   const gameStatusDescription = score?.status.gameStatusDescription ?? "";
   const gameStatusDetail =
     score?.status.shortDetail ?? game.status.shortDetail ?? "";

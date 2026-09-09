@@ -223,7 +223,22 @@ export function useFollowersScreen() {
       );
 
       try {
-        await toggleFollow(targetId);
+        const nextIsFollowing = await toggleFollow(
+          targetId,
+          !previousIsFollowing,
+        );
+
+        setUsers((prevUsers) =>
+          !nextIsFollowing &&
+          mode === "following" &&
+          normalizedTargetUserId === normalizedCurrentUserId
+            ? prevUsers.filter((user) => user.id !== targetId)
+            : prevUsers.map((user) =>
+                user.id === targetId
+                  ? { ...user, isFollowing: nextIsFollowing }
+                  : user,
+              ),
+        );
 
         requestProfileRefresh();
       } catch {
@@ -240,7 +255,9 @@ export function useFollowersScreen() {
     },
     [
       addLoadingId,
+      mode,
       normalizedCurrentUserId,
+      normalizedTargetUserId,
       removeLoadingId,
       requestProfileRefresh,
       toggleFollow,

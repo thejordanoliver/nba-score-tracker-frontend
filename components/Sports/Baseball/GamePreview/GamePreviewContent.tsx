@@ -1,6 +1,7 @@
 import {
   GameLocation,
   GameTeamStats,
+  HeadCoaches,
   LastFiveGames,
   LineScore,
   MatchupPredictor,
@@ -54,6 +55,7 @@ type GamePreviewContentProps = {
     stats: TeamStat[];
   }[];
   playerStats: PlayerStatsByTeam[];
+
   officials: any[];
   injuries: any[];
 
@@ -67,7 +69,7 @@ type GamePreviewContentProps = {
   weather?: any;
   gameStatusDescription: string;
   league: string;
-  state?: "pre" | "in" | "post" | null;
+  state: string | null;
   isChampionship: boolean;
   highlights: Highlight[];
   isMLB: boolean;
@@ -98,6 +100,8 @@ export default function GamePreviewContent({
   homeErrors,
   teamStats,
   playerStats,
+  homeCoach,
+  awayCoach,
   officials,
   injuries,
   homeChance,
@@ -178,6 +182,17 @@ export default function GamePreviewContent({
           playerStats={playerStats}
           state={state}
           isDark={isDark}
+        />
+
+        <HeadCoaches
+          homeCode={homeCode}
+          awayCode={awayCode}
+          homeCoach={homeCoach}
+          awayCoach={awayCoach}
+          homeLogo={homeLogo}
+          awayLogo={awayLogo}
+          isDark={isDark}
+          state={state}
         />
 
         <Officials officials={officials ?? []} isDark={isDark} state={state} />

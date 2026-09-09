@@ -34,18 +34,18 @@ export default function FollowersList({
 
   if (loading) return <FollowerListSkeleton />;
 
-  if (!users || users.length === 0) {
+  if (error && (!users || users.length === 0)) {
     return (
       <View style={global.emptyContainer}>
-        <Text style={global.emptyText}>No users found.</Text>
+        <Text style={global.emptyText}>{error}</Text>
       </View>
     );
   }
 
-  if (error) {
+  if (!users || users.length === 0) {
     return (
       <View style={global.emptyContainer}>
-        <Text style={global.emptyText}>{error}</Text>
+        <Text style={global.emptyText}>No users found.</Text>
       </View>
     );
   }

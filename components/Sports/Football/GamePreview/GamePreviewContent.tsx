@@ -231,9 +231,10 @@ export default function GamePreviewContent({
           awayCoach={awayCoach}
           homeLogo={homeLogo}
           awayLogo={awayLogo}
-          state={state}
           isDark={isDark}
+          state={state}
         />
+
         <Officials officials={officials ?? []} state={state} isDark={isDark} />
 
         <GameLocation

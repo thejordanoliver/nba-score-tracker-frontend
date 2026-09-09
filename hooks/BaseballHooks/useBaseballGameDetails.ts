@@ -396,7 +396,7 @@ export type Score = {
   status: {
     id: string;
     name: string;
-    state: "pre" | "in" | "post";
+    state: string;
     completed: boolean;
     gameStatusDescription: string;
     gameStatusDetail: string;

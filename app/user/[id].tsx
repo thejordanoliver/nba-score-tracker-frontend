@@ -1,8 +1,10 @@
 import { CustomHeader } from "@/components/CustomHeader";
 import FavoriteTeamsSection from "@/components/Favorites/FavoritesSection";
+import Forum from "@/components/Forum/Forum";
 import TabBar from "@/components/TabBars/TabBar";
 import { globalStyles } from "@/constants/styles";
 import { useBadges } from "@/hooks/ForumHooks/useBadges";
+import { useUserPosts } from "@/hooks/UserHooks/useUserPosts";
 import BadgePreviewSection from "components/Profile/Badges/BadgePreviewSection";
 import BioSection from "components/Profile/BioSection";
 import FollowStats from "components/Profile/FollowStats";
@@ -21,8 +23,9 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { profileStyles } from "styles/ProfileStyles/ProfileScreenStyles";
+import type { ForumPost } from "types/forum";
 
-type UserProfileTab = "favorite teams" | "badges";
+type UserProfileTab = "favorite teams" | "badges" | "posts";
 
 type RouteParam = string | string[] | undefined;
 
@@ -82,6 +85,22 @@ export default function UserProfileScreen() {
     enabled: Boolean(userId),
   });
 
+  const {
+    posts,
+    loading: postsLoading,
+    refreshing: postsRefreshing,
+    error: postsError,
+    hasMore: hasMorePosts,
+    refresh: refreshPosts,
+    loadMore: loadMorePosts,
+    updatePost,
+    deletePost,
+    editPost,
+  } = useUserPosts({
+    userId,
+    enabled: selectedTab === "posts" && Boolean(userId),
+  });
+
   const currentUserIdString = useMemo(
     () => (currentUserId ? String(currentUserId) : ""),
     [currentUserId],
@@ -96,6 +115,16 @@ export default function UserProfileScreen() {
   const handleTabPress = useCallback((tab: UserProfileTab) => {
     setSelectedTab(tab);
   }, []);
+
+  const handlePostBookmarkChange = useCallback(
+    (post: ForumPost, bookmarked: boolean) => {
+      updatePost({
+        ...post,
+        bookmarked,
+      });
+    },
+    [updatePost],
+  );
 
   const headerTitle = useMemo(() => {
     if (username) return `@${username}`;
@@ -219,7 +248,7 @@ export default function UserProfileScreen() {
       <BioSection bio={bio} isDark={isDark} />
 
       <TabBar
-        tabs={["favorite teams", "badges"]}
+        tabs={["favorite teams", "badges", "posts"]}
         selected={selectedTab}
         onTabPress={handleTabPress}
         isDark={isDark}
@@ -252,6 +281,32 @@ export default function UserProfileScreen() {
             onPressSeeAll={() => {
               router.push("/badges");
             }}
+          />
+        </View>
+      )}
+
+      {selectedTab === "posts" && (
+        <View style={styles.bookmarkContainer}>
+          <Forum
+            posts={posts}
+            currentUserId={currentUserId}
+            isDark={isDark}
+            loading={postsLoading}
+            refreshing={postsRefreshing}
+            error={postsError}
+            hasMore={hasMorePosts}
+            onRetry={refreshPosts}
+            onLoadMore={loadMorePosts}
+            onBookmarkChange={handlePostBookmarkChange}
+            onDeletePost={deletePost}
+            onEditPost={editPost}
+            showCreateButton={false}
+            emptyTitle="No posts yet"
+            emptyMessage="Posts from this user will appear here."
+            emptyIcon="chatbubble-outline"
+            scrollEnabled={false}
+            loadMoreMode="button"
+            skeletonCount={3}
           />
         </View>
       )}

@@ -56,7 +56,7 @@ type GamePreviewContentProps = {
   venueCapacity?: number | null;
   venueAttendance?: number | null;
   weather?: any;
-  state?: string | null;
+  state: string | null;
   league: string;
   isDark: boolean;
 };
@@ -181,13 +181,14 @@ export default function GamePreviewContent({
         <Highlights highlights={highlights} isDark={isDark} />
 
         <HeadCoaches
-          homeCode={homeName}
-          awayCode={awayName}
+          homeCode={homeCode}
+          awayCode={awayCode}
           homeCoach={homeCoach}
           awayCoach={awayCoach}
           homeLogo={homeLogo}
           awayLogo={awayLogo}
           isDark={isDark}
+          state={state}
         />
 
         <Officials officials={officials} isDark={isDark} state={state} />

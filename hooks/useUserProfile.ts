@@ -351,14 +351,6 @@ export function useUserProfile(userId?: string) {
       try {
         const { data } = await apiClient.get<UserProfileResponse>(
           `api/users/id/${userId}`,
-          {
-            params:
-              currentUserId === null
-                ? undefined
-                : {
-                    currentUserId,
-                  },
-          },
         );
 
         if (
@@ -494,8 +486,8 @@ export function useUserProfile(userId?: string) {
 
     try {
       await apiClient.post("api/follows/toggle", {
-        followerId: currentUserId,
         followeeId: userId,
+        isFollowing: optimisticIsFollowing,
       });
       await fetchUserData({ hydrateCache: false });
     } catch (error) {

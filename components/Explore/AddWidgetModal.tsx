@@ -1,3 +1,4 @@
+import { LEAGUE_CONFIG } from "@/constants/leagues";
 import { snapPoints } from "@/utils/modalUtils";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -11,14 +12,10 @@ import {
   getDefaultWidgetSize,
 } from "constants/exploreWidgets";
 import { Colors, Fonts, activeOpacity } from "constants/styles";
+import { Image } from "expo-image";
 import type { ComponentProps } from "react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ExploreWidgetConfig,
@@ -59,15 +56,29 @@ function WidgetCatalogCard({
 }: WidgetCatalogCardProps) {
   const defaultSize = getDefaultWidgetSize(option.type);
 
+  const leagueConfig = option.league ? LEAGUE_CONFIG[option.league] : undefined;
+
+  const leagueLogo = leagueConfig
+    ? isDark
+      ? leagueConfig.logoLight
+      : leagueConfig.logo
+    : undefined;
+
   return (
     <View style={[styles.card, isSelected && styles.cardSelected]}>
-      <View style={styles.iconWrap}>
+      {leagueLogo ? (
+        <Image
+          source={leagueLogo}
+          style={styles.leagueLogo}
+          contentFit="contain"
+        />
+      ) : (
         <Ionicons
           name={option.icon}
           size={22}
           color={isDark ? Colors.white : Colors.black}
         />
-      </View>
+      )}
 
       <View style={styles.cardBody}>
         <View style={styles.titleRow}>
@@ -306,24 +317,17 @@ const addWidgetModalStyles = (isDark: boolean) =>
       gap: 12,
       minHeight: 88,
       padding: 12,
-      borderWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
       borderColor: isDark ? Colors.darkGray : Colors.lightGray,
-      borderRadius: 8,
-      backgroundColor: isDark
-        ? Colors.dark.itemBackground
-        : Colors.light.itemBackground,
     },
     cardSelected: {
       borderColor: isDark ? Colors.dark.leafGreen : Colors.light.green,
       opacity: 0.72,
     },
-    iconWrap: {
-      alignItems: "center",
-      justifyContent: "center",
+
+    leagueLogo: {
       width: 42,
       height: 42,
-      borderRadius: 8,
-      backgroundColor: isDark ? Colors.darkGray : Colors.white,
     },
     cardBody: {
       flex: 1,

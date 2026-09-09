@@ -61,21 +61,21 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
   headshot,
   number,
   statNumber,
-  league = "NBA",
+  league = "nba",
 }) => {
   const router = useRouter();
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
   const styles = playerCardStyles(isDark);
 
-  const isNBA = league === "NBA";
-  const isWNBA = league === "WNBA";
-  const isMLB = league === "MLB";
-  const isNFL = league === "NFL";
-  const isCFB = league === "CFB";
-  const isCBB = league === "CBB";
-  const isWCBB = league === "WCBB";
-  const isNHL = league === "NHL";
+  const isNBA = league === "nba";
+  const isWNBA = league === "wnba";
+  const isMLB = league === "mlb";
+  const isNFL = league === "nfl";
+  const isCFB = league === "cfb";
+  const isCBB = league === "cbb";
+  const isWCBB = league === "wcbb";
+  const isNHL = league === "nhl";
 
   const team = isNBA
     ? getNBATeam(teamId)

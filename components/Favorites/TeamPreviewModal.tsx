@@ -92,7 +92,7 @@ export default function TeamPreviewModal({
   return (
     <Modal animationType="fade" transparent visible={visible}>
       <Pressable onPress={onClose} style={styles.container}>
-        <BlurView intensity={40} tint="dark" style={styles.blurViewContainer}>
+        <BlurView intensity={40} style={styles.blurViewContainer}>
           <LinearGradient
             colors={
               isDark
@@ -112,11 +112,7 @@ export default function TeamPreviewModal({
                 backgroundColor: "transparent",
               }}
             >
-              <BlurView
-                intensity={100}
-                tint={"systemMaterial"}
-                style={styles.blurViewWrapper}
-              >
+              <BlurView intensity={100} style={styles.blurViewWrapper}>
                 {logo && (
                   <Image
                     source={logo}
@@ -125,18 +121,11 @@ export default function TeamPreviewModal({
                   />
                 )}
 
-                <Text
-                  style={styles.teamName}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit={true}
-                  minimumFontScale={0.5}
-                >
+                <Text style={styles.teamName}>
                   {team.fullName ?? team.name ?? team.shortName}
                 </Text>
 
                 <Text style={styles.establishedText}>EST. {est}</Text>
-
-                <Text style={styles.subText}>Tap below to view team page</Text>
 
                 {/* Go To Team */}
                 <Button onPress={onGo} style={styles.goButton} isDark={isDark}>

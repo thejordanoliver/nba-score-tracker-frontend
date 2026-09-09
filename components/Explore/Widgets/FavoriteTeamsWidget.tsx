@@ -151,6 +151,7 @@ export default function FavoriteTeamsWidget({
           height: resolvedHeight,
         },
       ]}
+   
       intensity={100}
     >
       <View

@@ -81,11 +81,67 @@ const updateUserFollowState = (
       : user,
   );
 
-const updateFollowStateInCache = (
+const reconcileFollowList = (
+  users: User[],
+  currentUserId: string,
+  targetUserId: string,
+  type: FollowListType,
   followeeId: string,
   isFollowing: boolean,
 ) => {
+  if (
+    !isFollowing &&
+    type === "following" &&
+    targetUserId === currentUserId
+  ) {
+    return users.filter(
+      (user) => user.id.toString() !== followeeId.toString(),
+    );
+  }
+
+  return updateUserFollowState(users, followeeId, isFollowing);
+};
+
+const updateFollowStateInCache = (
+  currentUserId: string,
+  followeeId: string,
+  isFollowing: boolean,
+) => {
+  const viewerCachePrefix = `${currentUserId || "guest"}:`;
+  const ownFollowingCacheKey = getCacheKey(
+    currentUserId,
+    currentUserId,
+    "following",
+  );
+
   followersCache.forEach((cachedUsers, cacheKey) => {
+    if (!cacheKey.startsWith(viewerCachePrefix)) return;
+
+    if (cacheKey === ownFollowingCacheKey) {
+      if (!isFollowing) {
+        followersCache.set(
+          cacheKey,
+          cachedUsers.filter(
+            (user) => user.id.toString() !== followeeId.toString(),
+          ),
+        );
+      } else if (
+        !cachedUsers.some(
+          (user) => user.id.toString() === followeeId.toString(),
+        )
+      ) {
+        // The cache does not have enough profile data to append this user safely.
+        followersCache.delete(cacheKey);
+      } else {
+        followersCache.set(
+          cacheKey,
+          updateUserFollowState(cachedUsers, followeeId, true),
+        );
+      }
+
+      return;
+    }
+
     const updatedUsers = updateUserFollowState(
       cachedUsers,
       followeeId,
@@ -148,16 +204,17 @@ export function useFollowers(
       setUsers(cachedUsers);
       setLoading(false);
     } else {
+      setUsers([]);
       setLoading(true);
     }
 
     setError(null);
 
     apiClient
-      .get<User[]>(`/api/follows/${Number(targetUserId)}/${type}`, {
-        params: { currentUserId },
-        signal: controller.signal,
-      })
+      .get<User[]>(
+        `/api/follows/${encodeURIComponent(targetUserId)}/${type}`,
+        { signal: controller.signal },
+      )
       .then((res) => {
         if (!isActive) return;
 
@@ -183,49 +240,55 @@ export function useFollowers(
   }, [cacheKey, currentUserId, targetUserId, type]);
 
   /**
-   * Toggle follow/unfollow for a specific user.
+   * Set the authenticated viewer's follow state for a specific user.
    *
    * @param followeeId - ID of the user to follow or unfollow.
+   * @param isFollowing - Desired follow state.
    */
   const toggleFollow = useCallback(
-    async (followeeId: string) => {
+    async (followeeId: string, isFollowing: boolean): Promise<boolean> => {
       if (
         !currentUserId ||
         !followeeId ||
         followeeId.toString() === currentUserId.toString()
       ) {
-        return;
+        throw new Error("Invalid follow request");
       }
 
-      try {
-        const res = await apiClient.post<ToggleFollowResponse>(
-          "/api/follows/toggle",
-          {
-            followerId: currentUserId,
-            followeeId: Number(followeeId),
-          },
+      const res = await apiClient.post<ToggleFollowResponse>(
+        "/api/follows/toggle",
+        {
+          followeeId: Number(followeeId),
+          isFollowing,
+        },
+      );
+
+      if (typeof res.data.isFollowing !== "boolean") {
+        throw new Error("Invalid follow response");
+      }
+
+      const nextIsFollowing = res.data.isFollowing;
+
+      updateFollowStateInCache(currentUserId, followeeId, nextIsFollowing);
+
+      setUsers((prevUsers) => {
+        const updatedUsers = reconcileFollowList(
+          prevUsers,
+          currentUserId,
+          targetUserId,
+          type,
+          followeeId,
+          nextIsFollowing,
         );
 
-        const nextIsFollowing = Boolean(res.data.isFollowing);
+        followersCache.set(cacheKey, updatedUsers);
 
-        updateFollowStateInCache(followeeId, nextIsFollowing);
+        return updatedUsers;
+      });
 
-        setUsers((prevUsers) => {
-          const updatedUsers = updateUserFollowState(
-            prevUsers,
-            followeeId,
-            nextIsFollowing,
-          );
-
-          followersCache.set(cacheKey, updatedUsers);
-
-          return updatedUsers;
-        });
-      } catch (error) {
-        throw error;
-      }
+      return nextIsFollowing;
     },
-    [cacheKey, currentUserId],
+    [cacheKey, currentUserId, targetUserId, type],
   );
 
   return {

@@ -442,7 +442,6 @@ const postDestinationStyles = (isDark: boolean) =>
       paddingVertical: 9,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderColor: isDark ? Colors.darkGray : Colors.lightGray,
-   
     },
     optionSelected: {
       borderColor: isDark ? Colors.white : Colors.black,
