@@ -13,7 +13,8 @@ export type ExploreWidgetType =
   | "wcbb_games"
   | "cfb_games"
   | "favorite_games"
-  | "favorite_teams";
+  | "favorite_teams"
+  | "create_post";
 
 export type ExploreWidgetSize = "small" | "medium" | "large";
 

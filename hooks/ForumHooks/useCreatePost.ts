@@ -17,9 +17,10 @@ import type {
   ForumPollDraft,
   ForumPost,
   ForumPostCreateResponse,
+  ForumPostDestination,
 } from "types/forum";
-import { LeagueType } from "types/types";
 import { apiClient } from "utils/apiClient";
+import { getForumPostCreateEndpoint } from "utils/forumPostDestination";
 
 if (
   Platform.OS === "android" &&
@@ -53,7 +54,7 @@ const getMimeType = (item: ForumComposerMediaItem) => {
   return "image/jpeg";
 };
 
-export function useCreatePost(teamId?: string, league?: LeagueType) {
+export function useCreatePost(destination: ForumPostDestination | null) {
   const [newPostText, setNewPostText] = useState("");
   const [loading, setLoading] = useState(false);
   const [media, setMedia] = useState<ForumComposerMediaItem[]>([]);
@@ -228,10 +229,10 @@ export function useCreatePost(teamId?: string, league?: LeagueType) {
   );
 
   const createPost = useCallback(async () => {
-    if (!league) {
+    if (!destination) {
       showAlert({
-        title: "Error",
-        message: "League is required to create a post.",
+        title: "Choose where to post",
+        message: "Select a team or league before publishing your post.",
         confirmText: "OK",
       });
       return null;
@@ -254,7 +255,7 @@ export function useCreatePost(teamId?: string, league?: LeagueType) {
 
     const formData = new FormData();
     formData.append("text", newPostText.trim());
-    formData.append("league", league);
+    formData.append("league", destination.league);
 
     if (poll) {
       formData.append(
@@ -316,9 +317,7 @@ export function useCreatePost(teamId?: string, league?: LeagueType) {
     });
 
     try {
-      const endpoint = teamId
-        ? `/api/forum/team/${teamId}`
-        : `/api/forum/league/${league}`;
+      const endpoint = getForumPostCreateEndpoint(destination);
 
       const res = await apiClient.post<
         ForumPostCreateResponse<ForumPost, unknown>
@@ -386,8 +385,7 @@ export function useCreatePost(teamId?: string, league?: LeagueType) {
   }, [
     media,
     newPostText,
-    teamId,
-    league,
+    destination,
     poll,
     handleBadgeAwards,
     prependPost,

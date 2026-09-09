@@ -16,7 +16,7 @@ export const FavoriteTeamsSliderStyles = (isDark: boolean, compact: boolean) =>
       justifyContent: "center",
     },
     pressed: {
-      opacity: activeOpacity
+      opacity: activeOpacity,
     },
     slideButton: {
       flex: 1,
@@ -27,7 +27,6 @@ export const FavoriteTeamsSliderStyles = (isDark: boolean, compact: boolean) =>
       paddingHorizontal: compact ? 8 : 14,
       paddingTop: compact ? 8 : 12,
       paddingBottom: compact ? 18 : 24,
-    
     },
     leagueText: {
       fontFamily: Fonts.BOLD,
@@ -41,7 +40,7 @@ export const FavoriteTeamsSliderStyles = (isDark: boolean, compact: boolean) =>
     },
     teamGlow: {
       width: compact ? "150%" : "150%",
-      height: compact ? "100%" : "100%",
+      height: compact ? "120%" : "120%",
       top: 0,
       left: 0,
       right: 0,

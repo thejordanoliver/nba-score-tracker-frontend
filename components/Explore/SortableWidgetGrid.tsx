@@ -244,10 +244,16 @@ function SortableWidget({
         })
         .onEnd(() => {
           completedGesture.value = true;
+          // Freeze the lifted card exactly where the gesture ended. The JS drop
+          // handler will commit the optimistic layout and start the final spring;
+          // targetX/targetY can still describe the previous slot on this frame.
+          positionX.value = dragOriginX.value + translationX.value;
+          positionY.value =
+            dragOriginY.value +
+            translationY.value +
+            (scrollOffset.value - dragStartScrollOffset.value);
           isGestureActive.value = false;
           edgeDirection.value = 0;
-          positionX.value = withSpring(targetX.value, POSITION_SPRING);
-          positionY.value = withSpring(targetY.value, POSITION_SPRING);
           scale.value = withSpring(1, LIFT_SPRING);
           scheduleOnRN(onEdgeDirectionChange, 0);
           scheduleOnRN(onDrop, widget.id);
@@ -558,13 +564,17 @@ export default function SortableWidgetGrid({
       stopAutoScroll();
       activeDragRef.current = null;
       setActiveDrag(null);
-      setTemporaryOrder(null);
       performImpact(Haptics.ImpactFeedbackStyle.Light);
 
       if (orderChanged && finalWidgets.length === widgets.length) {
+        // Keep the optimistic order mounted until the controlled widgets prop
+        // acknowledges it. Clearing it here briefly restores the old order and
+        // makes the released widget spring backward before moving forward again.
+        setTemporaryOrder(finalIds.slice());
         onReorder(finalWidgets);
       } else {
         orderRef.current = canonicalIds;
+        setTemporaryOrder(null);
       }
     },
     [canonicalIds, onReorder, stopAutoScroll, widgets.length, widgetsById],

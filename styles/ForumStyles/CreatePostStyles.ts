@@ -33,6 +33,7 @@ export const createPostStyles = (isDark: boolean) =>
     },
 
     userInfo: {
+      flex: 1,
       flexDirection: "column",
       gap: 2,
     },
@@ -57,6 +58,7 @@ export const createPostStyles = (isDark: boolean) =>
         : Colors.light.itemBackground,
     },
     audiencePillText: {
+      flexShrink: 1,
       fontFamily: Fonts.REGULAR,
       fontSize: 11,
       color: isDark ? Colors.lightGray : Colors.darkGray,
@@ -265,6 +267,7 @@ export const createPostStyles = (isDark: boolean) =>
       justifyContent: "space-between",
     },
     teamBadge: {
+      flexShrink: 1,
       flexDirection: "row",
       alignItems: "center",
       gap: 6,
@@ -284,6 +287,7 @@ export const createPostStyles = (isDark: boolean) =>
       backgroundColor: isDark ? Colors.dark.blue : Colors.light.blue,
     },
     teamBadgeText: {
+      flexShrink: 1,
       fontFamily: Fonts.REGULAR,
       fontSize: 12,
       color: isDark ? Colors.lightGray : Colors.darkGray,

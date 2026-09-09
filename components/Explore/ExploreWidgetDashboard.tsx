@@ -37,6 +37,7 @@ import type {
 import SortableWidgetGrid, {
   type SortableWidgetRenderArgs,
 } from "./SortableWidgetGrid";
+import CreatePostWidget from "./Widgets/CreatePostWidget";
 import FavoriteTeamsWidget from "./Widgets/FavoriteTeamsWidget";
 import WidgetSlider, {
   WidgetEditControls,
@@ -343,6 +344,18 @@ export default function ExploreWidgetDashboard({
             height={height}
             containerWidth={width}
             containerHeight={height}
+            {...editProps}
+          />
+        </View>
+      );
+    } else if (widget.type === "create_post") {
+      content = (
+        <View style={dashboardStyles.section}>
+          <CreatePostWidget
+            isDark={isDark}
+            size={widget.size}
+            width={width}
+            height={height}
             {...editProps}
           />
         </View>

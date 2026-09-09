@@ -215,6 +215,17 @@ export type ForumPostUpdateResponse<TPost = ForumPost> = {
   post?: TPost;
 };
 
+export type ForumPostDestination =
+  | {
+      kind: "league";
+      league: LeagueType;
+    }
+  | {
+      kind: "team";
+      league: LeagueType;
+      teamId: string;
+    };
+
 export type UseForumOptions = {
   teamId?: string;
   league?: string;

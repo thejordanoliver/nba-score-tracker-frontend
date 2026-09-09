@@ -11,6 +11,7 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -94,7 +95,7 @@ export default function FavoriteTeamsSlider({
                 x: 0.5,
                 y: 1,
               }}
-              style={styles.teamGlow}
+              style={[styles.teamGlow, StyleSheet.absoluteFill]}
             />
 
             {item.logo && <Image source={item.logo} style={styles.teamLogo} />}

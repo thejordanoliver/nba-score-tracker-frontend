@@ -120,6 +120,15 @@ export const EXPLORE_WIDGET_REGISTRY: Record<
     sizes: EXPLORE_WIDGET_SIZES,
     emptyCopy: "Add favorite teams to show shortcuts here.",
   },
+  create_post: {
+    title: "Create Post",
+    description: "Start a new conversation with the Tempo community.",
+    badge: "Community",
+    icon: "create-outline",
+    defaultSize: "small",
+    sizes: ["small"],
+    emptyCopy: "Create a post and join the conversation.",
+  },
 };
 
 export const EXPLORE_WIDGET_TYPES = Object.keys(

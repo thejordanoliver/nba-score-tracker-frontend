@@ -4,7 +4,7 @@ import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { goBack } from "expo-router/build/global-state/routing";
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import {
   Animated,
   Keyboard,
@@ -23,14 +23,35 @@ import CropEditorModal from "../components/CropEditorModal";
 import CustomActivityIndicator from "../components/CustomActivityIndicator";
 import { CustomHeader } from "../components/CustomHeader";
 import PollEditorModal from "../components/Forum/PollEditorModal";
+import PostDestinationModal from "../components/Forum/PostDestinationModal";
 import VideoEditorModal from "../components/Forum/VideoEditorModal";
 import { GiphySearchModal } from "../components/Messages/GiphySearchModal";
+import { LEAGUE_CONFIG } from "../constants/leagues";
+import { useFavoriteTeamsContext } from "../contexts/FavoriteTeamsContext";
 import { usePreferences } from "../contexts/PreferencesContext";
 import { useCreatePost } from "../hooks/ForumHooks/useCreatePost";
 import { useAuth } from "../hooks/UserHooks/useAuth";
 import { createPostStyles } from "../styles/ForumStyles/CreatePostStyles";
-import type { ForumComposerMediaItem, ForumPollDraft } from "../types/forum";
-import { LeagueType } from "../types/types";
+import type {
+  ForumComposerMediaItem,
+  ForumPollDraft,
+  ForumPostDestination,
+} from "../types/forum";
+import {
+  normalizeForumPostLeague,
+  parseForumPostDestinationParams,
+} from "../utils/forumPostDestination";
+
+const SOCCER_FORUM_LEAGUES = new Set([
+  "bundesliga",
+  "champions",
+  "epl",
+  "europa",
+  "fifa",
+  "fifaw",
+  "leaguescup",
+  "mls",
+]);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COMPONENT
@@ -41,10 +62,23 @@ export default function CreatePostScreen() {
   // HOOKS & INITIALIZATION
   // ─────────────────────────────────────────────────────────────────────────
 
-  const { teamId, league } = useLocalSearchParams<{
-    teamId?: string;
-    league?: LeagueType;
+  const {
+    teamId: routeTeamId,
+    league: routeLeague,
+    currentUserId: routeCurrentUserId,
+  } = useLocalSearchParams<{
+    teamId?: string | string[];
+    league?: string | string[];
+    currentUserId?: string | string[];
   }>();
+
+  const [destination, setDestination] = useState<ForumPostDestination | null>(
+    () =>
+      parseForumPostDestinationParams({
+        teamId: routeTeamId,
+        league: routeLeague,
+      }),
+  );
 
   const {
     newPostText,
@@ -62,13 +96,14 @@ export default function CreatePostScreen() {
     setMedia,
     poll,
     setPoll,
-  } = useCreatePost(teamId, league);
+  } = useCreatePost(destination);
 
   const { resolvedColorScheme } = usePreferences();
-  const { currentUserId } = useLocalSearchParams<{
-    currentUserId?: string;
-  }>();
+  const currentUserId = Array.isArray(routeCurrentUserId)
+    ? routeCurrentUserId[0]
+    : routeCurrentUserId;
   const { user } = useAuth();
+  const { allTeams } = useFavoriteTeamsContext();
   const navigation = useNavigation();
   const router = useRouter();
 
@@ -84,6 +119,7 @@ export default function CreatePostScreen() {
   const [croppingIndex, setCroppingIndex] = useState<number | null>(null);
   const [pollEditorVisible, setPollEditorVisible] = useState(false);
   const [gifModalVisible, setGifModalVisible] = useState(false);
+  const [destinationModalVisible, setDestinationModalVisible] = useState(false);
 
   // ─────────────────────────────────────────────────────────────────────────
   // STYLES & THEME
@@ -105,6 +141,25 @@ export default function CreatePostScreen() {
   const charCount = newPostText.length;
   const charLimit = 5000;
   const charsRemaining = charLimit - charCount;
+  const destinationLabel = useMemo(() => {
+    if (!destination) return "Choose destination";
+
+    const leagueLabel = LEAGUE_CONFIG[destination.league].label;
+    if (destination.kind === "league") return leagueLabel;
+
+    const team = allTeams.find((candidate) => {
+      if (String(candidate.id) !== destination.teamId) return false;
+
+      const candidateLeague = normalizeForumPostLeague(candidate.league);
+      return (
+        candidateLeague === destination.league ||
+        (candidate.league.toLowerCase() === "socc" &&
+          SOCCER_FORUM_LEAGUES.has(destination.league))
+      );
+    });
+
+    return team?.fullName ?? team?.name ?? `${leagueLabel} team`;
+  }, [allTeams, destination]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // LAYOUT EFFECT
@@ -138,6 +193,23 @@ export default function CreatePostScreen() {
   const handleCloseGifPicker = useCallback(() => {
     setGifModalVisible(false);
   }, []);
+
+  const handleOpenDestinationPicker = useCallback(() => {
+    if (loading) return;
+    Keyboard.dismiss();
+    setDestinationModalVisible(true);
+  }, [loading]);
+
+  const handleCloseDestinationPicker = useCallback(() => {
+    setDestinationModalVisible(false);
+  }, []);
+
+  const handleSelectDestination = useCallback(
+    (nextDestination: ForumPostDestination) => {
+      setDestination(nextDestination);
+    },
+    [],
+  );
 
   const handleGifSelected = useCallback(
     (gifUrl: string) => {
@@ -307,6 +379,29 @@ export default function CreatePostScreen() {
       </View>
       <View style={styles.userInfo}>
         <Text style={styles.username}>{user?.username}</Text>
+        <TouchableOpacity
+          activeOpacity={activeOpacity}
+          disabled={loading}
+          onPress={handleOpenDestinationPicker}
+          style={styles.audiencePill}
+          accessibilityRole="button"
+          accessibilityLabel={`Change post destination. Current destination: ${destinationLabel}`}
+          accessibilityState={{ disabled: loading }}
+        >
+          <Ionicons
+            name={destination?.kind === "team" ? "people" : "trophy-outline"}
+            size={13}
+            color={isDark ? Colors.lightGray : Colors.darkGray}
+          />
+          <Text style={styles.audiencePillText} numberOfLines={1}>
+            Post to {destinationLabel}
+          </Text>
+          <Ionicons
+            name="chevron-down"
+            size={12}
+            color={isDark ? Colors.lightGray : Colors.darkGray}
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -477,18 +572,39 @@ export default function CreatePostScreen() {
   const renderBottomBar = () => (
     <View style={styles.bottom}>
       <View style={styles.bottomBar}>
-        <View style={styles.teamBadge}>
+        <TouchableOpacity
+          activeOpacity={activeOpacity}
+          disabled={loading}
+          onPress={handleOpenDestinationPicker}
+          style={styles.teamBadge}
+          accessibilityRole="button"
+          accessibilityLabel={`Change post destination. Current destination: ${destinationLabel}`}
+          accessibilityState={{ disabled: loading }}
+        >
           <View style={styles.teamDot} />
-          <Text style={styles.teamBadgeText}>
-            {league ? `${league} · Fan Forum` : "Fan Forum"}
+          <Text style={styles.teamBadgeText} numberOfLines={1}>
+            {destinationLabel}
           </Text>
-        </View>
+          <Ionicons
+            name="chevron-down"
+            size={12}
+            color={isDark ? Colors.lightGray : Colors.darkGray}
+          />
+        </TouchableOpacity>
         <Text style={styles.mediaCountText}>
           {poll ? "Poll active" : `${media.length} / 8 media`}
         </Text>
       </View>
-      <Button onPress={createPost} disabled={loading} isDark={isDark}>
-        {loading ? "Posting..." : "Post"}
+      <Button
+        onPress={createPost}
+        disabled={loading || !destination}
+        isDark={isDark}
+      >
+        {loading
+          ? "Posting..."
+          : destination
+            ? "Post"
+            : "Choose where to post"}
       </Button>
     </View>
   );
@@ -551,6 +667,14 @@ export default function CreatePostScreen() {
         onClose={handleCloseGifPicker}
         onGifSelected={handleGifSelected}
         gifsCount={media.filter((item) => item.type === "gif").length}
+      />
+
+      <PostDestinationModal
+        visible={destinationModalVisible}
+        isDark={isDark}
+        currentDestination={destination}
+        onClose={handleCloseDestinationPicker}
+        onSelect={handleSelectDestination}
       />
 
       {/* Confirm Alert Modal */}

@@ -1,5 +1,10 @@
 import type { ImageSourcePropType } from "react-native";
 
+import {
+  BROWSEABLE_LEAGUES,
+  type BrowseableLeague,
+} from "constants/leagueIds";
+
 import MLBLogo from "assets/Baseball/MLB_Logos/MLB.png";
 import CBLogo from "assets/College_Logos/Conference_Logos/CB.png";
 import CBBLogo from "assets/College_Logos/Conference_Logos/CBB.png";
@@ -58,35 +63,8 @@ type LeagueDefinition = {
   route: LeagueRoute;
 };
 
-export const BROWSEABLE_LEAGUES = [
-  "atp",
-  "bundesliga",
-  "cb",
-  "cbb",
-  "cfb",
-  "champions",
-  "epl",
-  "europa",
-  "f1",
-  "fifa",
-  "fifaw",
-  "gleague",
-  "leaguescup",
-  "mlb",
-  "mls",
-  "nascarpremier",
-  "nba",
-  "nfl",
-  "nhl",
-  "sb",
-  "ufc",
-  "ufl",
-  "wcbb",
-  "wnba",
-  "wta",
-] as const satisfies readonly LeagueType[];
-
-export type BrowseableLeague = (typeof BROWSEABLE_LEAGUES)[number];
+export { BROWSEABLE_LEAGUES } from "constants/leagueIds";
+export type { BrowseableLeague } from "constants/leagueIds";
 
 export const LEAGUE_CONFIG = {
   atp: {
