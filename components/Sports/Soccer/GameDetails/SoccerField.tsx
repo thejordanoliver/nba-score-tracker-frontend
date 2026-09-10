@@ -1,4 +1,4 @@
-import { Dropdown } from "@/components/Dropdown";
+import Dropdown from "@/components/Dropdown";
 import HeadingTwo from "@/components/Headings/HeadingTwo";
 import { Colors, Fonts } from "@/constants/styles";
 import type {

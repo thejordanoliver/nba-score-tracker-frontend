@@ -1,4 +1,4 @@
-import { Game } from "@/types/basketball/basketball";
+import { BasketballGame } from "@/types/basketball/basketball";
 import { useEffect, useState } from "react";
 
 import { apiClient } from "utils/apiClient";
@@ -13,7 +13,7 @@ export interface HeadToHead {
     team2Wins: number;
     totalGames: number;
   };
-  games: Game[];
+  games: BasketballGame[];
 }
 
 export function useHeadToHeadGames(team1: number, team2: number) {

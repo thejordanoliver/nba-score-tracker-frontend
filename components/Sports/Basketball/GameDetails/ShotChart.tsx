@@ -1,4 +1,4 @@
-import { Dropdown } from "@/components/Dropdown";
+import Dropdown from "@/components/Dropdown";
 import { Play } from "@/hooks/BasketballHooks/useBasketballGameDetails";
 import CBBCourtImage from "assets/Placeholders/CBBCourtPlaceholder.png";
 import CourtImage from "assets/Placeholders/CourtPlaceholder.png";

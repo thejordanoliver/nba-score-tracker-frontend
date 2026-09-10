@@ -6,7 +6,7 @@ import type {
   Category,
   Stat,
 } from "@/hooks/BaseballHooks/usePlayerSeasons";
-import { Dropdown } from "components/Dropdown";
+import Dropdown from "components/Dropdown";
 import HeadingTwo from "components/Headings/HeadingTwo";
 import PlayerStatTableSkeleton from "components/Skeletons/PlayerStatsTableSkeleton";
 import { globalStyles } from "constants/styles";

@@ -1,7 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { HeaderTitle } from "@react-navigation/elements";
 import { Colors, Fonts, activeOpacity } from "constants/styles";
-import { Animated, TouchableOpacity, View } from "react-native";
+import {
+  Animated,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { customHeaderStyles } from "../../styles/CustomHeaderStyles";
 
 type LeagueHeaderProps = {
@@ -21,7 +26,8 @@ export function LeagueHeader({
   rotate,
   isDark,
 }: LeagueHeaderProps) {
-  const styles = customHeaderStyles(isDark);
+  const { width } = useWindowDimensions();
+  const styles = customHeaderStyles(isDark, width);
 
   const textStyle = {
     fontFamily: Fonts.REGULAR,

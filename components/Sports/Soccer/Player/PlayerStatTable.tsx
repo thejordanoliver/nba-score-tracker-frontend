@@ -4,7 +4,7 @@ import type {
   SoccerPlayerSeason,
   SoccerTeamOption,
 } from "@/hooks/SoccerHooks/usePlayerSeasons";
-import { Dropdown, type DropdownOption } from "components/Dropdown";
+import Dropdown, { type DropdownOption } from "components/Dropdown";
 import HeadingTwo from "components/Headings/HeadingTwo";
 import { globalStyles } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";

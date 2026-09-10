@@ -14,6 +14,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { newsArticleStyles } from "styles/NewsStyles/NewsArticleStyle";
@@ -21,7 +22,8 @@ import { newsArticleStyles } from "styles/NewsStyles/NewsArticleStyle";
 export default function ArticleScreen() {
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
-  const styles = newsArticleStyles(isDark);
+  const { width } = useWindowDimensions();
+  const styles = newsArticleStyles(isDark, width);
   const global = globalStyles(isDark);
   const { id } = useLocalSearchParams();
   const navigation = useNavigation();

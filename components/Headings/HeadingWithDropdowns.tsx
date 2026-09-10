@@ -1,4 +1,4 @@
-import { Dropdown } from "components/Dropdown";
+import Dropdown from "components/Dropdown";
 import { Colors } from "constants/styles";
 import { StyleSheet, View } from "react-native";
 import HeadingTwo from "./Heading";
@@ -39,7 +39,6 @@ export default function HeadingWithDropdowns({
               onSelect={d.onSelect}
               isDark={isDark}
               style={i === 1 ? { marginLeft: 8 } : undefined}
-              absolute={false}
             />
           ))}
         </View>

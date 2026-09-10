@@ -5,7 +5,7 @@ import {
 } from "@/hooks/RecruitHooks/useTeamRecruitingRankings";
 import { Recruit } from "@/types/recruiting/players";
 import { Ionicons } from "@expo/vector-icons";
-import { Dropdown } from "components/Dropdown";
+import Dropdown from "components/Dropdown";
 import SearchBar from "components/SearchBars/AnimatedSearchBar";
 import { Colors, Fonts } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";

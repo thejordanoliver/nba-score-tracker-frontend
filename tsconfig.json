@@ -3,7 +3,6 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
     "jsx": "react-native",
     "paths": {
       "@/*": ["./*"],
@@ -21,5 +20,11 @@
       "utils/*": ["./utils/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "components/Skeletons/DivisionFilterSkeleton.tsx"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "components/Skeletons/DivisionFilterSkeleton.tsx"
+  ]
 }

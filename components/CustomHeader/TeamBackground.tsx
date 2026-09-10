@@ -1,5 +1,5 @@
 import { Colors } from "constants/styles";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View, useWindowDimensions } from "react-native";
 import { customHeaderStyles } from "../../styles/CustomHeaderStyles";
 import type { HeaderImageSource, HeaderTeamLike } from "./types";
 import { resolveImage } from "./utils";
@@ -26,7 +26,8 @@ export function TeamBackground({
   isPlayerScreen,
 }: TeamBackgroundProps) {
   const defaultBackgroundColor = isDark ? Colors.black : Colors.white;
-  const styles = customHeaderStyles(isDark);
+  const { width } = useWindowDimensions();
+  const styles = customHeaderStyles(isDark, width);
 
   if (!(isTeamScreen || isPlayerScreen)) {
     return (

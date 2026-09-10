@@ -1,7 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, activeOpacity } from "constants/styles";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Text, TouchableOpacity, View } from "react-native";
+import {
+  Animated,
+  Easing,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { customHeaderStyles } from "../../styles/CustomHeaderStyles";
 
 type ProfileHeaderMenuProps = {
@@ -22,7 +29,8 @@ export function ProfileHeaderMenu({
   const progress = useRef(new Animated.Value(0)).current;
   const [shouldRender, setShouldRender] = useState(visible);
 
-  const styles = customHeaderStyles(isDark);
+  const { width } = useWindowDimensions();
+  const styles = customHeaderStyles(isDark, width);
 
   useEffect(() => {
     if (visible) {

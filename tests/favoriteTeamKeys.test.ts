@@ -1,7 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-
-// @ts-expect-error Node's type-stripping test runner requires the .ts extension.
 import {
   buildFavoriteTeamKey,
   normalizeFavoriteTeamKey,
@@ -9,7 +7,7 @@ import {
   reorderFavoriteRailItems,
   splitFavoriteRailOrder,
   type FavoriteItem,
-} from "../types/favorites.ts";
+} from "../types/favorites";
 
 test("favorite-team keys are canonical lowercase league-plus-team identities", () => {
   assert.equal(normalizeFavoriteTeamKey(" NBA:017 "), "nba:17");

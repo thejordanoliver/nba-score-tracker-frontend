@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-
 import type { BaseballPlay } from "../hooks/BaseballHooks/useBaseballGameDetails.ts";
-// Node's type-stripping test runner requires the explicit TypeScript extension.
-// @ts-expect-error allowImportingTsExtensions is not enabled for the Expo build.
 import * as animationUtils from "../components/Sports/Baseball/GameDetails/PlayByPlay/baseball-play-animation-utils.js";
 
 const { mapEspnHitCoordinate, resolveBaseballPlayAnimation } = animationUtils;

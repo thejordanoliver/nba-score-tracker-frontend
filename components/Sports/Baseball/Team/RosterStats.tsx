@@ -1,6 +1,5 @@
-import PillTabs, { type PillTabOption } from "@/components/TabBars/PillTabs";
 import MainScrollTabBar from "@/components/TabBars/MainTabScrollBar";
-import type { TeamAggregatedStats } from "@/hooks/BaseballHooks/useTeamStats";
+import PillTabs, { type PillTabOption } from "@/components/TabBars/PillTabs";
 import type {
   BaseballRosterLeague,
   BaseballRosterPlayer,
@@ -9,6 +8,7 @@ import type {
   BaseballStatMap,
   BaseballStatValue,
 } from "@/hooks/BaseballHooks/useRosterStats";
+import type { TeamAggregatedStats } from "@/hooks/BaseballHooks/useTeamStats";
 import CustomActivityIndicator from "components/CustomActivityIndicator";
 import { activeOpacity, Colors, globalStyles } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";
@@ -79,11 +79,26 @@ const PLAYER_NAME_WIDTH = 140;
 const STAT_CELL_WIDTH = 80;
 
 const BATTING_LEADERS: readonly LeaderDefinition[] = [
-  { label: "Batting Average", group: "career-batting", key: "avg", order: "desc" },
-  { label: "Home Runs", group: "career-batting", key: "homeRuns", order: "desc" },
+  {
+    label: "Batting Average",
+    group: "career-batting",
+    key: "avg",
+    order: "desc",
+  },
+  {
+    label: "Home Runs",
+    group: "career-batting",
+    key: "homeRuns",
+    order: "desc",
+  },
   { label: "RBIs", group: "career-batting", key: "RBIs", order: "desc" },
   { label: "OPS", group: "career-batting", key: "OPS", order: "desc" },
-  { label: "Stolen Bases", group: "career-batting", key: "stolenBases", order: "desc" },
+  {
+    label: "Stolen Bases",
+    group: "career-batting",
+    key: "stolenBases",
+    order: "desc",
+  },
 ];
 
 const PITCHING_LEADERS: readonly LeaderDefinition[] = [
@@ -146,9 +161,7 @@ const isStatMap = (value: unknown): value is BaseballStatMap => {
 
   return Object.values(value).every(
     (item) =>
-      item === null ||
-      typeof item === "string" ||
-      typeof item === "number",
+      item === null || typeof item === "string" || typeof item === "number",
   );
 };
 
@@ -200,9 +213,11 @@ const getBestSeasonStats = (
 
   if (priorityMatch) return priorityMatch;
 
-  return (player.seasonStats ?? []).find((season) =>
-    hasUsableSeasonStats(season, group),
-  ) ?? null;
+  return (
+    (player.seasonStats ?? []).find((season) =>
+      hasUsableSeasonStats(season, group),
+    ) ?? null
+  );
 };
 
 const getPlayersFromRosterStats = (
@@ -244,7 +259,8 @@ const getPlayerRows = (
   players: BaseballRosterPlayer[],
   view: PlayerStatView,
 ) => {
-  const group: StatGroupKey = view === "Batting" ? "career-batting" : "pitching";
+  const group: StatGroupKey =
+    view === "Batting" ? "career-batting" : "pitching";
 
   return players
     .map<PlayerStatRow | null>((player) => {
@@ -264,10 +280,7 @@ const getPlayerRows = (
     .filter((row): row is PlayerStatRow => row !== null);
 };
 
-const getStatLeader = (
-  rows: PlayerStatRow[],
-  definition: LeaderDefinition,
-) => {
+const getStatLeader = (rows: PlayerStatRow[], definition: LeaderDefinition) => {
   return rows.reduce<StatLeader | null>((leader, row) => {
     const stats =
       definition.group === "advanced-batting"
@@ -299,7 +312,7 @@ export default function RosterStats({
   error,
   refreshing = false,
   onRefresh,
-  league = "MLB",
+  league = "mlb",
 }: RosterStatsComponentProps) {
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
@@ -328,7 +341,8 @@ export default function RosterStats({
     [players],
   );
 
-  const activeRows = selectedPlayerView === "Batting" ? battingRows : pitchingRows;
+  const activeRows =
+    selectedPlayerView === "Batting" ? battingRows : pitchingRows;
   const activeColumns =
     selectedPlayerView === "Batting" ? BATTING_COLUMNS : PITCHING_COLUMNS;
   const activeLeaders =
@@ -639,7 +653,9 @@ export default function RosterStats({
             idx === rows.length - 1 && { borderBottomWidth: 0 },
           ]}
         >
-          <Text style={[styles.tableCell, styles.headerText]}>{item.label}</Text>
+          <Text style={[styles.tableCell, styles.headerText]}>
+            {item.label}
+          </Text>
 
           <Text style={[styles.tableCell, styles.teamStatValue]}>
             {formatStatValue(item.value)}

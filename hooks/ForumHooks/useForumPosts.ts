@@ -188,7 +188,7 @@ export function useForumPosts(teamId: string) {
 
         handleAwardsOrRefresh(res.data.newlyAwardedBadges);
         await fetchPosts();
-        return res.data.comment;
+        return res.data.comment ?? null;
       } catch (err: unknown) {
         setError(getErrorMessage(err, "Failed to add comment"));
         return null;
@@ -210,7 +210,7 @@ export function useForumPosts(teamId: string) {
           text,
         });
 
-        return res.data.comment;
+        return res.data.comment ?? null;
       } catch (err: unknown) {
         setError(getErrorMessage(err, "Failed to edit comment"));
         return null;

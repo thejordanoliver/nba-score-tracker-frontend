@@ -1125,7 +1125,7 @@ export default function BoxScore({
   stats,
   isLoading = false,
   isError = false,
-  league = "MLB",
+  league = "mlb",
   isDark,
   state,
 }: Props) {

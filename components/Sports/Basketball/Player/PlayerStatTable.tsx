@@ -2,7 +2,7 @@ import PillTabs from "@/components/TabBars/PillTabs";
 import { getTeamByESPNId } from "@/constants/teams";
 import { getCBBTeamByESPNId } from "@/constants/teamsCBB";
 import { getWNBATeamByESPNId } from "@/constants/teamsWNBA";
-import { Dropdown } from "components/Dropdown";
+import Dropdown from "components/Dropdown";
 import HeadingTwo from "components/Headings/HeadingTwo";
 import PlayerStatTableSkeleton from "components/Skeletons/PlayerStatsTableSkeleton";
 import { globalStyles } from "constants/styles";

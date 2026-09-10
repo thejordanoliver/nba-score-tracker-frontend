@@ -1,5 +1,5 @@
 // components/CBStandingsList.tsx
-import { Dropdown } from "@/components/Dropdown";
+import Dropdown from "@/components/Dropdown";
 import { Ionicons } from "@expo/vector-icons";
 import { StandingsSkeleton } from "components/Skeletons/StandingsSkeleton";
 import { Colors, Fonts, globalStyles } from "constants/styles";

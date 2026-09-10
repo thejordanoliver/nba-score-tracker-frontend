@@ -1,7 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, activeOpacity } from "constants/styles";
+import { activeOpacity, Colors } from "constants/styles";
 import * as Haptics from "expo-haptics";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import {
+  Pressable,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { customHeaderStyles } from "../../styles/CustomHeaderStyles";
 import {
   getFavoriteHeaderAccessibilityLabel,
@@ -51,11 +57,12 @@ function FavoriteHeaderButton({
   color,
   onPress,
 }: FavoriteHeaderButtonProps) {
-  const styles = customHeaderStyles(false);
+  const { width } = useWindowDimensions();
+  const styles = customHeaderStyles(false, width);
 
   const handlePress = () => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() =>
-      undefined,
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+      () => undefined,
     );
     onPress();
   };
@@ -108,7 +115,8 @@ export function HeaderRightActions({
   onToggleLayout,
   isGrid,
 }: HeaderRightActionsProps) {
-  const styles = customHeaderStyles(isDark);
+  const { width } = useWindowDimensions();
+  const styles = customHeaderStyles(isDark, width);
 
   if (isTeamScreen) {
     return (
@@ -159,8 +167,8 @@ export function HeaderRightActions({
 
   if (tabName === "Game" && onToggleNotifications) {
     const handleGameNotificationPress = () => {
-      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() =>
-        undefined,
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+        () => undefined,
       );
       onToggleNotifications();
     };

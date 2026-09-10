@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Dropdown } from "components/Dropdown";
+import Dropdown from "components/Dropdown";
 import SearchBar from "components/SearchBars/AnimatedSearchBar";
 import { Colors, Fonts, globalStyles } from "constants/styles";
 import { teams } from "constants/teams";

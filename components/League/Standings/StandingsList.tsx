@@ -1,6 +1,6 @@
 // components/StandingsList.tsx
 import { getUFLTeam } from "@/constants/teamsUFL";
-import { Dropdown } from "components/Dropdown";
+import Dropdown from "components/Dropdown";
 import HeadingTwo from "components/Headings/HeadingTwo";
 import { StandingsSkeleton } from "components/Skeletons/StandingsSkeleton";
 import { Colors, globalStyles } from "constants/styles";

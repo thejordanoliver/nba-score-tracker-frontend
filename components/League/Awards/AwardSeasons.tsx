@@ -1,4 +1,4 @@
-import { Dropdown } from "components/Dropdown";
+import Dropdown from "components/Dropdown";
 import { Colors } from "constants/styles";
 import { getNBATeamLogo } from "constants/teams";
 import { getCBBTeamLogo } from "constants/teamsCBB";
