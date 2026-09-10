@@ -12,6 +12,8 @@ import type {
   ToggleGameChatReactionAck,
   ToggleGameChatReactionPayload,
 } from "types/chat";
+import { apiClient, getAccessToken } from "utils/apiClient";
+import { getSocketNamespaceUrl } from "utils/apiConfig";
 import { buildChatPayload, type ChatSendPayload } from "utils/chatPayload";
 import {
   areSameChatMessage,
@@ -22,9 +24,9 @@ import {
   normalizeMessage,
   normalizeProfileImage,
 } from "utils/chatUtils";
-import { apiClient, BASE_URL, getAccessToken } from "utils/apiClient";
 
-const SOCKET_URL = BASE_URL;
+const SOCKET_NAMESPACE = "";
+const SOCKET_URL = getSocketNamespaceUrl(SOCKET_NAMESPACE);
 const DUPLICATE_SEND_BLOCK_MS = 800;
 
 type GameChatServerToClientEvents = {
@@ -299,13 +301,7 @@ export function useLiveGameChat(gameId: string | number) {
       socketRef.current = null;
       setIsReady(false);
     };
-  }, [
-    applyReactionUpdate,
-    cacheLoaded,
-    roomId,
-    syncHistory,
-    upsertMessage,
-  ]);
+  }, [applyReactionUpdate, cacheLoaded, roomId, syncHistory, upsertMessage]);
 
   const sendMessage = useCallback(
     (sendPayload: ChatSendPayload) => {

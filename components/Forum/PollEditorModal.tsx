@@ -5,7 +5,6 @@ import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useState } from "react";
 import {
   Modal,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
@@ -17,6 +16,7 @@ import {
 import DraggableFlatList, {
   RenderItemParams,
 } from "react-native-draggable-flatlist";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type {
   ForumPollDraftOption,
   ForumPollEditorModalProps,

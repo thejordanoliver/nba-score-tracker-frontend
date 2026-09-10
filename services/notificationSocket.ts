@@ -1,19 +1,10 @@
-import { io, type Socket } from "socket.io-client";
 import type { BadgeEarnedSocketPayload } from "@/types/badges";
 import type { AppNotification } from "@/types/notifications";
+import { getSocketNamespaceUrl } from "@/utils/apiConfig";
+import { io, type Socket } from "socket.io-client";
 
-const normalizeSocketBaseUrl = (value?: string) => {
-  if (!value) {
-    return "";
-  }
-
-  return value.replace(/\/+$/, "").replace(/\/api$/i, "");
-};
-
-const SOCKET_URL =
-  normalizeSocketBaseUrl(process.env.EXPO_PUBLIC_SOCKET_URL) ||
-  normalizeSocketBaseUrl(process.env.EXPO_PUBLIC_API_URL) ||
-  "";
+const SOCKET_NAMESPACE = "/notifications";
+const SOCKET_URL = getSocketNamespaceUrl(SOCKET_NAMESPACE);
 
 type NotificationServerEvents = {
   "badge:earned": (payload: BadgeEarnedSocketPayload) => void;
@@ -54,9 +45,7 @@ export const getNotificationSocket = (
 
   activeToken = token;
 
-  const namespaceUrl = `${SOCKET_URL}/notifications`;
-
-  notificationSocket = io(namespaceUrl, {
+  notificationSocket = io(SOCKET_URL, {
     auth: {
       token,
     },
@@ -74,9 +63,7 @@ export const getNotificationSocket = (
   return notificationSocket;
 };
 
-export const disconnectNotificationSocket = (
-  token?: string | null,
-) => {
+export const disconnectNotificationSocket = (token?: string | null) => {
   if (token && activeToken !== token) {
     return;
   }

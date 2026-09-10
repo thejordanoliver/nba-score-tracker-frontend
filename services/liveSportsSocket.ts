@@ -8,7 +8,8 @@ import type {
   LiveSubscriptionReady,
   LiveUpdateEnvelope,
 } from "types/liveSports";
-import { BASE_URL, getAccessToken } from "utils/apiClient";
+import { getAccessToken } from "utils/apiClient";
+import { getSocketNamespaceUrl } from "utils/apiConfig";
 
 type SportsLiveServerEvents = {
   "sports:game:update": (payload: LiveUpdateEnvelope) => void;
@@ -36,10 +37,7 @@ type SportsLiveClientEvents = {
   ) => void;
 };
 
-type SportsLiveSocket = Socket<
-  SportsLiveServerEvents,
-  SportsLiveClientEvents
->;
+type SportsLiveSocket = Socket<SportsLiveServerEvents, SportsLiveClientEvents>;
 
 type UntypedSportsLiveSocket = Socket & {
   emit: (event: string, ...args: any[]) => SportsLiveSocket;
@@ -62,7 +60,8 @@ let appStateListenerRegistered = false;
 const subscriptionsByLocalKey = new Map<string, SubscriptionRecord>();
 const localKeyByServerKey = new Map<string, string>();
 
-const namespaceUrl = BASE_URL ? `${BASE_URL}/sports-live` : "";
+const SOCKET_NAMESPACE = "/sports-live";
+const namespaceUrl = getSocketNamespaceUrl(SOCKET_NAMESPACE);
 
 const FEED_ALIASES: Record<string, string> = {
   eventlist: "eventList",
@@ -128,15 +127,12 @@ function getTodayESPNDate(): string {
   return new Date().toISOString().slice(0, 10).replace(/-/g, "");
 }
 
-function normalizeLocalFeed(
-  sport: string | undefined,
-  value: unknown,
-): string {
+function normalizeLocalFeed(sport: string | undefined, value: unknown): string {
   const defaultFeed =
     sport === "mma" || sport === "racing" ? "eventList" : "scoreboard";
   const raw = normalizeScalar(value);
   const feed = raw
-    ? FEED_ALIASES[raw] ?? FEED_ALIASES[raw.toLowerCase()] ?? raw
+    ? (FEED_ALIASES[raw] ?? FEED_ALIASES[raw.toLowerCase()] ?? raw)
     : defaultFeed;
 
   return (sport === "mma" || sport === "racing") && feed === "scoreboard"
@@ -181,7 +177,12 @@ function canonicalizeScoreboardPayload(
     addCanonicalParam(params, "teamId", input.teamId);
     addCanonicalParam(params, "season", input.season);
   } else if (feed === "nbaPlayoffs") {
-    addCanonicalParam(params, "dates", input.dates ?? input.date, normalizeDateToken);
+    addCanonicalParam(
+      params,
+      "dates",
+      input.dates ?? input.date,
+      normalizeDateToken,
+    );
     addCanonicalParam(params, "limit", input.limit);
     addCanonicalParam(params, "season", input.season);
   } else {
@@ -190,9 +191,17 @@ function canonicalizeScoreboardPayload(
       input.week !== undefined &&
       input.week !== null
     ) {
-      addCanonicalParam(params, "conference", input.conferenceId ?? input.groupId ?? input.groups);
+      addCanonicalParam(
+        params,
+        "conference",
+        input.conferenceId ?? input.groupId ?? input.groups,
+      );
       addCanonicalParam(params, "season", input.season);
-      addCanonicalParam(params, "seasonType", input.seasonType ?? input.seasontype);
+      addCanonicalParam(
+        params,
+        "seasonType",
+        input.seasonType ?? input.seasontype,
+      );
       addCanonicalParam(params, "week", input.week);
     } else {
       addCanonicalParam(

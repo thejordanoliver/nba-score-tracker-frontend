@@ -397,13 +397,10 @@ function testNotificationSocketSingleton() {
           return socket;
         },
       },
-    },
-    {
-      process: {
-        env: {
-          EXPO_PUBLIC_SOCKET_URL: "http://localhost:4011/api/",
-          EXPO_PUBLIC_API_URL: "http://ignored.local",
-        },
+      "@/utils/apiConfig": {
+        getSocketNamespaceUrl: (namespace) =>
+          `http://api.local${namespace}`,
+        logSocketConfig() {},
       },
     },
   );
@@ -413,7 +410,7 @@ function testNotificationSocketSingleton() {
 
   const firstSocket = notificationSocket.getNotificationSocket("token-a");
 
-  assert.equal(firstSocket.url, "http://localhost:4011/notifications");
+  assert.equal(firstSocket.url, "http://api.local/notifications");
   assert.equal(firstSocket.options.auth.token, "token-a");
   assert.equal(firstSocket.options.autoConnect, false);
   assert.equal(firstSocket.options.reconnection, true);

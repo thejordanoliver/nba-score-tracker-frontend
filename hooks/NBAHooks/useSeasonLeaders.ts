@@ -3,7 +3,6 @@ import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { PlayerLeader, StatCategory } from "types/stats";
 
-
 type LeadersByStat = Partial<Record<StatCategory, PlayerLeader[]>>;
 
 interface ApiResponse {
@@ -13,52 +12,63 @@ interface ApiResponse {
   leaderboards: LeadersByStat;
 }
 
-export function useSeasonLeaders({ enabled = true }: { enabled?: boolean } = {}) {
+export function useSeasonLeaders({
+  enabled = true,
+}: {
+  enabled?: boolean;
+} = {}) {
   const [leaders, setLeaders] = useState<LeadersByStat>({});
-  const [loading, setLoading] = useState(enabled);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!enabled) {
-      setLoading(false);
       return;
     }
 
     let isCancelled = false;
 
     async function fetchLeaders() {
-      setLoading(true);
-      setError(null);
-
       try {
         const { data } = await apiClient.get<ApiResponse>(
-          `api/leaders/nba/leaders`,
+          "api/leaders/nba/leaders",
         );
 
-        if (!isCancelled) {
-          setLeaders(data.leaderboards);
+        if (isCancelled) {
+          return;
         }
+
+        setLeaders(data.leaderboards);
+        setError(null);
       } catch (err) {
-        if (!isCancelled) {
-          if (isAxiosError(err)) {
-            setError(err.response?.data?.error || err.message);
-          } else if (err instanceof Error) {
-            setError(err.message);
-          } else {
-            setError("Unknown error");
-          }
+        if (isCancelled) {
+          return;
+        }
+
+        if (isAxiosError(err)) {
+          setError(err.response?.data?.error || err.message);
+        } else if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Unknown error");
         }
       } finally {
-        if (!isCancelled) setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     }
 
-    fetchLeaders();
+    void fetchLeaders();
 
     return () => {
       isCancelled = true;
     };
   }, [enabled]);
 
-  return { leaders, loading, error };
+  return {
+    leaders,
+    loading: enabled ? loading : false,
+    error,
+  };
 }

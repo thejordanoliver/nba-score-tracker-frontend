@@ -1,8 +1,12 @@
 // hooks/useLiveVotes.ts
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { BASE_URL, getAccessToken } from "utils/apiClient";
+import { getAccessToken } from "utils/apiClient";
+import { getSocketNamespaceUrl } from "utils/apiConfig";
 import { PollResult } from "./useGameVotes";
+
+const SOCKET_NAMESPACE = "/votes";
+const SOCKET_URL = getSocketNamespaceUrl(SOCKET_NAMESPACE);
 
 type VoteUpdatePayload = {
   gameId: string | number;
@@ -40,9 +44,10 @@ const VOTE_ACK_TIMEOUT_MS = 8000;
 export function useLiveVotes(gameId: number) {
   const [votes, setVotes] = useState<PollResult[] | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const socketRef = useRef<
-    Socket<VoteServerToClientEvents, VoteClientToServerEvents> | null
-  >(null);
+  const socketRef = useRef<Socket<
+    VoteServerToClientEvents,
+    VoteClientToServerEvents
+  > | null>(null);
 
   useEffect(() => {
     let socket: Socket<
@@ -63,7 +68,7 @@ export function useLiveVotes(gameId: number) {
         return;
       }
 
-      socket = io(`${BASE_URL}/votes`, {
+      socket = io(SOCKET_URL, {
         transports: ["websocket"],
         auth: { token },
         autoConnect: false,
@@ -98,11 +103,14 @@ export function useLiveVotes(gameId: number) {
         console.warn("Vote socket connection error", err.message);
       });
 
-      socket.on("voteUpdate", ({ gameId: updatedGameId, votes: updatedVotes }) => {
-        if (String(updatedGameId) === String(gameId)) {
-          setVotes(updatedVotes);
-        }
-      });
+      socket.on(
+        "voteUpdate",
+        ({ gameId: updatedGameId, votes: updatedVotes }) => {
+          if (String(updatedGameId) === String(gameId)) {
+            setVotes(updatedVotes);
+          }
+        },
+      );
 
       socketRef.current = socket;
       socket.connect();

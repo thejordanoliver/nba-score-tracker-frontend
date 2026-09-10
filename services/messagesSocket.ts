@@ -3,11 +3,10 @@ import {
   ConversationReadPayload,
   SendDirectMessagePayload,
 } from "types/messages";
+import { getSocketNamespaceUrl } from "utils/apiConfig";
 
-const SOCKET_URL =
-  process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ??
-  process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ??
-  "";
+const SOCKET_NAMESPACE = "/messages";
+const SOCKET_URL = getSocketNamespaceUrl(SOCKET_NAMESPACE);
 
 let messagesSocket: Socket | null = null;
 let activeToken: string | null = null;
@@ -26,7 +25,7 @@ export const getMessagesSocket = (token?: string | null) => {
   messagesSocket?.disconnect();
   activeToken = token;
 
-  messagesSocket = io(`${SOCKET_URL}/messages`, {
+  messagesSocket = io(SOCKET_URL, {
     auth: { token },
     transports: ["websocket"],
     autoConnect: true,

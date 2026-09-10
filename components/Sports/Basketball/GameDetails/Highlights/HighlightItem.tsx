@@ -5,7 +5,7 @@ import { Image } from "expo-image";
 import React, { useCallback, useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { Highlight } from "types/types";
-import { HighlightsStyles } from "./Highlights";
+import { HighlightsStyles } from "./HighlightsStyles";
 
 interface HighlightItemProps {
   item: Highlight;

@@ -11,12 +11,12 @@ import {
   Modal,
   PanResponder,
   Pressable,
-  SafeAreaView,
   Text,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { cropEditorModalStyles } from "styles/ModalsStyles/CropEditorModalStyles";
 import { PROFILE_BANNER_HEIGHT } from "styles/ProfileStyles/ProfileScreenStyles";
 

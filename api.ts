@@ -1,10 +1,9 @@
 import { create } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
+import { API_BASE_URL } from "utils/apiConfig";
 
 export const api = create({
-  baseURL: BASE_URL,
+  baseURL: API_BASE_URL,
 });
 
 // Automatically attach token from AsyncStorage

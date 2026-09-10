@@ -463,41 +463,61 @@ export const useFootballGameDetails = (
   const skipFetch = !league || !gameId;
 
   /* ---------------------------------- */
-  /* Fetch from /api/basketball/details */
+  /* Request game details               */
   /* ---------------------------------- */
 
-  const fetchDetails = useCallback(
-    async (silent = false) => {
-      if (skipFetch) return;
+  const requestDetails = useCallback(async () => {
+    if (!league || !gameId) {
+      return null;
+    }
 
-      try {
-        if (!silent) {
-          setLoading(true);
+    const params = {
+      league,
+      gameId,
+    };
+
+    const { data } = await apiClient.get<FootballGameDetailsResponse>(
+      "api/football/details",
+      {
+        params,
+      },
+    );
+
+    return data;
+  }, [gameId, league]);
+
+  /* ---------------------------------- */
+  /* Initial fetch                      */
+  /* ---------------------------------- */
+
+  useEffect(() => {
+    if (skipFetch) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    void requestDetails()
+      .then((data) => {
+        if (isCancelled || !data) {
+          return;
         }
 
-        setWarning(null);
-
-        const params = {
-          league,
-          gameId,
-        };
-
-        const { data } = await apiClient.get<FootballGameDetailsResponse>(
-          "api/football/details",
-          {
-            params,
-          },
-        );
-
-        if (!data?.score) {
+        if (!data.score) {
           setWarning("Game data unavailable");
           return;
         }
 
         setScore(data.score);
         setDetails(data.details);
+        setWarning(null);
         setLastRefresh(new Date());
-      } catch (error: unknown) {
+      })
+      .catch((error: unknown) => {
+        if (isCancelled) {
+          return;
+        }
+
         const message =
           error instanceof Error
             ? error.message
@@ -506,24 +526,16 @@ export const useFootballGameDetails = (
         console.warn(`[${league}] game details fetch failed`, error);
 
         setWarning(message);
-      } finally {
-        if (!silent) {
-          setLoading(false);
-        }
-      }
-    },
-    [gameId, league, skipFetch],
-  );
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [league, requestDetails, skipFetch]);
 
   /* ---------------------------------- */
-  /* Initial fetch                      */
+  /* Live updates                       */
   /* ---------------------------------- */
-
-  useEffect(() => {
-    if (skipFetch) return;
-
-    fetchDetails(true);
-  }, [fetchDetails, skipFetch]);
 
   useLiveSportsSubscription<FootballGameDetailsResponse>({
     enabled: !skipFetch && score?.status?.state === "in",
@@ -534,19 +546,58 @@ export const useFootballGameDetails = (
       gameId: gameId || "",
     },
     onUpdate: (payload) => {
-      if (!payload?.score) return;
+      if (!payload?.score) {
+        return;
+      }
 
       setScore(payload.score);
       setDetails(payload.details);
+      setWarning(null);
       setLastRefresh(new Date());
     },
   });
 
+  /* ---------------------------------- */
+  /* Manual refresh                     */
+  /* ---------------------------------- */
+
   const refresh = useCallback(() => {
-    if (!skipFetch) {
-      fetchDetails(false);
+    if (skipFetch) {
+      return;
     }
-  }, [fetchDetails, skipFetch]);
+
+    setLoading(true);
+    setWarning(null);
+
+    void requestDetails()
+      .then((data) => {
+        if (!data) {
+          return;
+        }
+
+        if (!data.score) {
+          setWarning("Game data unavailable");
+          return;
+        }
+
+        setScore(data.score);
+        setDetails(data.details);
+        setLastRefresh(new Date());
+      })
+      .catch((error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to refresh game data";
+
+        console.warn(`[${league}] game details fetch failed`, error);
+
+        setWarning(message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [league, requestDetails, skipFetch]);
 
   return {
     score,

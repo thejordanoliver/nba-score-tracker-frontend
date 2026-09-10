@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import { apiClient } from "utils/apiClient";
 
 /* ----------------------------- Types ----------------------------- */
@@ -29,10 +30,6 @@ export interface Leader {
   rank: number | string | null;
   value: number | string | null;
   displayValue: string | null;
-  teamId: number | string | null;
-  teamName: string | null;
-  teamAbbrev: string | null;
-  teamLogo: string | null;
 }
 
 export interface LeaderCategory {
@@ -61,17 +58,19 @@ export function useSeasonLeaders(
   const [error, setError] = useState<string | null>(null);
 
   const cacheRef = useRef<Partial<Record<string, LeaderCategory[]>>>({});
+
   const cacheKey = `${league}:${season}`;
 
   const fetchLeaders = useCallback(
     async (forceRefresh = false) => {
       if (!enabled) {
-        setLoading(false);
         return;
       }
 
-      if (!forceRefresh && cacheRef.current[cacheKey]) {
-        setCategories(cacheRef.current[cacheKey]!);
+      const cachedCategories = cacheRef.current[cacheKey];
+
+      if (!forceRefresh && cachedCategories) {
+        setCategories(cachedCategories);
         setLoading(false);
         return;
       }
@@ -82,40 +81,56 @@ export function useSeasonLeaders(
       try {
         const leaguePath = league.toLowerCase();
 
-        const res = await apiClient.get(`api/leaders/${leaguePath}`, {
-          params: { season },
+        const response = await apiClient.get(`api/leaders/${leaguePath}`, {
+          params: {
+            season,
+          },
         });
 
-        const rawCategories: LeaderCategory[] = res.data.categories ?? [];
+        const rawCategories: LeaderCategory[] = response.data.categories ?? [];
 
-        // ✅ No enrichment — just cache + return
         cacheRef.current[cacheKey] = rawCategories;
+
         setCategories(rawCategories);
-      } catch (err: any) {
-        console.error(`❌ [${league}] Season Leaders Error:`, err);
-        setError(err.message || "Failed to fetch leaders");
+      } catch (error: unknown) {
+        console.error(`❌ [${league}] Season Leaders Error:`, error);
+
+        const message =
+          error instanceof Error ? error.message : "Failed to fetch leaders";
+
+        setError(message);
       } finally {
         setLoading(false);
       }
     },
-    [cacheKey, enabled, season, league],
+    [cacheKey, enabled, league, season],
   );
 
   useEffect(() => {
     if (!enabled) {
-      setLoading(false);
       return;
     }
 
     void fetchLeaders();
   }, [enabled, fetchLeaders]);
 
+  const refresh = useCallback(() => {
+    if (!enabled) {
+      return;
+    }
+
+    void fetchLeaders(true);
+  }, [enabled, fetchLeaders]);
+
   return {
     categories,
-    loading,
+
+    // No state update is necessary when the hook is disabled.
+    // We can derive the disabled loading state directly.
+    loading: enabled ? loading : false,
+
     error,
-    refresh: () => {
-      void fetchLeaders(true);
-    },
+
+    refresh,
   };
 }

@@ -9,12 +9,12 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Modal,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { ForumVideoEditorModalProps } from "types/forum";
 
 export default function VideoEditorModal({

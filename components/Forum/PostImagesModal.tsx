@@ -13,13 +13,13 @@ import {
   LayoutAnimation,
   Modal,
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   UIManager,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useLikesStore } from "store/useLikesStore";
 import type {
   ForumDisplayMediaItem,

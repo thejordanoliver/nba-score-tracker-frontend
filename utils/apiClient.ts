@@ -2,11 +2,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { create } from "axios";
 import { router } from "expo-router";
+import { API_BASE_URL } from "utils/apiConfig";
 import { isRefreshResponseForCurrentSession } from "utils/authSessionRace";
 import { USER_PROFILE_CACHE_KEY_PREFIX } from "utils/userProfileCache";
 
-export const BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
+export const BASE_URL = API_BASE_URL;
 
 // ─── Shared Axios Instance ────────────────────────────────────────────────────
 
