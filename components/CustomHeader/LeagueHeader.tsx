@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { HeaderTitle } from "@react-navigation/elements";
 import { Colors, Fonts, activeOpacity } from "constants/styles";
+import { HeaderTitle } from "expo-router/react-navigation";
 import {
   Animated,
   TouchableOpacity,

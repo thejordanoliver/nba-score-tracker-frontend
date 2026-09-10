@@ -1,5 +1,4 @@
-import { useNavigation } from "@react-navigation/native";
-import { router } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import React, { useCallback, useRef } from "react";
 import { Animated, RefreshControl, ScrollView, View } from "react-native";
 import PagerView, {

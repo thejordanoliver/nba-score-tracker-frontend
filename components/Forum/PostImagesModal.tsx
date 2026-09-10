@@ -120,10 +120,7 @@ export default function PostImagesModal({
           : optimisticCount,
       );
 
-      if (
-        currentUserId != null &&
-        currentUserId === postAuthorUserId
-      ) {
+      if (currentUserId != null && currentUserId === postAuthorUserId) {
         handleBadgeAwards(response.data.newlyAwardedBadges);
       } else if (__DEV__ && response.data.newlyAwardedBadges?.length) {
         console.warn(
@@ -419,7 +416,7 @@ function getStyles(isDark: boolean) {
       backgroundColor: "transparent",
     },
     modalBackground: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       zIndex: 0,
       backgroundColor: "rgba(0, 0, 0, 0.10)",
     },

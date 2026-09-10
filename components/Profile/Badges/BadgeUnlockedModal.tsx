@@ -170,7 +170,7 @@ export default function BadgeUnlockedModal() {
     >
       <View
         style={[
-          StyleSheet.absoluteFillObject,
+          StyleSheet.absoluteFill,
           styles.overlay,
           {
             paddingTop: Math.max(insets.top, 18),

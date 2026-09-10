@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   PlayerResult,
@@ -127,7 +127,10 @@ function normalizeTeams(teams: TeamResult[]): ResultItem[] {
   }));
 }
 
-function buildResults(data: ExploreSearchResponse, query: string): ResultItem[] {
+function buildResults(
+  data: ExploreSearchResponse,
+  query: string,
+): ResultItem[] {
   const teams = sortByScoreDesc(normalizeTeams(data.teams));
   const users = sortByScoreDesc(normalizeUsers(data.users, query));
   const players = sortByScoreDesc(normalizePlayers(data.players));
@@ -181,7 +184,8 @@ export function useExplore() {
   const isSearching = useMemo(() => {
     return (
       loading ||
-      (normalizedQuery.length > 0 && normalizedQuery !== normalizedDebouncedQuery)
+      (normalizedQuery.length > 0 &&
+        normalizedQuery !== normalizedDebouncedQuery)
     );
   }, [loading, normalizedQuery, normalizedDebouncedQuery]);
 
@@ -305,26 +309,32 @@ export function useExplore() {
     }
   }, []);
 
-  const deleteRecentSearch = useCallback(async (itemToDelete: ResultItem) => {
-    try {
-      const storageKey =
-        recentSearchesKey ?? (await getCurrentRecentSearchesKey());
+  const deleteRecentSearch = useCallback(
+    async (itemToDelete: ResultItem) => {
+      try {
+        const storageKey =
+          recentSearchesKey ?? (await getCurrentRecentSearchesKey());
 
-      if (!storageKey) {
-        setRecentSearches([]);
-        return;
+        if (!storageKey) {
+          setRecentSearches([]);
+          return;
+        }
+
+        const stored = await AsyncStorage.getItem(storageKey);
+        const existing = safeParseRecentSearches(stored);
+        const nextSearches = removeDuplicateRecentSearch(
+          existing,
+          itemToDelete,
+        );
+
+        await persistRecentSearches(storageKey, nextSearches);
+        setRecentSearches(nextSearches);
+      } catch (err) {
+        console.warn("Failed to delete recent search", err);
       }
-
-      const stored = await AsyncStorage.getItem(storageKey);
-      const existing = safeParseRecentSearches(stored);
-      const nextSearches = removeDuplicateRecentSearch(existing, itemToDelete);
-
-      await persistRecentSearches(storageKey, nextSearches);
-      setRecentSearches(nextSearches);
-    } catch (err) {
-      console.warn("Failed to delete recent search", err);
-    }
-  }, [recentSearchesKey]);
+    },
+    [recentSearchesKey],
+  );
 
   useEffect(() => {
     const handler = setTimeout(() => {

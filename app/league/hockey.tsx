@@ -1,9 +1,8 @@
 import { useHockeyGames } from "@/hooks/HockeyHooks/useHockeyGames";
-import { useNavigation } from "@react-navigation/native";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { goBack } from "expo-router/build/global-state/routing";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
@@ -208,35 +207,41 @@ function NHLLeagueScreen() {
 
   const newsPage = (
     <View key="news" style={styles.contentArea}>
-      {hasVisitedTab("news") ? <NewsList
-        items={articles}
-        loading={newsLoading}
-        error={newsError}
-        refreshing={refreshingNews}
-        onRefresh={refreshNews}
-        isDark={isDark}
-      /> : null}
+      {hasVisitedTab("news") ? (
+        <NewsList
+          items={articles}
+          loading={newsLoading}
+          error={newsError}
+          refreshing={refreshingNews}
+          onRefresh={refreshNews}
+          isDark={isDark}
+        />
+      ) : null}
     </View>
   );
 
   const standingsPage = (
     <View key="standings" style={styles.contentArea}>
-      {hasVisitedTab("standings") ? <StandingsList
-        year={standingsYear}
-        onYearChange={setStandingsYear}
-        league={league}
-      /> : null}
+      {hasVisitedTab("standings") ? (
+        <StandingsList
+          year={standingsYear}
+          onYearChange={setStandingsYear}
+          league={league}
+        />
+      ) : null}
     </View>
   );
 
   const statsPage = (
     <View key="stats" style={styles.contentArea}>
-      {hasVisitedTab("stats") ? <SeasonLeadersList
-        loading={loading}
-        error={error}
-        categories={categories}
-        league={league}
-      /> : null}
+      {hasVisitedTab("stats") ? (
+        <SeasonLeadersList
+          loading={loading}
+          error={error}
+          categories={categories}
+          league={league}
+        />
+      ) : null}
     </View>
   );
 

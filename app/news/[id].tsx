@@ -109,7 +109,7 @@ export default function ArticleScreen() {
               <Image source={{ uri: videoThumbnail }} style={styles.image} />
               <View
                 style={{
-                  ...StyleSheet.absoluteFillObject,
+                  ...StyleSheet.absoluteFill,
                   justifyContent: "center",
                   alignItems: "center",
                   backgroundColor: "rgba(0,0,0,0.3)",

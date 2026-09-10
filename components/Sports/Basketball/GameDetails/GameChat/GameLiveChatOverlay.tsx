@@ -137,7 +137,7 @@ export default function GameLiveChatOverlay({
 
 const styles = StyleSheet.create({
   floatingButtonLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 1000,
     elevation: 1000,
   },

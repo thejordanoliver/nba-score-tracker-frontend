@@ -63,7 +63,7 @@ export const cropEditorModalStyles = (
       overflow: "hidden",
     },
     cropFrame: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       borderWidth: 2,
       borderColor: isDark ? Colors.white : Colors.black,
       borderRadius: isProfile ? cropHeight / 2 : 8,

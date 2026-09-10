@@ -6,7 +6,6 @@ import {
 import { cbbTeams, getCBBTeam } from "@/constants/teamsCBB";
 import { getWCBBTeam, wcbbTeams } from "@/constants/teamsWCBB";
 import { resolveWCBBConferenceselection } from "@/constants/wcbbConferences";
-import { HeaderTitle } from "@react-navigation/elements";
 import { Colors, Fonts } from "constants/styles";
 import { getNBATeam, teams as nbaTeams } from "constants/teams";
 import { cbTeams } from "constants/teamsCB";
@@ -17,6 +16,7 @@ import { getNHLTeam, nhlTeams } from "constants/teamsNHL";
 import { sbTeams } from "constants/teamsSB";
 import { getWNBATeam, wnbaTeams } from "constants/teamsWNBA";
 import { usePreferences } from "contexts/PreferencesContext";
+import { HeaderTitle } from "expo-router/react-navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -26,11 +26,9 @@ import {
   ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  customHeaderStyles,
-
-} from "../../styles/CustomHeaderStyles";
+import { customHeaderStyles } from "../../styles/CustomHeaderStyles";
 import { ConferenceBackground } from "./ConferenceBackground";
+import { EditFavoritesHeader } from "./EditFavoritesHeader";
 import { GameHeader } from "./GameHeader";
 import { HeaderLeftActions } from "./HeaderLeftActions";
 import { HeaderRightActions } from "./HeaderRightActions";
@@ -40,7 +38,6 @@ import { MessageThreadHeader } from "./MessageThreadHeader";
 import { resolveRacingLeague } from "./racingConfig";
 import { TeamBackground } from "./TeamBackground";
 import type { CustomHeaderProps, HeaderTeamLike } from "./types";
-import { EditFavoritesHeader } from "./EditFavoritesHeader";
 
 const isConferenceSelectorTab = (tabName?: string) =>
   tabName === "College Football" ||

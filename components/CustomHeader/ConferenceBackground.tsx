@@ -30,7 +30,7 @@ export function ConferenceBackground({
     return (
       <View
         style={{
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: defaultBackgroundColor,
           zIndex: -1,
         }}
@@ -55,7 +55,7 @@ export function ConferenceBackground({
     >
       <View
         style={{
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: conferenceColor || defaultBackgroundColor,
           zIndex: -1,
         }}

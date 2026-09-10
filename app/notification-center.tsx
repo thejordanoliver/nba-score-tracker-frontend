@@ -14,10 +14,9 @@ import {
   shouldShowNotificationActorProfileImage,
 } from "@/utils/notificationCenter";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
 import { formatDistance } from "date-fns/formatDistance";
 import { Image } from "expo-image";
-import { Href, useNavigation, useRouter } from "expo-router";
+import { Href, useFocusEffect, useNavigation, useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -89,11 +88,12 @@ const NotificationRow = memo(function NotificationRow({
   const href = getNotificationCenterHref(notification);
   const leagueLabel = getNotificationLeagueLabel(notification);
   const gameTeams = getNotificationGameTeams(notification, isDark);
-  const actorProfileImage =
-    shouldShowNotificationActorProfileImage(notification)
-      ? (parseImageUrl(getNotificationActorProfileImage(notification)) ??
-        PLACEHOLDER_AVATAR)
-      : null;
+  const actorProfileImage = shouldShowNotificationActorProfileImage(
+    notification,
+  )
+    ? (parseImageUrl(getNotificationActorProfileImage(notification)) ??
+      PLACEHOLDER_AVATAR)
+    : null;
   const isPressable = href !== null;
   const isUnread = !readAt;
   const createdAt = new Date(notification.createdAt);

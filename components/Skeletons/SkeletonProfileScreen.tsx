@@ -60,7 +60,7 @@ export const SkeletonProfileScreen = ({ isDark }: { isDark: boolean }) => {
     <View {...props} style={[props.style, skeletonBlock]}>
       <Animated.View
         style={[
-          StyleSheet.absoluteFillObject,
+          StyleSheet.absoluteFill,
           {
             backgroundColor: overlayColor,
             opacity: pulseAnim,

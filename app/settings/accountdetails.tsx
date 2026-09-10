@@ -1,10 +1,10 @@
 import Button from "@/components/Buttons/Button";
 import { CustomHeader } from "@/components/CustomHeader";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigation } from "@react-navigation/native";
 import HeadingTwo from "components/Headings/HeadingTwo";
 import { Colors, Fonts } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";
+import { useNavigation } from "expo-router";
 import { goBack } from "expo-router/build/global-state/routing";
 import { useAccountDetails } from "hooks/UserHooks/useAccountDetails";
 import { useLayoutEffect } from "react";

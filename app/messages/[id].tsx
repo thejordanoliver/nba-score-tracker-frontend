@@ -7,13 +7,17 @@ import MessageThemeModal from "@/components/Messages/MessageThemeModal";
 import { ConversationScreenStyles } from "@/styles/MessageStyles/ConversationScreenStyles";
 import { Ionicons } from "@expo/vector-icons";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useFocusEffect } from "@react-navigation/native";
 import MessageAttachmentMenu from "components/Messages/MessageAttachmentMenu";
 import { activeOpacity, Colors, globalStyles } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import { useDirectMessages } from "hooks/MessageHooks/useDirectMessages";
 import {
   useCallback,

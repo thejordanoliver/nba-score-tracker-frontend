@@ -101,7 +101,7 @@ export const customHeaderStyles = (isDark: boolean, screenWidth: number) => {
     },
 
     teamHalfContent: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
 
       zIndex: 2,
 

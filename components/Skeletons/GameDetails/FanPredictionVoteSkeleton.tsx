@@ -174,13 +174,13 @@ const getStyles = (isDark: boolean, LOGO_SIZE = 150) =>
     },
 
     fillAway: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       borderTopLeftRadius: 8,
       borderBottomLeftRadius: 8,
     },
 
     fillHome: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       borderTopRightRadius: 8,
       borderBottomRightRadius: 8,
     },

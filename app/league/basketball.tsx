@@ -1,9 +1,8 @@
 import { useBasketballGames } from "@/hooks/BasketballHooks/useBasketballGames";
-import { useNavigation } from "@react-navigation/native";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { goBack } from "expo-router/build/global-state/routing";
 import {
   useCallback,
@@ -454,56 +453,66 @@ function NBALeagueScreen() {
 
           {/* NEWS */}
           <View key="news" style={styles.contentArea}>
-            {hasVisitedTab("news") ? <NewsList
-              items={articles}
-              loading={newsLoading}
-              error={newsError}
-              refreshing={refreshingNews}
-              onRefresh={refreshNews}
-              isDark={isDark}
-            /> : null}
+            {hasVisitedTab("news") ? (
+              <NewsList
+                items={articles}
+                loading={newsLoading}
+                error={newsError}
+                refreshing={refreshingNews}
+                onRefresh={refreshNews}
+                isDark={isDark}
+              />
+            ) : null}
           </View>
 
           {/* STANDINGS */}
           <View key="standings">
-            {hasVisitedTab("standings") ? <StandingsList
-              year={standingsYear}
-              onYearChange={setStandingsYear}
-              league={league}
-            /> : null}
+            {hasVisitedTab("standings") ? (
+              <StandingsList
+                year={standingsYear}
+                onYearChange={setStandingsYear}
+                league={league}
+              />
+            ) : null}
           </View>
 
           {/* PLAYOFFS */}
           <View key="playoffs" style={styles.contentArea}>
-            {hasVisitedTab("playoffs") ? <NBAPlayoffBracket
-              rounds={playoffRounds}
-              loading={playoffLoading}
-              error={playoffError}
-              refreshing={refreshingPlayoffGames}
-              onRefresh={refreshPlayoffGames}
-            /> : null}
+            {hasVisitedTab("playoffs") ? (
+              <NBAPlayoffBracket
+                rounds={playoffRounds}
+                loading={playoffLoading}
+                error={playoffError}
+                refreshing={refreshingPlayoffGames}
+                onRefresh={refreshPlayoffGames}
+              />
+            ) : null}
           </View>
 
           {/* STATS */}
           <ScrollView key="stats">
-            {hasVisitedTab("stats") ? <NBASeasonLeadersList
-              leadersByStat={leaders}
-              loading={leadersLoading}
-              error={leadersError}
-            /> : null}
+            {hasVisitedTab("stats") ? (
+              <NBASeasonLeadersList
+                leadersByStat={leaders}
+                loading={leadersLoading}
+                error={leadersError}
+              />
+            ) : null}
           </ScrollView>
 
           {/* DRAFT */}
           <View key="draft" style={styles.contentArea}>
-            {hasVisitedTab("draft") ? <Draft
-              year={draftYear}
-              team={draftTeam}
-              round={draftRound}
-              onYearChange={setDraftYear}
-              onTeamChange={setDraftTeam}
-              onRoundChange={setDraftRound}
-              league={league}
-            /> : null}
+            {hasVisitedTab("draft") ? (
+              <Draft
+                year={draftYear}
+                team={draftTeam}
+                round={draftRound}
+                onYearChange={setDraftYear}
+                onTeamChange={setDraftTeam}
+                onRoundChange={setDraftRound}
+                league={league}
+              />
+            ) : null}
           </View>
 
           {/* AWARDS */}
@@ -758,36 +767,42 @@ function WNBALeagueScreen() {
 
           {/* NEWS */}
           <View key="news" style={styles.contentArea}>
-            {hasVisitedTab("news") ? <NewsList
-              items={articles}
-              loading={newsLoading}
-              error={newsError}
-              refreshing={refreshingNews}
-              onRefresh={refreshNews}
-              isDark={isDark}
-            /> : null}
+            {hasVisitedTab("news") ? (
+              <NewsList
+                items={articles}
+                loading={newsLoading}
+                error={newsError}
+                refreshing={refreshingNews}
+                onRefresh={refreshNews}
+                isDark={isDark}
+              />
+            ) : null}
           </View>
 
           {/* STANDINGS */}
           <View key="standings">
-            {hasVisitedTab("standings") ? <StandingsList
-              year={standingsYear}
-              onYearChange={setStandingsYear}
-              league={league}
-            /> : null}
+            {hasVisitedTab("standings") ? (
+              <StandingsList
+                year={standingsYear}
+                onYearChange={setStandingsYear}
+                league={league}
+              />
+            ) : null}
           </View>
 
           {/* DRAFT */}
           <View key="draft" style={styles.contentArea}>
-            {hasVisitedTab("draft") ? <Draft
-              year={draftYear}
-              team={draftTeam}
-              round={draftRound}
-              onYearChange={setDraftYear}
-              onTeamChange={setDraftTeam}
-              onRoundChange={setDraftRound}
-              league="wnba"
-            /> : null}
+            {hasVisitedTab("draft") ? (
+              <Draft
+                year={draftYear}
+                team={draftTeam}
+                round={draftRound}
+                onYearChange={setDraftYear}
+                onTeamChange={setDraftTeam}
+                onRoundChange={setDraftRound}
+                league="wnba"
+              />
+            ) : null}
           </View>
 
           {/* AWARDS */}
@@ -1031,14 +1046,16 @@ function GLeagueScreen() {
 
           {/* NEWS */}
           <View key="news" style={styles.contentArea}>
-            {hasVisitedTab("news") ? <NewsList
-              items={articles}
-              loading={newsLoading}
-              error={newsError}
-              refreshing={refreshingNews}
-              onRefresh={refreshNews}
-              isDark={isDark}
-            /> : null}
+            {hasVisitedTab("news") ? (
+              <NewsList
+                items={articles}
+                loading={newsLoading}
+                error={newsError}
+                refreshing={refreshingNews}
+                onRefresh={refreshNews}
+                isDark={isDark}
+              />
+            ) : null}
           </View>
 
           {/* FORUM */}
@@ -1309,60 +1326,70 @@ function CBBLeagueScreen() {
 
   const newsPage = (
     <View key="news" style={styles.contentArea}>
-      {hasVisitedTab("news") ? <NewsList
-        items={articles}
-        loading={newsLoading}
-        error={newsError}
-        refreshing={refreshingNews}
-        onRefresh={refreshNews}
-        isDark={isDark}
-      /> : null}
+      {hasVisitedTab("news") ? (
+        <NewsList
+          items={articles}
+          loading={newsLoading}
+          error={newsError}
+          refreshing={refreshingNews}
+          onRefresh={refreshNews}
+          isDark={isDark}
+        />
+      ) : null}
     </View>
   );
 
   const standingsPage = (
     <View key="standings" style={styles.contentArea}>
-      {hasVisitedTab("standings") ? (!selectedConferenceGroupId ? (
-        <CBBStandingsList league={league} />
-      ) : (
-        <ConferenceStandingsList
-          conferences={conferences}
-          loading={conferencesLoading}
-          error={conferencesError}
-          league={league}
-        />
-      )) : null}
+      {hasVisitedTab("standings") ? (
+        !selectedConferenceGroupId ? (
+          <CBBStandingsList league={league} />
+        ) : (
+          <ConferenceStandingsList
+            conferences={conferences}
+            loading={conferencesLoading}
+            error={conferencesError}
+            league={league}
+          />
+        )
+      ) : null}
     </View>
   );
 
   const statsPage = (
     <View key="stats" style={styles.contentArea}>
-      {hasVisitedTab("stats") ? <CollegeSeasonLeadersList
-        loading={leadersLoading}
-        error={leadersError}
-        categories={categories}
-        league={league}
-      /> : null}
+      {hasVisitedTab("stats") ? (
+        <CollegeSeasonLeadersList
+          loading={leadersLoading}
+          error={leadersError}
+          categories={categories}
+          league={league}
+        />
+      ) : null}
     </View>
   );
 
   const bracketPage = (
     <View key="bracket" style={styles.contentArea}>
-      {hasVisitedTab("bracket") ? <TournamentTreeBracket league={league} season={2025} /> : null}
+      {hasVisitedTab("bracket") ? (
+        <TournamentTreeBracket league={league} season={2025} />
+      ) : null}
     </View>
   );
 
   const recruitsPage = (
     <View key="recruits" style={styles.contentArea}>
-      {hasVisitedTab("recruits") ? <RecruitsList
-        year={recruitYear}
-        team={recruitTeam}
-        view={recruitView}
-        onYearChange={setRecruitYear}
-        onTeamChange={setRecruitTeam}
-        onViewChange={setRecruitView}
-        league={league}
-      /> : null}
+      {hasVisitedTab("recruits") ? (
+        <RecruitsList
+          year={recruitYear}
+          team={recruitTeam}
+          view={recruitView}
+          onYearChange={setRecruitYear}
+          onTeamChange={setRecruitTeam}
+          onViewChange={setRecruitView}
+          league={league}
+        />
+      ) : null}
     </View>
   );
 
@@ -1680,46 +1707,54 @@ function WCBBLeagueScreen() {
 
   const newsPage = (
     <View key="news" style={styles.contentArea}>
-      {hasVisitedTab("news") ? <NewsList
-        items={articles}
-        loading={newsLoading}
-        error={newsError}
-        refreshing={refreshingNews}
-        onRefresh={refreshNews}
-        isDark={isDark}
-      /> : null}
+      {hasVisitedTab("news") ? (
+        <NewsList
+          items={articles}
+          loading={newsLoading}
+          error={newsError}
+          refreshing={refreshingNews}
+          onRefresh={refreshNews}
+          isDark={isDark}
+        />
+      ) : null}
     </View>
   );
 
   const standingsPage = (
     <View key="standings" style={styles.contentArea}>
-      {hasVisitedTab("standings") ? (!selectedConferenceGroupId ? (
-        <CBBStandingsList league={league} />
-      ) : (
-        <ConferenceStandingsList
-          conferences={conferences}
-          loading={conferencesLoading}
-          error={conferencesError}
-          league={league}
-        />
-      )) : null}
+      {hasVisitedTab("standings") ? (
+        !selectedConferenceGroupId ? (
+          <CBBStandingsList league={league} />
+        ) : (
+          <ConferenceStandingsList
+            conferences={conferences}
+            loading={conferencesLoading}
+            error={conferencesError}
+            league={league}
+          />
+        )
+      ) : null}
     </View>
   );
 
   const statsPage = (
     <View key="stats" style={styles.contentArea}>
-      {hasVisitedTab("stats") ? <CollegeSeasonLeadersList
-        loading={leadersLoading}
-        error={leadersError}
-        categories={categories}
-        league={league}
-      /> : null}
+      {hasVisitedTab("stats") ? (
+        <CollegeSeasonLeadersList
+          loading={leadersLoading}
+          error={leadersError}
+          categories={categories}
+          league={league}
+        />
+      ) : null}
     </View>
   );
 
   const bracketPage = (
     <View key="bracket" style={styles.contentArea}>
-      {hasVisitedTab("bracket") ? <TournamentTreeBracket league={league} season={currentSeason} /> : null}
+      {hasVisitedTab("bracket") ? (
+        <TournamentTreeBracket league={league} season={currentSeason} />
+      ) : null}
     </View>
   );
 

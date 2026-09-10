@@ -442,7 +442,7 @@ const animationStyles = (
     },
 
     logoStage: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -475,7 +475,7 @@ const animationStyles = (
     },
 
     announcementPanel: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       zIndex: 2,
       alignItems: "center",
       justifyContent: "center",

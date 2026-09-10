@@ -33,7 +33,7 @@ export function TeamBackground({
     return (
       <View
         style={{
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: defaultBackgroundColor,
           zIndex: -1,
         }}
@@ -58,7 +58,7 @@ export function TeamBackground({
     >
       <View
         style={{
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           backgroundColor: teamColor || defaultBackgroundColor,
           zIndex: -1,
         }}

@@ -1,15 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import type { ImageSourcePropType, ListRenderItem } from "react-native";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 
 import SearchBar from "@/components/Explore/SearchBar";
-import {
-  BROWSEABLE_LEAGUES,
-  LEAGUE_CONFIG,
-} from "@/constants/leagues";
+import { BROWSEABLE_LEAGUES, LEAGUE_CONFIG } from "@/constants/leagues";
 import { CustomHeader } from "../../components/CustomHeader";
 import { Colors, globalStyles } from "../../constants/styles";
 import { usePreferences } from "../../contexts/PreferencesContext";

@@ -49,24 +49,23 @@ export default function FavoritesScrollSkeleton({ isDark }: Props) {
       {Array.from({ length: 5 }).map((_, index) => (
         <View key={index} style={styles.tabContainer}>
           {/* Circle (team logo placeholder) */}
-       
-            <View
+
+          <View
+            style={[
+              styles.circle,
+              { backgroundColor: baseColor, overflow: "hidden" },
+            ]}
+          >
+            <Animated.View
               style={[
-                styles.circle,
-                { backgroundColor: baseColor, overflow: "hidden" },
+                StyleSheet.absoluteFill,
+                {
+                  backgroundColor: overlayColor,
+                  opacity: pulseAnim,
+                },
               ]}
-            >
-              <Animated.View
-                style={[
-                  StyleSheet.absoluteFillObject,
-                  {
-                    backgroundColor: overlayColor,
-                    opacity: pulseAnim,
-                  },
-                ]}
-              />
-            </View>
-  
+            />
+          </View>
 
           {/* Label (team name placeholder) */}
           <View style={styles.labelWrapper}>
@@ -78,7 +77,7 @@ export default function FavoritesScrollSkeleton({ isDark }: Props) {
             >
               <Animated.View
                 style={[
-                  StyleSheet.absoluteFillObject,
+                  StyleSheet.absoluteFill,
                   {
                     backgroundColor: overlayColor,
                     opacity: pulseAnim,

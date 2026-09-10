@@ -1,10 +1,9 @@
 import { useSoccerGames } from "@/hooks/SoccerHooks/useSoccerGames";
 import { useLeagueFavoriteHeader } from "@/hooks/UserHooks/useLeagueFavoriteHeader";
-import { useNavigation } from "@react-navigation/native";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { goBack } from "expo-router/build/global-state/routing";
 import * as React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -165,14 +164,16 @@ export default function SoccerLeagueScreen() {
           </View>
 
           <View key="news" style={styles.contentArea}>
-            {hasVisitedTab("news") ? <NewsList
-              items={articles}
-              loading={newsLoading}
-              error={newsError}
-              refreshing={refreshingNews}
-              onRefresh={refreshNews}
-              isDark={isDark}
-            /> : null}
+            {hasVisitedTab("news") ? (
+              <NewsList
+                items={articles}
+                loading={newsLoading}
+                error={newsError}
+                refreshing={refreshingNews}
+                onRefresh={refreshNews}
+                isDark={isDark}
+              />
+            ) : null}
           </View>
 
           <View key="standings" />

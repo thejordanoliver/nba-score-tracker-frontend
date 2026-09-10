@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useIsFocused } from "@react-navigation/native";
+import CustomActivityIndicator from "components/CustomActivityIndicator";
 import {
   EXPLORE_WIDGET_MAX_HEIGHTS,
   EXPLORE_WIDGET_MIN_HEIGHTS,
@@ -11,7 +11,7 @@ import {
   isGameWidgetType,
 } from "constants/exploreWidgets";
 import { activeOpacity, Colors } from "constants/styles";
-import CustomActivityIndicator from "components/CustomActivityIndicator";
+import { useIsFocused } from "expo-router";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 import {
@@ -31,9 +31,9 @@ import {
 import type {
   ExploreCollegePollLeague,
   ExploreCollegePollType,
+  ExploreStandingsLeague,
   ExploreWidgetConfig,
   ExploreWidgetGame,
-  ExploreStandingsLeague,
   ExploreWidgetSize,
   ExploreWidgetType,
 } from "types/widgets";
@@ -385,9 +385,7 @@ export default function ExploreWidgetDashboard({
             width={width}
             height={height}
             league={widget.standingsLeague ?? "nba"}
-            onChangeLeague={(league) =>
-              onSetStandingsLeague(widget.id, league)
-            }
+            onChangeLeague={(league) => onSetStandingsLeague(widget.id, league)}
             {...editProps}
           />
         </View>

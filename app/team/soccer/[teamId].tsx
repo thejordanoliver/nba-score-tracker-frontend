@@ -1,13 +1,12 @@
 import { CustomHeader } from "@/components/CustomHeader";
 import { Colors } from "@/constants/styles";
 import { getSOCCTeam, getSOCCTeamLogo } from "@/constants/teamsSOCC";
-import { useNavigation } from "@react-navigation/native";
 import CustomActivityIndicator from "components/CustomActivityIndicator";
 import NewsList from "components/News/NewsList";
 import MainScrollTabBar from "components/TabBars/MainTabScrollBar";
-import { usePreferences } from "contexts/PreferencesContext";
 import { useNotifications } from "contexts/NotificationContext";
-import { useLocalSearchParams } from "expo-router";
+import { usePreferences } from "contexts/PreferencesContext";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { goBack } from "expo-router/build/global-state/routing";
 
 import Roster from "@/components/Sports/Baseball/Team/Roster";
@@ -108,7 +107,9 @@ export default function TeamDetailScreen() {
           teamColor={teamColor}
           onBack={goBack}
           isTeamScreen={true}
-          onToggleNotifications={() => void toggleNotifications(league, teamIdNum)}
+          onToggleNotifications={() =>
+            void toggleNotifications(league, teamIdNum)
+          }
           isNotified={isNotified(league, teamIdNum)}
           league={league}
         />

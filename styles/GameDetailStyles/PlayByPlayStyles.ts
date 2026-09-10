@@ -188,7 +188,7 @@ export const PlayByPlayStyles = (isDark: boolean) =>
       backgroundColor: isDark ? "#245C2A" : Colors.light.green,
     },
     playStatusGlow: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     redZoneGlow: {
       backgroundColor: isDark ? Colors.dark.lightRed : Colors.light.red,

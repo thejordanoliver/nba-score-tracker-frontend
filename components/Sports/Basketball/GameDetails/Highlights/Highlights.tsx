@@ -188,7 +188,7 @@ export const HighlightsStyles = (isDark: boolean) => {
     },
 
     video: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: Colors.black,
     },
 

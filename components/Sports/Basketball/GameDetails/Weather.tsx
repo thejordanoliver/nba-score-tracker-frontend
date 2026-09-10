@@ -102,7 +102,7 @@ export const Weather: React.FC<Props> = ({
                   autoPlay
                   loop
                   style={{
-                    ...StyleSheet.absoluteFillObject,
+                    ...StyleSheet.absoluteFill,
                     zIndex: 0,
                   }}
                   resizeMode="cover"

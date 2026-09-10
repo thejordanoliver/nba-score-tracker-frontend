@@ -13,7 +13,7 @@ import {
   DarkTheme as NavigationDarkTheme,
   DefaultTheme as NavigationLightTheme,
   ThemeProvider,
-} from "@react-navigation/native";
+} from "expo-router/react-navigation";
 import { Stack, usePathname, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";

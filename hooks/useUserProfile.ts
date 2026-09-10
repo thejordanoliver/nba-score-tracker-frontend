@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native";
 import { teams } from "constants/teams";
 import { cbTeams } from "constants/teamsCB";
 import { cbbTeams } from "constants/teamsCBB";
@@ -10,14 +9,12 @@ import { nhlTeams } from "constants/teamsNHL";
 import { sbTeams } from "constants/teamsSB";
 import { wcbbTeams } from "constants/teamsWCBB";
 import { wnbaTeams } from "constants/teamsWNBA";
+import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Animated } from "react-native";
 import { useFollowersStore } from "store/followersStore";
 import type { FavoriteLeague, FavoriteTeamKey } from "types/favorites";
-import {
-  isFavoriteLeague,
-  normalizeFavoriteTeamKeys,
-} from "types/favorites";
+import { isFavoriteLeague, normalizeFavoriteTeamKeys } from "types/favorites";
 import type { Team as TeamConfig } from "types/team";
 import type { Team } from "types/types";
 import { apiClient } from "utils/apiClient";

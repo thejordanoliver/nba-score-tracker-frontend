@@ -1,6 +1,5 @@
 import SearchBar from "@/components/Explore/SearchBar";
-import { useNavigation } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import {
   useCallback,
   useEffect,
@@ -9,12 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  Alert,
-  Animated,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { Alert, Animated, View, useWindowDimensions } from "react-native";
 import PagerView, {
   type PagerViewOnPageScrollEvent,
   type PagerViewOnPageSelectedEvent,
@@ -32,10 +26,7 @@ import { useFavoriteTeamsContext } from "../contexts/FavoriteTeamsContext";
 import { useNotifications } from "../contexts/NotificationContext";
 import { usePreferences } from "../contexts/PreferencesContext";
 import { editFavoritesStyles } from "../styles/EditFavoriteStyles";
-import {
-  buildFavoriteTeamKey,
-  type FavoriteTeamKey,
-} from "../types/favorites";
+import { buildFavoriteTeamKey, type FavoriteTeamKey } from "../types/favorites";
 
 type FavoritesTab = "teams" | "sports";
 
@@ -70,12 +61,9 @@ export default function EditFavoritesScreen() {
 
   const pagerRef = useRef<PagerView>(null);
 
-  const homeTabScrollProgress = useRef(
-    new Animated.Value(0),
-  ).current;
+  const homeTabScrollProgress = useRef(new Animated.Value(0)).current;
 
-  const [selectedTab, setSelectedTab] =
-    useState<FavoritesTab>("teams");
+  const [selectedTab, setSelectedTab] = useState<FavoritesTab>("teams");
 
   const [teamSearch, setTeamSearch] = useState("");
   const [sportSearch, setSportSearch] = useState("");
@@ -90,8 +78,7 @@ export default function EditFavoritesScreen() {
     FavoriteSportId[]
   >([]);
 
-  const [favoriteSportsDirty, setFavoriteSportsDirty] =
-    useState(false);
+  const [favoriteSportsDirty, setFavoriteSportsDirty] = useState(false);
 
   const [saving, setSaving] = useState(false);
 
@@ -138,21 +125,13 @@ export default function EditFavoritesScreen() {
     }
 
     setDraftFavoriteSports(favoriteSports);
-  }, [
-    favoriteSports,
-    favoriteSportsDirty,
-    favoriteSportsReady,
-    userId,
-  ]);
+  }, [favoriteSports, favoriteSportsDirty, favoriteSportsReady, userId]);
 
   /**
    * Each tab maintains its own independent search query.
    */
   const activeSearch = useMemo(
-    () =>
-      selectedTab === "teams"
-        ? teamSearch
-        : sportSearch,
+    () => (selectedTab === "teams" ? teamSearch : sportSearch),
     [selectedTab, sportSearch, teamSearch],
   );
 
@@ -211,26 +190,19 @@ export default function EditFavoritesScreen() {
     (event: PagerViewOnPageSelectedEvent) => {
       const index = event.nativeEvent.position;
 
-      const nextTab: FavoritesTab =
-        index === 0 ? "teams" : "sports";
+      const nextTab: FavoritesTab = index === 0 ? "teams" : "sports";
 
       homeTabScrollProgress.setValue(index);
       setSelectedTab(nextTab);
-
     },
     [homeTabScrollProgress],
   );
 
-  const handleHeaderTabPress = useCallback(
-    (tab: EditFavoritesHeaderTab) => {
-      setSelectedTab(tab);
+  const handleHeaderTabPress = useCallback((tab: EditFavoritesHeaderTab) => {
+    setSelectedTab(tab);
 
-      pagerRef.current?.setPage(
-        tab === "teams" ? 0 : 1,
-      );
-    },
-    [],
-  );
+    pagerRef.current?.setPage(tab === "teams" ? 0 : 1);
+  }, []);
 
   /**
    * 3-column phone layout.
@@ -240,15 +212,9 @@ export default function EditFavoritesScreen() {
     const containerPadding = 40;
     const columnGap = 12;
 
-    const totalSpacing =
-      columnGap * (numColumns - 1);
+    const totalSpacing = columnGap * (numColumns - 1);
 
-    return (
-      (screenWidth -
-        containerPadding -
-        totalSpacing) /
-      numColumns
-    );
+    return (screenWidth - containerPadding - totalSpacing) / numColumns;
   }, [screenWidth]);
 
   useLayoutEffect(() => {
@@ -271,40 +237,32 @@ export default function EditFavoritesScreen() {
     unreadNotificationCount,
   ]);
 
-  const handleToggleFavoriteSport = useCallback(
-    (league: FavoriteSportId) => {
-      setDraftFavoriteSports((current) => {
-        if (current.includes(league)) {
-          return current.filter(
-            (favorite) => favorite !== league,
-          );
-        }
-
-        return [...current, league];
-      });
-
-      setFavoriteSportsDirty(true);
-    },
-    [],
-  );
-
-  const handleToggleFavoriteTeam = useCallback(
-    (league: string, id: string) => {
-      const key = buildFavoriteTeamKey(league, id);
-
-      if (!key) {
-        return;
+  const handleToggleFavoriteSport = useCallback((league: FavoriteSportId) => {
+    setDraftFavoriteSports((current) => {
+      if (current.includes(league)) {
+        return current.filter((favorite) => favorite !== league);
       }
 
-      setDraftFavoriteTeams((current) =>
-        current.includes(key)
-          ? current.filter((favorite) => favorite !== key)
-          : [...current, key],
-      );
-      setFavoriteTeamsDirty(true);
-    },
-    [],
-  );
+      return [...current, league];
+    });
+
+    setFavoriteSportsDirty(true);
+  }, []);
+
+  const handleToggleFavoriteTeam = useCallback((league: string, id: string) => {
+    const key = buildFavoriteTeamKey(league, id);
+
+    if (!key) {
+      return;
+    }
+
+    setDraftFavoriteTeams((current) =>
+      current.includes(key)
+        ? current.filter((favorite) => favorite !== key)
+        : [...current, key],
+    );
+    setFavoriteTeamsDirty(true);
+  }, []);
 
   const handleSave = useCallback(async () => {
     if (saving || !favoriteTeamsReady || !favoriteSportsReady) {
@@ -314,18 +272,15 @@ export default function EditFavoritesScreen() {
     setSaving(true);
 
     try {
-      const [teamsSaved, sportsSaved] =
-        await Promise.all([
-          favoriteTeamsDirty
-            ? syncFavorites(draftFavoriteTeams)
-            : Promise.resolve(true),
+      const [teamsSaved, sportsSaved] = await Promise.all([
+        favoriteTeamsDirty
+          ? syncFavorites(draftFavoriteTeams)
+          : Promise.resolve(true),
 
-          favoriteSportsDirty
-            ? updateFavoriteSports(
-                draftFavoriteSports,
-              )
-            : Promise.resolve(true),
-        ]);
+        favoriteSportsDirty
+          ? updateFavoriteSports(draftFavoriteSports)
+          : Promise.resolve(true),
+      ]);
 
       if (teamsSaved && sportsSaved) {
         router.back();
@@ -336,15 +291,9 @@ export default function EditFavoritesScreen() {
         ? "Your previous favorite sports are still saved. Please try again."
         : "Your favorite sports were saved, but your teams could not be saved. Please try again.";
 
-      Alert.alert(
-        "Couldn’t save favorites",
-        message,
-      );
+      Alert.alert("Couldn’t save favorites", message);
     } catch (error) {
-      console.error(
-        "Failed to save favorites:",
-        error,
-      );
+      console.error("Failed to save favorites:", error);
 
       Alert.alert(
         "Couldn’t save favorites",
@@ -371,10 +320,7 @@ export default function EditFavoritesScreen() {
   }, [router]);
 
   const screenBusy =
-    isLoading ||
-    favoriteSportsLoading ||
-    favoriteSportsSaving ||
-    saving;
+    isLoading || favoriteSportsLoading || favoriteSportsSaving || saving;
 
   return (
     <View style={styles.container}>
@@ -385,9 +331,7 @@ export default function EditFavoritesScreen() {
         onBlur={() => {}}
         onChangeText={handleSearchChange}
         placeholder={
-          selectedTab === "teams"
-            ? "Search teams..."
-            : "Search sports..."
+          selectedTab === "teams" ? "Search teams..." : "Search sports..."
         }
       />
 
@@ -398,10 +342,7 @@ export default function EditFavoritesScreen() {
         onPageScroll={handlePageScroll}
         onPageSelected={handlePageSelected}
       >
-        <View
-          key="teams"
-          style={styles.selectorContainer}
-        >
+        <View key="teams" style={styles.selectorContainer}>
           <FavoriteTeamsSelector
             teams={filteredTeams}
             favorites={draftFavoriteTeams}
@@ -413,19 +354,12 @@ export default function EditFavoritesScreen() {
           />
         </View>
 
-        <View
-          key="sports"
-          style={styles.selectorContainer}
-        >
+        <View key="sports" style={styles.selectorContainer}>
           <FavoriteSportsSelector
             favorites={draftFavoriteSports}
             loading={favoriteSportsLoading}
-            saving={
-              favoriteSportsSaving || saving
-            }
-            toggleFavorite={
-              handleToggleFavoriteSport
-            }
+            saving={favoriteSportsSaving || saving}
+            toggleFavorite={handleToggleFavoriteSport}
             isGridView={isGridView}
             fadeAnim={fadeAnim}
             itemWidth={itemWidth}
@@ -448,11 +382,7 @@ export default function EditFavoritesScreen() {
         <Button
           isDark={isDark}
           onPress={handleSave}
-          disabled={
-            screenBusy ||
-            !favoriteTeamsReady ||
-            !favoriteSportsReady
-          }
+          disabled={screenBusy || !favoriteTeamsReady || !favoriteSportsReady}
           variant="filled"
           style={styles.button}
         >

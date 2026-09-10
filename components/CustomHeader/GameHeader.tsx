@@ -97,9 +97,7 @@ export function GameHeader({
     [],
   );
 
-  const isTeamGameHeader = Boolean(
-    tabName === "Game" && homeTeam && awayTeam,
-  );
+  const isTeamGameHeader = Boolean(tabName === "Game" && homeTeam && awayTeam);
 
   const awayLetters = useMemo(
     () => getTeamCodeLetters(awayCode, "AWY"),
@@ -230,7 +228,7 @@ export function GameHeader({
     <Animated.View
       pointerEvents="none"
       style={[
-        StyleSheet.absoluteFillObject,
+        StyleSheet.absoluteFill,
         {
           flexDirection: "row",
           zIndex: -10,
@@ -255,7 +253,7 @@ export function GameHeader({
           x: 1.08,
           y: 1.2,
         }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
 
       {/* Header readability overlay */}
@@ -269,7 +267,7 @@ export function GameHeader({
         locations={[0, 0.35, 0.72, 1]}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
 
       {/* Away team */}
