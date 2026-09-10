@@ -195,11 +195,36 @@ export const StandingsStyles = (isDark: boolean) =>
       color: isDark ? Colors.white : Colors.black,
     },
 
-    droppedoutNames: {
-      marginVertical: 2,
-      marginRight: 8,
-      fontFamily: Fonts.LIGHT,
-      fontSize: 16,
+    droppedoutContainer: {
+      marginTop: 24,
+    },
+
+    droppedoutWrapper: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+    },
+
+    droppedoutRow: {
+      gap: 4,
+      padding: 8,
+      borderRadius: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      borderCurve: "continuous",
+      backgroundColor: isDark
+        ? Colors.dark.itemBackground
+        : Colors.light.itemBackground,
+    },
+    droppedoutLogo: {
+      width: 22,
+      height: 22,
+      marginRight: 4,
+      resizeMode: "contain",
+    },
+    droppedoutName: {
+      fontFamily: Fonts.MEDIUM,
+      fontSize: 14,
       color: isDark ? Colors.lightGray : Colors.darkGray,
     },
   });

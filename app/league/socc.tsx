@@ -48,7 +48,8 @@ export default function SoccerLeagueScreen() {
   const navigation = useNavigation();
   const pagerRef = useRef<PagerView>(null);
 
-  const { tabs, selectedTab, setSelectedTab } = useLeagueTabs(league);
+  const { tabs, selectedTab, setSelectedTab, hasVisitedTab } =
+    useLeagueTabs(league);
 
   const [refreshing, setRefreshing] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
@@ -90,7 +91,7 @@ export default function SoccerLeagueScreen() {
     refreshing: refreshingNews,
     error: newsError,
     refresh: refreshNews,
-  } = useLeaguesNews(league, 10);
+  } = useLeaguesNews(league, 10, { enabled: hasVisitedTab("news") });
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -164,20 +165,20 @@ export default function SoccerLeagueScreen() {
           </View>
 
           <View key="news" style={styles.contentArea}>
-            <NewsList
+            {hasVisitedTab("news") ? <NewsList
               items={articles}
               loading={newsLoading}
               error={newsError}
               refreshing={refreshingNews}
               onRefresh={refreshNews}
               isDark={isDark}
-            />
+            /> : null}
           </View>
 
           <View key="standings" />
 
           <View key="forum">
-            <ForumFeed league={league} />
+            {hasVisitedTab("forum") ? <ForumFeed league={league} /> : null}
           </View>
         </PagerView>
       </View>

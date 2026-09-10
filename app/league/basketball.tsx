@@ -165,7 +165,8 @@ function NBALeagueScreen() {
 
   const selectedSeason = getNBACalendarSeason();
 
-  const { tabs, selectedTab, setSelectedTab } = useLeagueTabs(league);
+  const { tabs, selectedTab, setSelectedTab, hasVisitedTab } =
+    useLeagueTabs(league);
   const pagerRef = useRef<PagerView>(null);
   const { scrollProgress, handlePageScroll, syncPageScrollProgress } =
     usePagerTabScrollProgress();
@@ -277,6 +278,7 @@ function NBALeagueScreen() {
     refreshGames: refreshPlayoffGames,
   } = useNBAPlayoffGames({
     season: selectedSeason,
+    enabled: hasVisitedTab("playoffs"),
   });
 
   /* ------------------------------------------------------------------------ */
@@ -287,7 +289,7 @@ function NBALeagueScreen() {
     leaders,
     loading: leadersLoading,
     error: leadersError,
-  } = useNBASeasonLeaders();
+  } = useNBASeasonLeaders({ enabled: hasVisitedTab("stats") });
 
   /* ------------------------------------------------------------------------ */
   /*                                  News                                    */
@@ -299,7 +301,7 @@ function NBALeagueScreen() {
     refreshing: refreshingNews,
     error: newsError,
     refresh: refreshNews,
-  } = useLeaguesNews(league, 10);
+  } = useLeaguesNews(league, 10, { enabled: hasVisitedTab("news") });
 
   /* ------------------------------------------------------------------------ */
   /*                                 Effects                                  */
@@ -452,48 +454,48 @@ function NBALeagueScreen() {
 
           {/* NEWS */}
           <View key="news" style={styles.contentArea}>
-            <NewsList
+            {hasVisitedTab("news") ? <NewsList
               items={articles}
               loading={newsLoading}
               error={newsError}
               refreshing={refreshingNews}
               onRefresh={refreshNews}
               isDark={isDark}
-            />
+            /> : null}
           </View>
 
           {/* STANDINGS */}
-          <ScrollView key="standings">
-            <StandingsList
+          <View key="standings">
+            {hasVisitedTab("standings") ? <StandingsList
               year={standingsYear}
               onYearChange={setStandingsYear}
               league={league}
-            />
-          </ScrollView>
+            /> : null}
+          </View>
 
           {/* PLAYOFFS */}
           <View key="playoffs" style={styles.contentArea}>
-            <NBAPlayoffBracket
+            {hasVisitedTab("playoffs") ? <NBAPlayoffBracket
               rounds={playoffRounds}
               loading={playoffLoading}
               error={playoffError}
               refreshing={refreshingPlayoffGames}
               onRefresh={refreshPlayoffGames}
-            />
+            /> : null}
           </View>
 
           {/* STATS */}
           <ScrollView key="stats">
-            <NBASeasonLeadersList
+            {hasVisitedTab("stats") ? <NBASeasonLeadersList
               leadersByStat={leaders}
               loading={leadersLoading}
               error={leadersError}
-            />
+            /> : null}
           </ScrollView>
 
           {/* DRAFT */}
           <View key="draft" style={styles.contentArea}>
-            <Draft
+            {hasVisitedTab("draft") ? <Draft
               year={draftYear}
               team={draftTeam}
               round={draftRound}
@@ -501,17 +503,17 @@ function NBALeagueScreen() {
               onTeamChange={setDraftTeam}
               onRoundChange={setDraftRound}
               league={league}
-            />
+            /> : null}
           </View>
 
           {/* AWARDS */}
           <View key="awards" style={styles.contentArea}>
-            <AwardSeasons league={league} />
+            {hasVisitedTab("awards") ? <AwardSeasons league={league} /> : null}
           </View>
 
           {/* FORUM */}
           <View key="forum" style={styles.contentArea}>
-            <ForumFeed league={league} />
+            {hasVisitedTab("forum") ? <ForumFeed league={league} /> : null}
           </View>
         </PagerView>
       </View>
@@ -572,7 +574,8 @@ function WNBALeagueScreen() {
     getWNBASeason().toString(),
   );
 
-  const { tabs, selectedTab, setSelectedTab } = useLeagueTabs(league);
+  const { tabs, selectedTab, setSelectedTab, hasVisitedTab } =
+    useLeagueTabs(league);
   const pagerRef = useRef<PagerView>(null);
   const { scrollProgress, handlePageScroll, syncPageScrollProgress } =
     usePagerTabScrollProgress();
@@ -614,7 +617,7 @@ function WNBALeagueScreen() {
     refreshing: refreshingNews,
     error: newsError,
     refresh: refreshNews,
-  } = useLeaguesNews(league, 10);
+  } = useLeaguesNews(league, 10, { enabled: hasVisitedTab("news") });
 
   /* ------------------------------------------------------------------------ */
   /*                                 Effects                                  */
@@ -755,28 +758,28 @@ function WNBALeagueScreen() {
 
           {/* NEWS */}
           <View key="news" style={styles.contentArea}>
-            <NewsList
+            {hasVisitedTab("news") ? <NewsList
               items={articles}
               loading={newsLoading}
               error={newsError}
               refreshing={refreshingNews}
               onRefresh={refreshNews}
               isDark={isDark}
-            />
+            /> : null}
           </View>
 
           {/* STANDINGS */}
-          <ScrollView key="standings">
-            <StandingsList
+          <View key="standings">
+            {hasVisitedTab("standings") ? <StandingsList
               year={standingsYear}
               onYearChange={setStandingsYear}
               league={league}
-            />
-          </ScrollView>
+            /> : null}
+          </View>
 
           {/* DRAFT */}
           <View key="draft" style={styles.contentArea}>
-            <Draft
+            {hasVisitedTab("draft") ? <Draft
               year={draftYear}
               team={draftTeam}
               round={draftRound}
@@ -784,17 +787,17 @@ function WNBALeagueScreen() {
               onTeamChange={setDraftTeam}
               onRoundChange={setDraftRound}
               league="wnba"
-            />
+            /> : null}
           </View>
 
           {/* AWARDS */}
           <View key="awards" style={styles.contentArea}>
-            <AwardSeasons league={league} />
+            {hasVisitedTab("awards") ? <AwardSeasons league={league} /> : null}
           </View>
 
           {/* FORUM */}
           <View key="forum" style={styles.contentArea}>
-            <ForumFeed league={league} />
+            {hasVisitedTab("forum") ? <ForumFeed league={league} /> : null}
           </View>
         </PagerView>
       </View>
@@ -844,7 +847,8 @@ function GLeagueScreen() {
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { tabs, selectedTab, setSelectedTab } = useLeagueTabs(league);
+  const { tabs, selectedTab, setSelectedTab, hasVisitedTab } =
+    useLeagueTabs(league);
   const pagerRef = useRef<PagerView>(null);
   const { scrollProgress, handlePageScroll, syncPageScrollProgress } =
     usePagerTabScrollProgress();
@@ -886,7 +890,7 @@ function GLeagueScreen() {
     refreshing: refreshingNews,
     error: newsError,
     refresh: refreshNews,
-  } = useLeaguesNews(league, 10);
+  } = useLeaguesNews(league, 10, { enabled: hasVisitedTab("news") });
 
   /* ------------------------------------------------------------------------ */
   /*                                 Effects                                  */
@@ -1027,19 +1031,19 @@ function GLeagueScreen() {
 
           {/* NEWS */}
           <View key="news" style={styles.contentArea}>
-            <NewsList
+            {hasVisitedTab("news") ? <NewsList
               items={articles}
               loading={newsLoading}
               error={newsError}
               refreshing={refreshingNews}
               onRefresh={refreshNews}
               isDark={isDark}
-            />
+            /> : null}
           </View>
 
           {/* FORUM */}
           <View key="forum" style={styles.contentArea}>
-            <ForumFeed league={league} />
+            {hasVisitedTab("forum") ? <ForumFeed league={league} /> : null}
           </View>
         </PagerView>
       </View>
@@ -1100,7 +1104,8 @@ function CBBLeagueScreen() {
   const [recruitView, setRecruitView] = useState<"players" | "teams">(
     "players",
   );
-  const { tabs, selectedTab, setSelectedTab } = useLeagueTabs(league);
+  const { tabs, selectedTab, setSelectedTab, hasVisitedTab } =
+    useLeagueTabs(league);
   const pagerRef = useRef<PagerView>(null);
   const { scrollProgress, handlePageScroll, syncPageScrollProgress } =
     usePagerTabScrollProgress();
@@ -1138,7 +1143,9 @@ function CBBLeagueScreen() {
   }, [selectedConference]);
 
   const { conferences, conferencesLoading, conferencesError } =
-    useConferenceStandings(league, selectedConferenceGroupId);
+    useConferenceStandings(league, selectedConferenceGroupId, {
+      enabled: hasVisitedTab("standings"),
+    });
 
   /* ------------------------------------------------------------------------ */
   /*                                Calendar                                  */
@@ -1213,7 +1220,7 @@ function CBBLeagueScreen() {
     refreshing: refreshingNews,
     error: newsError,
     refresh: refreshNews,
-  } = useLeaguesNews(league, 10);
+  } = useLeaguesNews(league, 10, { enabled: hasVisitedTab("news") });
 
   /* ------------------------------------------------------------------------ */
   /*                                  Leaders                                 */
@@ -1223,7 +1230,9 @@ function CBBLeagueScreen() {
     categories,
     loading: leadersLoading,
     error: leadersError,
-  } = useSeasonLeaders(currentSeason, league);
+  } = useSeasonLeaders(currentSeason, league, {
+    enabled: hasVisitedTab("stats"),
+  });
 
   /* ------------------------------------------------------------------------ */
   /*                                  Header                                  */
@@ -1300,20 +1309,20 @@ function CBBLeagueScreen() {
 
   const newsPage = (
     <View key="news" style={styles.contentArea}>
-      <NewsList
+      {hasVisitedTab("news") ? <NewsList
         items={articles}
         loading={newsLoading}
         error={newsError}
         refreshing={refreshingNews}
         onRefresh={refreshNews}
         isDark={isDark}
-      />
+      /> : null}
     </View>
   );
 
   const standingsPage = (
     <View key="standings" style={styles.contentArea}>
-      {!selectedConferenceGroupId ? (
+      {hasVisitedTab("standings") ? (!selectedConferenceGroupId ? (
         <CBBStandingsList league={league} />
       ) : (
         <ConferenceStandingsList
@@ -1322,30 +1331,30 @@ function CBBLeagueScreen() {
           error={conferencesError}
           league={league}
         />
-      )}
+      )) : null}
     </View>
   );
 
   const statsPage = (
     <View key="stats" style={styles.contentArea}>
-      <CollegeSeasonLeadersList
+      {hasVisitedTab("stats") ? <CollegeSeasonLeadersList
         loading={leadersLoading}
         error={leadersError}
         categories={categories}
         league={league}
-      />
+      /> : null}
     </View>
   );
 
   const bracketPage = (
     <View key="bracket" style={styles.contentArea}>
-      <TournamentTreeBracket league={league} season={2025} />
+      {hasVisitedTab("bracket") ? <TournamentTreeBracket league={league} season={2025} /> : null}
     </View>
   );
 
   const recruitsPage = (
     <View key="recruits" style={styles.contentArea}>
-      <RecruitsList
+      {hasVisitedTab("recruits") ? <RecruitsList
         year={recruitYear}
         team={recruitTeam}
         view={recruitView}
@@ -1353,19 +1362,19 @@ function CBBLeagueScreen() {
         onTeamChange={setRecruitTeam}
         onViewChange={setRecruitView}
         league={league}
-      />
+      /> : null}
     </View>
   );
 
   const awardsPage = (
     <View key="awards" style={styles.contentArea}>
-      <AwardSeasons league={league} />
+      {hasVisitedTab("awards") ? <AwardSeasons league={league} /> : null}
     </View>
   );
 
   const forumPage = (
     <View key="forum" style={styles.contentArea}>
-      <ForumFeed league={league} />
+      {hasVisitedTab("forum") ? <ForumFeed league={league} /> : null}
     </View>
   );
 
@@ -1466,7 +1475,8 @@ function WCBBLeagueScreen() {
   const [selectedConference, setSelectedConference] =
     useState<SelectedConference>("top25");
   const [isConferenceModalOpen, setIsConferenceModalOpen] = useState(false);
-  const { tabs, selectedTab, setSelectedTab } = useLeagueTabs(league);
+  const { tabs, selectedTab, setSelectedTab, hasVisitedTab } =
+    useLeagueTabs(league);
   const pagerRef = useRef<PagerView>(null);
   const { scrollProgress, handlePageScroll, syncPageScrollProgress } =
     usePagerTabScrollProgress();
@@ -1504,7 +1514,9 @@ function WCBBLeagueScreen() {
   }, [selectedConference]);
 
   const { conferences, conferencesLoading, conferencesError } =
-    useConferenceStandings(league, selectedConferenceGroupId);
+    useConferenceStandings(league, selectedConferenceGroupId, {
+      enabled: hasVisitedTab("standings"),
+    });
 
   /* ------------------------------------------------------------------------ */
   /*                                Calendar                                  */
@@ -1579,7 +1591,7 @@ function WCBBLeagueScreen() {
     refreshing: refreshingNews,
     error: newsError,
     refresh: refreshNews,
-  } = useLeaguesNews(league, 10);
+  } = useLeaguesNews(league, 10, { enabled: hasVisitedTab("news") });
 
   /* ------------------------------------------------------------------------ */
   /*                                  Leaders                                 */
@@ -1589,7 +1601,9 @@ function WCBBLeagueScreen() {
     categories,
     loading: leadersLoading,
     error: leadersError,
-  } = useSeasonLeaders(currentSeason, league);
+  } = useSeasonLeaders(currentSeason, league, {
+    enabled: hasVisitedTab("stats"),
+  });
 
   /* ------------------------------------------------------------------------ */
   /*                                  Header                                  */
@@ -1666,20 +1680,20 @@ function WCBBLeagueScreen() {
 
   const newsPage = (
     <View key="news" style={styles.contentArea}>
-      <NewsList
+      {hasVisitedTab("news") ? <NewsList
         items={articles}
         loading={newsLoading}
         error={newsError}
         refreshing={refreshingNews}
         onRefresh={refreshNews}
         isDark={isDark}
-      />
+      /> : null}
     </View>
   );
 
   const standingsPage = (
     <View key="standings" style={styles.contentArea}>
-      {!selectedConferenceGroupId ? (
+      {hasVisitedTab("standings") ? (!selectedConferenceGroupId ? (
         <CBBStandingsList league={league} />
       ) : (
         <ConferenceStandingsList
@@ -1688,36 +1702,36 @@ function WCBBLeagueScreen() {
           error={conferencesError}
           league={league}
         />
-      )}
+      )) : null}
     </View>
   );
 
   const statsPage = (
     <View key="stats" style={styles.contentArea}>
-      <CollegeSeasonLeadersList
+      {hasVisitedTab("stats") ? <CollegeSeasonLeadersList
         loading={leadersLoading}
         error={leadersError}
         categories={categories}
         league={league}
-      />
+      /> : null}
     </View>
   );
 
   const bracketPage = (
     <View key="bracket" style={styles.contentArea}>
-      <TournamentTreeBracket league={league} season={currentSeason} />
+      {hasVisitedTab("bracket") ? <TournamentTreeBracket league={league} season={currentSeason} /> : null}
     </View>
   );
 
   const awardsPage = (
     <View key="awards" style={styles.contentArea}>
-      <AwardSeasons league={league} />
+      {hasVisitedTab("awards") ? <AwardSeasons league={league} /> : null}
     </View>
   );
 
   const forumPage = (
     <View key="forum" style={styles.contentArea}>
-      <ForumFeed league={league} />
+      {hasVisitedTab("forum") ? <ForumFeed league={league} /> : null}
     </View>
   );
 

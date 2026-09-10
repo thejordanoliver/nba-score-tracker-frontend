@@ -1,117 +1,150 @@
 // hooks/UserHooks/useEditProfile.ts
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCallback, useState } from "react";
-import { User } from "types/user";
-import { apiClient, BASE_URL } from "utils/apiClient";
+import { isAxiosError } from "axios";
+import { useCallback } from "react";
+
+import type { PrivateAccountUser } from "types/user";
+import {
+  apiClient,
+  BASE_URL,
+  refreshStoredAuthUser,
+} from "utils/apiClient";
 import { removeCachedUserProfile } from "utils/userProfileCache";
 
-const getProfileSaveErrorMessage = (err: any) => {
-  const status = err?.response?.status;
-  const serverMessage =
-    err?.response?.data?.error || err?.response?.data?.message || err?.message;
+type ProfileUpdateResponse = {
+  user: PrivateAccountUser;
+};
 
-  if (serverMessage && serverMessage !== "Network Error") {
-    return serverMessage;
+type CachedAuthUser = Record<string, unknown>;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const readCachedAuthUser = async (): Promise<CachedAuthUser> => {
+  const storedUser = await AsyncStorage.getItem("authUser");
+
+  if (!storedUser) return {};
+
+  try {
+    const parsed: unknown = JSON.parse(storedUser);
+    return isRecord(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const persistUpdatedUser = async (user: PrivateAccountUser) => {
+  const cachedUser = await readCachedAuthUser();
+
+  await AsyncStorage.multiSet([
+    ["userId", String(user.id)],
+    ["username", user.username],
+    ["fullName", user.fullName],
+    ["bio", user.bio],
+    ["profileImage", user.profileImage ?? ""],
+    ["bannerImage", user.bannerImage ?? ""],
+    [
+      "authUser",
+      JSON.stringify({
+        ...cachedUser,
+        id: user.id,
+        username: user.username,
+        fullName: user.fullName,
+        bio: user.bio,
+        profileImage: user.profileImage,
+        bannerImage: user.bannerImage,
+      }),
+    ],
+  ]);
+
+  await removeCachedUserProfile(String(user.id));
+  await refreshStoredAuthUser();
+};
+
+const getProfileSaveErrorMessage = (error: unknown) => {
+  if (isAxiosError(error)) {
+    const status = error.response?.status;
+    const responseData = error.response?.data;
+    const serverMessage = isRecord(responseData)
+      ? typeof responseData.error === "string"
+        ? responseData.error
+        : typeof responseData.message === "string"
+          ? responseData.message
+          : null
+      : null;
+
+    if (serverMessage) return serverMessage;
+
+    if (status === 400) {
+      return "Invalid profile data. Please check your changes and try again.";
+    }
+
+    if (status === 401 || status === 403) {
+      return "You are not authorized. Please sign in again.";
+    }
+
+    if (status === 413) {
+      return "Image is too large. Please choose a smaller image.";
+    }
+
+    if (error.message === "Network Error") {
+      return "Network error. Check your connection and try again.";
+    }
+
+    return error.message || "Failed to save profile.";
   }
 
-  if (status === 400) {
-    return "Invalid profile data. Please check your changes and try again.";
-  }
-
-  if (status === 401 || status === 403) {
-    return "You are not authorized. Please sign in again.";
-  }
-
-  if (status === 413) {
-    return "Image is too large. Please choose a smaller image.";
-  }
-
-  if (serverMessage === "Network Error") {
-    return "Network error. Check your API URL, server status, image size, and upload endpoint.";
-  }
+  if (error instanceof Error && error.message) return error.message;
 
   return "Failed to save profile.";
 };
 
 export function useEditProfile() {
-  const [saving, setSaving] = useState(false);
-
   const saveProfile = useCallback(
-    async (userId: string | number, formData: FormData): Promise<User> => {
-      if (!userId) {
-        throw new Error("User ID missing.");
-      }
-
-      setSaving(true);
-
+    async (formData: FormData): Promise<PrivateAccountUser> => {
       try {
         if (__DEV__) {
-          console.log("Saving profile to:", `${BASE_URL}/api/${userId}`);
+          console.log("Saving profile to:", `${BASE_URL}/api/users/me`);
         }
 
-        const { data } = await apiClient.patch<{ user: User }>(
-          `/api/${userId}`,
+        const { data } = await apiClient.patch<ProfileUpdateResponse>(
+          "/api/users/me",
           formData,
           {
             headers: {
               Accept: "application/json",
             },
-
-            // Important for React Native FormData.
-            // Prevent axios from trying to serialize the FormData object.
+            // Keep React Native's FormData intact so Axios can add its boundary.
             transformRequest: (body) => body,
-
-            // Optional, but helps slow Render/Cloudinary uploads.
             timeout: 60000,
           },
         );
 
-        const updatedUser = data.user;
-
-        if (!updatedUser) {
+        if (!data.user) {
           throw new Error("Server did not return updated profile data.");
         }
 
-        const storageUpdates: [string, string][] = [
-          ["fullName", updatedUser.full_name ?? ""],
-          ["bio", updatedUser.bio ?? ""],
-        ];
+        await persistUpdatedUser(data.user);
 
-        if (updatedUser.profile_image) {
-          storageUpdates.push(["profileImage", updatedUser.profile_image]);
-        }
-
-        if (updatedUser.banner_image) {
-          storageUpdates.push(["bannerImage", updatedUser.banner_image]);
-        }
-
-        await AsyncStorage.multiSet(storageUpdates);
-        await removeCachedUserProfile(String(userId));
-
-        return updatedUser;
-      } catch (err: any) {
+        return data.user;
+      } catch (error: unknown) {
         if (__DEV__) {
           console.warn("Save profile raw error:", {
-            message: err?.message,
-            status: err?.response?.status,
-            data: err?.response?.data,
+            message: error instanceof Error ? error.message : undefined,
+            status: isAxiosError(error) ? error.response?.status : undefined,
+            data: isAxiosError(error) ? error.response?.data : undefined,
             baseURL: BASE_URL,
-            url: err?.config?.url,
+            url: isAxiosError(error) ? error.config?.url : undefined,
           });
         }
 
-        const message = getProfileSaveErrorMessage(err);
+        const message = getProfileSaveErrorMessage(error);
         console.warn("Save profile failed:", message);
         throw new Error(message);
-      } finally {
-        setSaving(false);
       }
     },
     [],
   );
 
-  return {
-    saving,
-    saveProfile,
-  };
+  return { saveProfile };
 }

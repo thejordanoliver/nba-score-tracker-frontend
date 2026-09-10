@@ -2,12 +2,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getDefaultWidgetSize,
   getWidgetTitle,
+  isExploreCollegePollLeague,
+  isExploreCollegePollType,
   isExploreStandingsLeague,
   isExploreWidgetSize,
   isExploreWidgetType,
   widgetAllowsDuplicates,
 } from "constants/exploreWidgets";
 import type { ExploreWidgetConfig } from "types/widgets";
+import { normalizeCollegePollType } from "utils/collegePollWidget";
 
 export const EXPLORE_WIDGETS_KEY_PREFIX = "exploreWidgets";
 export const EXPLORE_WIDGETS_LEGACY_KEY = EXPLORE_WIDGETS_KEY_PREFIX;
@@ -72,6 +75,16 @@ export function normalizeStoredWidgets(value: unknown): ExploreWidgetConfig[] {
       const type = widget.type as ExploreWidgetConfig["type"];
       const createdAt =
         typeof widget.createdAt === "number" ? widget.createdAt : Date.now();
+      const collegePollLeague =
+        type === "college_polls" &&
+        isExploreCollegePollLeague(widget.collegePollLeague)
+          ? widget.collegePollLeague
+          : "cfb";
+      const collegePollType =
+        type === "college_polls" &&
+        isExploreCollegePollType(widget.collegePollType)
+          ? normalizeCollegePollType(collegePollLeague, widget.collegePollType)
+          : "ap";
 
       return {
         id:
@@ -98,6 +111,10 @@ export function normalizeStoredWidgets(value: unknown): ExploreWidgetConfig[] {
             : type === "standings"
               ? "nba"
               : undefined,
+        collegePollLeague:
+          type === "college_polls" ? collegePollLeague : undefined,
+        collegePollType:
+          type === "college_polls" ? collegePollType : undefined,
       };
     })
     .filter((widget) => {

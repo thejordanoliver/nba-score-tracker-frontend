@@ -14,6 +14,8 @@ import { getExploreWidgets } from "services/exploreWidgetsApi";
 import type { FavoriteTeamKey } from "types/favorites";
 import {
   EXPLORE_WIDGET_LEAGUES,
+  type ExploreCollegePollLeague,
+  type ExploreCollegePollType,
   type ExploreWidgetConfig,
   type ExploreWidgetDataCache,
   type ExploreWidgetGame,
@@ -42,6 +44,11 @@ type ExploreWidgetsContextValue = {
   setStandingsLeague: (
     widgetId: string,
     league: ExploreStandingsLeague,
+  ) => void;
+  setCollegePollSelection: (
+    widgetId: string,
+    league: ExploreCollegePollLeague,
+    pollType: ExploreCollegePollType,
   ) => void;
   moveWidget: (widgetId: string, direction: -1 | 1) => void;
   reorderWidgets: (widgets: ExploreWidgetConfig[]) => void;
@@ -113,6 +120,7 @@ export function ExploreWidgetsProvider({ children }: { children: ReactNode }) {
     removeWidget,
     resizeWidget,
     setStandingsLeague,
+    setCollegePollSelection,
     moveWidget,
     reorderWidgets,
   } = useExploreWidgetConfiguration(userId);
@@ -348,6 +356,7 @@ export function ExploreWidgetsProvider({ children }: { children: ReactNode }) {
       removeWidget,
       resizeWidget,
       setStandingsLeague,
+      setCollegePollSelection,
       moveWidget,
       reorderWidgets,
       ensureWidgetData,
@@ -365,6 +374,7 @@ export function ExploreWidgetsProvider({ children }: { children: ReactNode }) {
       removeWidget,
       reorderWidgets,
       resizeWidget,
+      setCollegePollSelection,
       setStandingsLeague,
       widgets,
       widgetsReady,

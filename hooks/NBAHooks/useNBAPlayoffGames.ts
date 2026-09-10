@@ -430,7 +430,7 @@ export function useNBAPlayoffGames({
   const [count, setCount] = useState(0);
   const [roundCount, setRoundCount] = useState(0);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [refreshingGames, setRefreshingGames] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -506,7 +506,10 @@ export function useNBAPlayoffGames({
   }, [fetchPlayoffGames]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
 
     fetchPlayoffGames();
   }, [enabled, fetchPlayoffGames]);

@@ -12,6 +12,18 @@ export type User = {
   bio?: string | null;
 };
 
+export type PrivateAccountUser = {
+  id: number;
+  username: string;
+  fullName: string;
+  email: string;
+  bio: string;
+  profileImage: string | null;
+  bannerImage: string | null;
+  showActivityStatus: boolean;
+  createdAt: string;
+};
+
 export type Follow = {
   followersCount: number;
   followingCount: number;

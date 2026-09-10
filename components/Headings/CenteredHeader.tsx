@@ -9,11 +9,11 @@ type Props = {
   style?: TextStyle | TextStyle[];
 };
 
-const CenteredHeader: React.FC<Props> = ({ children, isDark, style }) => {
+export default function CenteredHeader({ children, isDark, style }: Props) {
   const styles = headerStyles(isDark);
 
-  return <Text style={[styles.heading, style]}>{children}</Text>; // ✅ merge styles
-};
+  return <Text style={[styles.heading, style]}>{children}</Text>;
+}
 
 const headerStyles = (isDark: boolean) =>
   StyleSheet.create({
@@ -28,5 +28,3 @@ const headerStyles = (isDark: boolean) =>
       textAlign: "center",
     },
   });
-
-export default CenteredHeader;

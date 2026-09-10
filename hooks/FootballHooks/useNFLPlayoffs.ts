@@ -12,6 +12,7 @@ type UseNFLPlayoffsResult = {
 
 export const useNFLPlayoffs = (
   season: number,
+  { enabled = true }: { enabled?: boolean } = {},
 ): UseNFLPlayoffsResult => {
   const [playoffData, setPlayoffData] =
     useState<BracketApiResponse | null>(null);
@@ -30,6 +31,11 @@ export const useNFLPlayoffs = (
 
   const fetchPlayoffs = useCallback(
     async (refreshing = false) => {
+      if (!enabled) {
+        setPlayoffLoading(false);
+        return;
+      }
+
       if (!Number.isFinite(season)) {
         setPlayoffData(null);
         setPlayoffError("Invalid season");
@@ -97,16 +103,21 @@ export const useNFLPlayoffs = (
         }
       }
     },
-    [season],
+    [enabled, season],
   );
 
   useEffect(() => {
-    fetchPlayoffs();
+    if (!enabled) {
+      setPlayoffLoading(false);
+      return;
+    }
+
+    void fetchPlayoffs();
 
     return () => {
       abortControllerRef.current?.abort();
     };
-  }, [fetchPlayoffs]);
+  }, [enabled, fetchPlayoffs]);
 
   const onRefresh = useCallback(async () => {
     try {

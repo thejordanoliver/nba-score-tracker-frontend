@@ -495,7 +495,7 @@ export default function RosterStats({
 
   const renderPlayerStatsTable = () => (
     <View style={styles.tableWrapper}>
-      <View style={{ flexDirection: "row" }}>
+      <View style={styles.tableContent}>
         <View
           style={[
             stickyColumnBg,
@@ -538,8 +538,15 @@ export default function RosterStats({
           nestedScrollEnabled={false}
           showsHorizontalScrollIndicator={false}
           bounces={false}
+          style={styles.scrollSection}
+          contentContainerStyle={styles.scrollContentContainer}
         >
-          <View style={{ minWidth: activeColumns.length * STAT_CELL_WIDTH }}>
+          <View
+            style={[
+              styles.statScrollContent,
+              { width: activeColumns.length * STAT_CELL_WIDTH },
+            ]}
+          >
             <View style={[styles.tableRow, headerBg]}>
               {activeColumns.map((column) => (
                 <Text

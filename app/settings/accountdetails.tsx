@@ -42,8 +42,7 @@ export default function AccountDetailsScreen() {
   const isDark = resolvedColorScheme === "dark";
   const navigation = useNavigation();
   const styles = accountDetailsStyles(isDark);
-  const { isLoading, currentUserId, userData, changePassword } =
-    useAccountDetails();
+  const { isLoading, userData, changePassword } = useAccountDetails();
   const {
     control,
     formState: { isSubmitting },
@@ -117,7 +116,7 @@ export default function AccountDetailsScreen() {
     );
   }
 
-  if (!currentUserId || !userData) {
+  if (!userData) {
     return (
       <View
         style={[
@@ -136,7 +135,7 @@ export default function AccountDetailsScreen() {
     );
   }
 
-  const formattedDate = new Date(userData.created_at).toLocaleDateString(
+  const formattedDate = new Date(userData.createdAt).toLocaleDateString(
     "en-US",
     {
       dateStyle: "long",
@@ -170,9 +169,7 @@ export default function AccountDetailsScreen() {
         name="currentPassword"
         render={({ field, fieldState }) => (
           <View style={styles.field}>
-            <View
-              style={[styles.input, fieldState.error && styles.inputError]}
-            >
+            <View style={[styles.input, fieldState.error && styles.inputError]}>
               <TextInput
                 ref={field.ref}
                 placeholder="Current Password"
@@ -202,9 +199,7 @@ export default function AccountDetailsScreen() {
         name="newPassword"
         render={({ field, fieldState }) => (
           <View style={styles.field}>
-            <View
-              style={[styles.input, fieldState.error && styles.inputError]}
-            >
+            <View style={[styles.input, fieldState.error && styles.inputError]}>
               <TextInput
                 ref={field.ref}
                 placeholder="New Password"
@@ -231,9 +226,7 @@ export default function AccountDetailsScreen() {
         name="confirmPassword"
         render={({ field, fieldState }) => (
           <View style={styles.field}>
-            <View
-              style={[styles.input, fieldState.error && styles.inputError]}
-            >
+            <View style={[styles.input, fieldState.error && styles.inputError]}>
               <TextInput
                 ref={field.ref}
                 placeholder="Confirm New Password"

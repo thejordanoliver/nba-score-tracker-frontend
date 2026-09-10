@@ -271,18 +271,11 @@ export function useAuth() {
     }
 
     try {
-      await apiClient.delete("/api/delete-account", {
+      await apiClient.delete("/api/users/me", {
         data: {
-          password: currentPassword,
+          currentPassword,
         },
       });
-
-      await clearAuthSession(user?.id);
-      disconnectNotificationSocket();
-      useBadgeNotificationStore.getState().clearBadgeNotifications();
-      setUser(null);
-      setToken(null);
-      router.replace("/login");
     } catch (err: any) {
       const message =
         err.response?.data?.error ?? err.message ?? "Failed to delete account";
@@ -292,6 +285,23 @@ export function useAuth() {
 
       throw new Error(message);
     }
+
+    // Move to the public completion screen before publishing the signed-out
+    // state so the root auth guard cannot race this navigation back to login.
+    router.replace("/settings/deleteaccountsplash");
+
+    try {
+      await clearAuthSession(user?.id);
+    } catch (err) {
+      // The server deletion succeeded, so local cleanup failures should not be
+      // reported as though the account still exists.
+      console.warn("Failed to clear deleted account session:", err);
+    }
+
+    disconnectNotificationSocket();
+    useBadgeNotificationStore.getState().clearBadgeNotifications();
+    setUser(null);
+    setToken(null);
   };
 
   return {

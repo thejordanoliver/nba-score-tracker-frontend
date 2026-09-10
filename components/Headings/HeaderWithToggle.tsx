@@ -10,11 +10,11 @@ type Props = {
   onToggleView: () => void;
 };
 
-const HeaderWithToggle: React.FC<Props> = ({
+export default function HeaderWithToggle({
   title,
   isGridView,
   onToggleView,
-}) => {
+}: Props) {
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
   const styles = HeaderWithToggleStyles(isDark);
@@ -36,7 +36,7 @@ const HeaderWithToggle: React.FC<Props> = ({
       </Pressable>
     </View>
   );
-};
+}
 
 const HeaderWithToggleStyles = (isDark: boolean) =>
   StyleSheet.create({
@@ -58,5 +58,3 @@ const HeaderWithToggleStyles = (isDark: boolean) =>
       color: isDark ? Colors.white : Colors.black,
     },
   });
-
-export default HeaderWithToggle;

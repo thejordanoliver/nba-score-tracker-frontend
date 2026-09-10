@@ -16,11 +16,11 @@ import { LeagueType } from "types/types";
 
 export interface PlayerCardProps {
   id: number;
-  name: string;
+  name: string | null;
   position?: string | null;
   teamId: number;
   headshot?: string | null;
-  rank?: number | null;
+  rank?: string | number | null;
   number?: string | number | null;
   league?: string;
   statNumber?: string | number | null;

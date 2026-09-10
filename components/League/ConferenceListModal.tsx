@@ -205,14 +205,13 @@ const ConferenceListModal = forwardRef<ConferenceListModalRef, Props>(
           />
         )}
         backgroundStyle={styles.backgroundStyle}
-        handleComponent={() => (
-          <View style={styles.header}>
-            <View style={styles.handleIndicatorStyle} />
-            <Text style={styles.headerText}>Conferences</Text>
-          </View>
-        )}
+        handleStyle={styles.handle}
+        handleIndicatorStyle={styles.handleIndicator}
       >
         <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Conferences</Text>
+          </View>
           <BottomSheetScrollView
             contentContainerStyle={styles.contentContainerStyle}
           >

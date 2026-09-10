@@ -2,6 +2,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { create } from "axios";
 import { router } from "expo-router";
+import { isRefreshResponseForCurrentSession } from "utils/authSessionRace";
 import { USER_PROFILE_CACHE_KEY_PREFIX } from "utils/userProfileCache";
 
 export const BASE_URL =
@@ -35,6 +36,14 @@ const notifyAuthSessionListeners = (accessToken: string | null) => {
   authSessionListeners.forEach((listener) => {
     listener({ accessToken });
   });
+};
+
+export const refreshStoredAuthUser = async () => {
+  const accessToken = await getAccessToken();
+
+  if (accessToken) {
+    notifyAuthSessionListeners(accessToken);
+  }
 };
 
 export const subscribeAuthSession = (listener: AuthSessionListener) => {
@@ -190,10 +199,14 @@ apiClient.interceptors.response.use(
     const requestUrl = originalRequest?.url;
 
     const isAuthError = status === 401 || status === 403;
+    const requestPath = getRequestPath(requestUrl);
+    const responseError = error.response?.data?.error;
     const isInvalidCurrentPassword =
       status === 401 &&
-      getRequestPath(requestUrl) === "/api/users/me/password" &&
-      error.response?.data?.error === "Invalid current password";
+      ((requestPath === "/api/users/me/password" &&
+        responseError === "Invalid current password") ||
+        (requestPath === "/api/users/me" &&
+          responseError === "Invalid password"));
 
     // Important:
     // Do NOT refresh/redirect for login/signup/reset routes.
@@ -238,6 +251,26 @@ apiClient.interceptors.response.use(
 
       const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
         res.data;
+
+      // A concurrent password change can install a replacement session while
+      // this refresh request is in flight. Never let the older response put
+      // its token pair back over the newly rotated credentials.
+      const currentRefreshToken = await getRefreshToken();
+
+      if (
+        !isRefreshResponseForCurrentSession(refreshToken, currentRefreshToken)
+      ) {
+        const currentAccessToken = await getAccessToken();
+
+        if (!currentAccessToken) {
+          throw new Error("Auth session changed during token refresh");
+        }
+
+        originalRequest.headers.Authorization = `Bearer ${currentAccessToken}`;
+        processQueue(null, currentAccessToken);
+
+        return apiClient(originalRequest);
+      }
 
       await saveTokens(newAccessToken, newRefreshToken);
 

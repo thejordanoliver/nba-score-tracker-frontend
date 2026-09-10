@@ -1,7 +1,9 @@
+import { supportsLiquidGlass } from "@/utils/glass";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Fonts } from "constants/styles";
 import { BlurView } from "expo-blur";
-import React, { useRef, useState } from "react";
+import { GlassView } from "expo-glass-effect";
+import { useRef, useState } from "react";
 import {
   Animated,
   ScrollView,
@@ -26,22 +28,33 @@ type DropdownProps = {
   style?: ViewStyle;
 };
 
-export const Dropdown: React.FC<DropdownProps> = ({
+export default function Dropdown({
   options,
   selectedValue,
   onSelect,
   isDark,
   width = 180,
   style,
-}) => {
+}: DropdownProps) {
   const [visible, setVisible] = useState(false);
   const anim = useRef(new Animated.Value(0)).current;
+
+  const liquid = supportsLiquidGlass();
 
   const styles = dropDownStyles({
     isDark,
     width,
-    anim,
     visible,
+  });
+
+  const translateY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-10, 0],
+  });
+
+  const rotate = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
   });
 
   const openDropdown = () => {
@@ -83,6 +96,52 @@ export const Dropdown: React.FC<DropdownProps> = ({
     options[0]?.label ??
     "";
 
+  const renderOptions = () => (
+    <ScrollView
+      style={styles.optionsScrollView}
+      contentContainerStyle={styles.optionsContent}
+      showsVerticalScrollIndicator={false}
+      nestedScrollEnabled
+      keyboardShouldPersistTaps="handled"
+    >
+      {options.map((option, index) => {
+        const isSelected = selectedValue === option.value;
+        const isLast = index === options.length - 1;
+
+        return (
+          <TouchableOpacity
+            key={option.value}
+            activeOpacity={0.7}
+            onPress={() => handleSelect(option.value)}
+            style={[
+              styles.optionButton,
+              !isLast && styles.optionBorder,
+              isSelected && styles.selectedOptionButton,
+            ]}
+          >
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.optionText,
+                isSelected && styles.selectedOptionText,
+              ]}
+            >
+              {option.label}
+            </Text>
+
+            {isSelected ? (
+              <Ionicons
+                name="checkmark"
+                size={18}
+                color={isDark ? Colors.dark.blue : Colors.light.blue}
+              />
+            ) : null}
+          </TouchableOpacity>
+        );
+      })}
+    </ScrollView>
+  );
+
   return (
     <View style={[styles.container, style]}>
       <TouchableOpacity
@@ -94,7 +153,14 @@ export const Dropdown: React.FC<DropdownProps> = ({
           {selectedLabel}
         </Text>
 
-        <Animated.View style={styles.chevronContainer}>
+        <Animated.View
+          style={[
+            styles.chevronContainer,
+            {
+              transform: [{ rotate }],
+            },
+          ]}
+        >
           <Ionicons
             name="chevron-down"
             size={20}
@@ -104,82 +170,43 @@ export const Dropdown: React.FC<DropdownProps> = ({
       </TouchableOpacity>
 
       {visible ? (
-        <Animated.View style={styles.dropdownPanel}>
-          <BlurView intensity={100} style={styles.blurView} />
+        <Animated.View
+          style={[
+            styles.dropdownPanel,
+            {
+              transform: [{ translateY }],
+            },
+          ]}
+        >
+          {liquid ? (
+            <GlassView style={styles.glassSurface} glassEffectStyle="regular">
+              {renderOptions()}
+            </GlassView>
+          ) : (
+            <View style={styles.fallbackSurface}>
+              <BlurView intensity={100} style={StyleSheet.absoluteFill} />
 
-          <ScrollView
-            style={styles.optionsScrollView}
-            contentContainerStyle={styles.optionsContent}
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled
-            keyboardShouldPersistTaps="handled"
-          >
-            {options.map((option, index) => {
-              const isSelected = selectedValue === option.value;
-              const isLast = index === options.length - 1;
-
-              return (
-                <TouchableOpacity
-                  key={option.value}
-                  activeOpacity={0.7}
-                  onPress={() => handleSelect(option.value)}
-                  style={[
-                    styles.optionButton,
-                    !isLast && styles.optionBorder,
-                    isSelected && styles.selectedOptionButton,
-                  ]}
-                >
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      styles.optionText,
-                      isSelected && styles.selectedOptionText,
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-
-                  {isSelected ? (
-                    <Ionicons
-                      name="checkmark"
-                      size={18}
-                      color={isDark ? Colors.dark.blue : Colors.light.blue}
-                    />
-                  ) : null}
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+              {renderOptions()}
+            </View>
+          )}
         </Animated.View>
       ) : null}
     </View>
   );
-};
+}
 
 type DropDownStylesParams = {
   isDark: boolean;
   width: number;
-  anim: Animated.Value;
   visible: boolean;
 };
 
 export const dropDownStyles = ({
   isDark,
   width,
-  anim,
   visible,
-}: DropDownStylesParams) => {
-  const translateY = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-10, 0],
-  });
-
-  const rotate = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "180deg"],
-  });
-
-  return StyleSheet.create({
+}: DropDownStylesParams) =>
+  StyleSheet.create({
     container: {
       position: "relative",
       zIndex: visible ? 9999 : 1,
@@ -211,7 +238,6 @@ export const dropDownStyles = ({
     chevronContainer: {
       alignItems: "center",
       justifyContent: "center",
-      transform: [{ rotate }],
     },
 
     dropdownPanel: {
@@ -221,14 +247,7 @@ export const dropDownStyles = ({
       zIndex: 9999,
       width,
       maxHeight: 260,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: isDark ? "rgba(255, 255, 255, 0.16)" : "rgba(0, 0, 0, 0.12)",
       borderRadius: 12,
-      backgroundColor: isDark
-        ? Colors.transparentDarkGray
-        : Colors.transparentLightGray,
-      opacity: anim,
-      overflow: "hidden",
       shadowColor: Colors.black,
       shadowOffset: {
         width: 0,
@@ -237,11 +256,27 @@ export const dropDownStyles = ({
       shadowOpacity: 0.2,
       shadowRadius: 8,
       elevation: 9999,
-      transform: [{ translateY }],
     },
 
-    blurView: {
-      ...StyleSheet.absoluteFillObject,
+    glassSurface: {
+      width: "100%",
+      maxHeight: 260,
+      overflow: "hidden",
+      borderRadius: 12,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.16)" : "rgba(0, 0, 0, 0.12)",
+    },
+
+    fallbackSurface: {
+      width: "100%",
+      maxHeight: 260,
+      overflow: "hidden",
+      borderRadius: 12,
+      backgroundColor: isDark
+        ? Colors.transparentDarkGray
+        : Colors.transparentLightGray,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.16)" : "rgba(0, 0, 0, 0.12)",
     },
 
     optionsScrollView: {
@@ -286,4 +321,3 @@ export const dropDownStyles = ({
       color: isDark ? Colors.dark.blue : Colors.light.blue,
     },
   });
-};

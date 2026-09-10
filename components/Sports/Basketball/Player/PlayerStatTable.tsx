@@ -1218,6 +1218,7 @@ export default function PlayerStatTable({
               horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.scrollSection}
+              contentContainerStyle={styles.scrollContentContainer}
             >
               <View style={styles.statScrollContent}>
                 <View

@@ -19,14 +19,28 @@ export interface NewsResponse {
   articles: NewsArticle[];
 }
 
-export function useLeaguesNews(league: string, limit: number = 10) {
+type UseLeaguesNewsOptions = {
+  enabled?: boolean;
+};
+
+export function useLeaguesNews(
+  league: string,
+  limit: number = 10,
+  { enabled = true }: UseLeaguesNewsOptions = {},
+) {
   const [articles, setArticles] = useState<NewsArticle[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(enabled);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchNews = useCallback(
     async (isRefresh = false) => {
+      if (!enabled) {
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
       if (!league) {
         setArticles([]);
         setError("League is required.");
@@ -71,15 +85,20 @@ export function useLeaguesNews(league: string, limit: number = 10) {
         setRefreshing(false);
       }
     },
-    [league, limit],
+    [enabled, league, limit],
   );
 
   useEffect(() => {
-    fetchNews(false);
-  }, [fetchNews]);
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
 
-  const refresh = useCallback(() => {
-    fetchNews(true);
+    void fetchNews(false);
+  }, [enabled, fetchNews]);
+
+  const refresh = useCallback(async () => {
+    await fetchNews(true);
   }, [fetchNews]);
 
   return {

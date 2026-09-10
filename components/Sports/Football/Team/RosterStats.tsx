@@ -849,8 +849,13 @@ export default function RosterStats({
           ))}
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.scrollSection}
+          contentContainerStyle={styles.scrollContentContainer}
+        >
+          <View style={styles.statScrollContent}>
             <View style={[styles.tableRow, headerBg]}>
               {table.columns.map((column) => (
                 <Text

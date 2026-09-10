@@ -108,8 +108,6 @@ export default function SettingsScreen() {
 
       setShowDeleteModal(false);
       setPassword("");
-
-      router.replace("/settings/deleteaccountsplash");
     } catch (error) {
       const message =
         error instanceof Error
@@ -124,7 +122,7 @@ export default function SettingsScreen() {
       queueAlert({
         title: "Delete Account Failed",
         message:
-          message === "Incorrect password"
+          message === "Incorrect password" || message === "Invalid password"
             ? "The password you entered is incorrect. Please try again."
             : message,
         confirmText: "OK",

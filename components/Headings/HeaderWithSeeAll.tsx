@@ -9,11 +9,11 @@ type Props = {
   onPressSeeAll: () => void;
 };
 
-const HeaderWithSeeAll: React.FC<Props> = ({
+export default function HeaderWithSeeAll({
   title,
   subtitle,
   onPressSeeAll,
-}) => {
+}: Props) {
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
   const styles = HeaderWithSeeAllStyles(isDark);
@@ -77,4 +77,4 @@ const HeaderWithSeeAllStyles = (isDark: boolean) =>
     },
   });
 
-export default HeaderWithSeeAll;
+

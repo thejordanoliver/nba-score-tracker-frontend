@@ -25,7 +25,7 @@ type StandingsLeagueModalProps = {
   onSelect: (league: ExploreStandingsLeague) => void;
 };
 
-
+const standingsSnapPoints = [snapPoints[0]];
 
 export default function StandingsLeagueModal({
   visible,
@@ -108,11 +108,7 @@ export default function StandingsLeagueModal({
             name={selected ? "checkmark-circle" : "chevron-forward"}
             size={selected ? 22 : 18}
             color={
-              selected
-                ? isDark
-                  ? Colors.white
-                  : Colors.black
-                : Colors.midTone
+              selected ? (isDark ? Colors.white : Colors.black) : Colors.midTone
             }
           />
         </Pressable>
@@ -125,7 +121,7 @@ export default function StandingsLeagueModal({
     <BottomSheetModal
       ref={sheetRef}
       index={0}
-      snapPoints={[snapPoints[0]]}
+      snapPoints={standingsSnapPoints}
       stackBehavior="push"
       topInset={top}
       enableDynamicSizing={false}
@@ -144,22 +140,6 @@ export default function StandingsLeagueModal({
               Choose which league this widget should follow.
             </Text>
           </View>
-          <Pressable
-            onPress={() => sheetRef.current?.dismiss()}
-            hitSlop={8}
-            style={({ pressed }) => [
-              styles.closeButton,
-              pressed && styles.pressed,
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Close standings league picker"
-          >
-            <Ionicons
-              name="close"
-              size={22}
-              color={isDark ? Colors.white : Colors.black}
-            />
-          </Pressable>
         </View>
 
         <BottomSheetFlatList<ExploreStandingsLeague>
@@ -195,38 +175,31 @@ const standingsLeagueModalStyles = (isDark: boolean) =>
       paddingHorizontal: 16,
       backgroundColor: isDark ? Colors.black : Colors.white,
     },
-    header: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: 12,
-      paddingTop: 4,
-      paddingBottom: 14,
-    },
     headerCopy: {
       flex: 1,
     },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 12,
+      marginBottom: 14,
+    },
+
     title: {
-      fontFamily: Fonts.SEMIBOLD,
-      fontSize: 22,
+      textAlign: "center",
+      fontFamily: Fonts.BOLD,
+      fontSize: 20,
       color: isDark ? Colors.white : Colors.black,
     },
     subtitle: {
-      paddingTop: 2,
+      textAlign: "center",
+      marginTop: 2,
       fontFamily: Fonts.REGULAR,
-      fontSize: 13,
-      lineHeight: 18,
+      fontSize: 14,
       color: isDark ? Colors.lightGray : Colors.darkGray,
     },
-    closeButton: {
-      alignItems: "center",
-      justifyContent: "center",
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: isDark
-        ? Colors.dark.itemBackground
-        : Colors.light.itemBackground,
-    },
+
     option: {
       flexDirection: "row",
       alignItems: "center",

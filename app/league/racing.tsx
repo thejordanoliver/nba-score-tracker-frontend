@@ -45,7 +45,8 @@ export default function RacingLeagueScreen() {
     null,
   );
 
-  const { tabs, selectedTab, setSelectedTab } = useLeagueTabs(league);
+  const { tabs, selectedTab, setSelectedTab, hasVisitedTab } =
+    useLeagueTabs(league);
 
   const { calendar, loading: calendarLoading } = useLeagueCalendar(
     league,
@@ -128,7 +129,7 @@ export default function RacingLeagueScreen() {
     refreshing: refreshingNews,
     error: newsError,
     refresh: refreshNews,
-  } = useLeaguesNews(league, 10);
+  } = useLeaguesNews(league, 10, { enabled: hasVisitedTab("news") });
 
   const handleSelectEvent = useCallback(
     (index: number) => {
@@ -211,18 +212,20 @@ export default function RacingLeagueScreen() {
           </View>
 
           <View key="news" style={styles.contentArea}>
-            <NewsList
+            {hasVisitedTab("news") ? <NewsList
               items={articles}
               loading={newsLoading}
               error={newsError}
               refreshing={refreshingNews}
               onRefresh={refreshNews}
               isDark={isDark}
-            />
+            /> : null}
           </View>
 
+          <View key="standings" />
+
           <View key="forum" style={styles.contentArea}>
-            <ForumFeed league={league} />
+            {hasVisitedTab("forum") ? <ForumFeed league={league} /> : null}
           </View>
         </PagerView>
       </View>

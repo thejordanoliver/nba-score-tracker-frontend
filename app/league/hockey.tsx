@@ -70,14 +70,17 @@ function NHLLeagueScreen() {
   const styles = LeagueScreenStyles(isDark);
   const [standingsYear, setStandingsYear] = useState(getNHLSeason());
   const navigation = useNavigation();
-  const { categories, loading, error } = useSeasonLeaders(2025, league);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [gamesRefreshing, setGamesRefreshing] = useState(false);
   const { calendar } = useLeagueCalendar(league);
   const [selectedDate, setSelectedDate] = useState<Date>(
     dayjs().startOf("day").toDate(),
   );
-  const { tabs, selectedTab, setSelectedTab } = useLeagueTabs(league);
+  const { tabs, selectedTab, setSelectedTab, hasVisitedTab } =
+    useLeagueTabs(league);
+  const { categories, loading, error } = useSeasonLeaders(2025, league, {
+    enabled: hasVisitedTab("stats"),
+  });
   const pagerRef = useRef<PagerView>(null);
   const { scrollProgress, handlePageScroll, syncPageScrollProgress } =
     usePagerTabScrollProgress();
@@ -141,7 +144,7 @@ function NHLLeagueScreen() {
     refreshing: refreshingNews,
     error: newsError,
     refresh: refreshNews,
-  } = useLeaguesNews(league, 10);
+  } = useLeaguesNews(league, 10, { enabled: hasVisitedTab("news") });
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -205,47 +208,47 @@ function NHLLeagueScreen() {
 
   const newsPage = (
     <View key="news" style={styles.contentArea}>
-      <NewsList
+      {hasVisitedTab("news") ? <NewsList
         items={articles}
         loading={newsLoading}
         error={newsError}
         refreshing={refreshingNews}
         onRefresh={refreshNews}
         isDark={isDark}
-      />
+      /> : null}
     </View>
   );
 
   const standingsPage = (
     <View key="standings" style={styles.contentArea}>
-      <StandingsList
+      {hasVisitedTab("standings") ? <StandingsList
         year={standingsYear}
         onYearChange={setStandingsYear}
         league={league}
-      />
+      /> : null}
     </View>
   );
 
   const statsPage = (
     <View key="stats" style={styles.contentArea}>
-      <SeasonLeadersList
+      {hasVisitedTab("stats") ? <SeasonLeadersList
         loading={loading}
         error={error}
         categories={categories}
         league={league}
-      />
+      /> : null}
     </View>
   );
 
   const awardsPage = (
     <View key="awards" style={styles.contentArea}>
-      <AwardSeasons league={league} />
+      {hasVisitedTab("awards") ? <AwardSeasons league={league} /> : null}
     </View>
   );
 
   const forumPage = (
     <View key="forum" style={styles.contentArea}>
-      <ForumFeed league={league} />
+      {hasVisitedTab("forum") ? <ForumFeed league={league} /> : null}
     </View>
   );
 

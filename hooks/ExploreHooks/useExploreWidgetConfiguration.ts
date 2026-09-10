@@ -4,11 +4,14 @@ import {
   widgetAllowsDuplicates,
 } from "constants/exploreWidgets";
 import type {
+  ExploreCollegePollLeague,
+  ExploreCollegePollType,
   ExploreWidgetConfig,
   ExploreStandingsLeague,
   ExploreWidgetSize,
   ExploreWidgetType,
 } from "types/widgets";
+import { normalizeCollegePollType } from "utils/collegePollWidget";
 import {
   cleanupLegacyExploreWidgetsKey,
   createExploreWidgetId,
@@ -98,6 +101,8 @@ export function useExploreWidgetConfiguration(userId: number | null) {
             size,
             order: ordered.length,
             standingsLeague: type === "standings" ? "nba" : undefined,
+            collegePollLeague: type === "college_polls" ? "cfb" : undefined,
+            collegePollType: type === "college_polls" ? "ap" : undefined,
           },
         ];
       });
@@ -128,6 +133,29 @@ export function useExploreWidgetConfiguration(userId: number | null) {
         previous.map((widget) =>
           widget.id === widgetId && widget.type === "standings"
             ? { ...widget, standingsLeague: league }
+            : widget,
+        ),
+      );
+    },
+    [],
+  );
+
+  const setCollegePollSelection = useCallback(
+    (
+      widgetId: string,
+      league: ExploreCollegePollLeague,
+      pollType: ExploreCollegePollType,
+    ) => {
+      const normalizedPollType = normalizeCollegePollType(league, pollType);
+
+      setWidgets((previous) =>
+        previous.map((widget) =>
+          widget.id === widgetId && widget.type === "college_polls"
+            ? {
+                ...widget,
+                collegePollLeague: league,
+                collegePollType: normalizedPollType,
+              }
             : widget,
         ),
       );
@@ -186,6 +214,7 @@ export function useExploreWidgetConfiguration(userId: number | null) {
     removeWidget,
     resizeWidget,
     setStandingsLeague,
+    setCollegePollSelection,
     moveWidget,
     reorderWidgets,
   };

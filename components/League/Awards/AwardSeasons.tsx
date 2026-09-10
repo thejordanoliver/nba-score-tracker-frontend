@@ -73,6 +73,9 @@ export default function AwardSeasons({ league }: Props) {
   const { data, loading, error, refetch } = useAwardSeasons({
     league,
   });
+  const showAwardTopThree =
+    (league === "cfb" || league === "cbb" || league === "wcbb") &&
+    viewMode === "teams";
   const {
     data: awardSchools,
     loading: awardSchoolsLoading,
@@ -80,6 +83,7 @@ export default function AwardSeasons({ league }: Props) {
   } = useAwardSchools({
     league: apiLeague,
     category: selectedAward,
+    enabled: showAwardTopThree,
   });
 
   const dataByCategory = useMemo(() => {
@@ -100,16 +104,6 @@ export default function AwardSeasons({ league }: Props) {
   /* ------------------------------------------------ */
   /* Award Teams Hook                                */
   /* ------------------------------------------------ */
-
-  const showAwardTopThree =
-    (league === "cfb" || league === "cbb" || league === "wcbb") &&
-    viewMode === "teams";
-
-  const { data: awardTeams } = useAwardSchools({
-    league: apiLeague,
-    category: selectedAward,
-    enabled: showAwardTopThree && !!league,
-  });
 
   /* ------------------------------------------------ */
   /* Champion Teams Hook                             */
@@ -218,10 +212,10 @@ export default function AwardSeasons({ league }: Props) {
       {/* Award Top 3 (CFB / CBB / WCBB)                  */}
       {/* ------------------------------------------------ */}
 
-      {showAwardTopThree && awardTeams.length > 0 && league && (
+      {showAwardTopThree && awardSchools.length > 0 && league && (
         <TopThreeTeams
           limit={3}
-          teams={awardTeams.map((t) => ({
+          teams={awardSchools.map((t) => ({
             team: t.team,
             value: t.total_awards,
             logo:

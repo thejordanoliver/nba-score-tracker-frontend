@@ -1,10 +1,11 @@
+import { supportsLiquidGlass } from "@/utils/glass";
 import { activeOpacity, Colors, Fonts } from "constants/styles";
 import { BlurView } from "expo-blur";
+import { GlassView } from "expo-glass-effect";
 import { usePathname, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Balls, Compass, Home, User } from "reicon-react-native";
-
 export type TabBarProps = {
   isDark: boolean;
 };
@@ -12,8 +13,8 @@ export type TabBarProps = {
 export default function CustomTabBar({ isDark }: TabBarProps) {
   const router = useRouter();
   const pathname = usePathname();
-
   const iconColor = isDark ? Colors.white : Colors.black;
+  const liquid = supportsLiquidGlass();
 
   const TABS = [
     {
@@ -148,68 +149,119 @@ export default function CustomTabBar({ isDark }: TabBarProps) {
 
   return (
     <View style={styles.tabBarWrapper}>
-      <View style={styles.tabBarContainer}>
-        <BlurView intensity={100} style={StyleSheet.absoluteFill} />
+      {liquid ? (
+        <GlassView style={styles.tabBarContainer} glassEffectStyle="regular">
+          <View style={styles.tabRow}>
+            {TABS.map(({ name, route, renderIcon }) => {
+              const focused = activeTabRoute === route;
 
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              backgroundColor: isDark
-                ? "rgba(0, 0, 0, 0.3)"
-                : "rgba(255, 255, 255, 0.5)",
-            },
-          ]}
-        />
+              const handlePress = () => {
+                if (route === pathname) {
+                  return;
+                }
 
-        <View style={styles.tabRow}>
-          {TABS.map(({ name, route, renderIcon }) => {
-            const focused = activeTabRoute === route;
+                if (detailScreen && MAIN_TABS.includes(route)) {
+                  router.replace(route as any);
+                  return;
+                }
 
-            const handlePress = () => {
-              if (route === pathname) {
-                return;
-              }
+                router.push(route as any);
+              };
 
-              if (detailScreen && MAIN_TABS.includes(route)) {
-                router.replace(route as any);
-                return;
-              }
-
-              router.push(route as any);
-            };
-
-            return (
-              <TouchableOpacity
-                key={name}
-                onPress={handlePress}
-                style={styles.tabButton}
-                activeOpacity={activeOpacity}
-                accessibilityRole="button"
-                accessibilityState={{ selected: focused }}
-                accessibilityLabel={`Go to ${name} tab`}
-              >
-                {renderIcon(focused)}
-
-                <Text
-                  style={[
-                    styles.tabLabel,
-                    {
-                      color: focused
-                        ? isDark
-                          ? Colors.white
-                          : Colors.black
-                        : Colors.midTone,
-                    },
-                  ]}
+              return (
+                <TouchableOpacity
+                  key={name}
+                  onPress={handlePress}
+                  style={styles.tabButton}
+                  activeOpacity={activeOpacity}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: focused }}
+                  accessibilityLabel={`Go to ${name} tab`}
                 >
-                  {name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+                  {renderIcon(focused)}
+
+                  <Text
+                    style={[
+                      styles.tabLabel,
+                      {
+                        color: focused
+                          ? isDark
+                            ? Colors.white
+                            : Colors.black
+                          : Colors.midTone,
+                      },
+                    ]}
+                  >
+                    {name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </GlassView>
+      ) : (
+        <View style={styles.tabBarContainer}>
+          <BlurView intensity={100} style={StyleSheet.absoluteFill} />
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                backgroundColor: isDark
+                  ? "rgba(0, 0, 0, 0.3)"
+                  : "rgba(255, 255, 255, 0.5)",
+              },
+            ]}
+          />
+
+          <View style={styles.tabRow}>
+            {TABS.map(({ name, route, renderIcon }) => {
+              const focused = activeTabRoute === route;
+
+              const handlePress = () => {
+                if (route === pathname) {
+                  return;
+                }
+
+                if (detailScreen && MAIN_TABS.includes(route)) {
+                  router.replace(route as any);
+                  return;
+                }
+
+                router.push(route as any);
+              };
+
+              return (
+                <TouchableOpacity
+                  key={name}
+                  onPress={handlePress}
+                  style={styles.tabButton}
+                  activeOpacity={activeOpacity}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: focused }}
+                  accessibilityLabel={`Go to ${name} tab`}
+                >
+                  {renderIcon(focused)}
+
+                  <Text
+                    style={[
+                      styles.tabLabel,
+                      {
+                        color: focused
+                          ? isDark
+                            ? Colors.white
+                            : Colors.black
+                          : Colors.midTone,
+                      },
+                    ]}
+                  >
+                    {name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
-      </View>
+      )}
     </View>
   );
 }

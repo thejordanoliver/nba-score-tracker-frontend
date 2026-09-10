@@ -9,11 +9,10 @@ type Props = {
   style?: TextStyle | TextStyle[];
 };
 
-const Heading: React.FC<Props> = ({ children, style, isDark }) => {
+export default function Heading({ children, isDark, style }: Props) {
   const styles = headerStyles(isDark);
-
-  return <Text style={[styles.heading, style]}>{children}</Text>; // ✅ merge styles
-};
+  return <Text style={(styles.heading, style)}>{children}</Text>; // ✅ merge styles
+}
 
 const headerStyles = (isDark: boolean) =>
   StyleSheet.create({
@@ -24,5 +23,3 @@ const headerStyles = (isDark: boolean) =>
       color: isDark ? Colors.dark.white : Colors.light.black,
     },
   });
-
-export default Heading;

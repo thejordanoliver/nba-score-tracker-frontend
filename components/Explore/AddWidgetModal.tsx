@@ -170,10 +170,6 @@ export default function AddWidgetModal({
     onClose();
   }, [onClose]);
 
-  const dismissSheet = useCallback(() => {
-    sheetRef.current?.dismiss();
-  }, []);
-
   const renderBackdrop = useCallback(
     (props: ComponentProps<typeof BottomSheetBackdrop>) => (
       <BottomSheetBackdrop
@@ -210,20 +206,6 @@ export default function AddWidgetModal({
               Tap Add or choose a size for your Explore dashboard.
             </Text>
           </View>
-
-          <TouchableOpacity
-            activeOpacity={activeOpacity}
-            onPress={dismissSheet}
-            style={styles.closeButton}
-            accessibilityRole="button"
-            accessibilityLabel="Close add widget"
-          >
-            <Ionicons
-              name="close"
-              size={22}
-              color={isDark ? Colors.white : Colors.black}
-            />
-          </TouchableOpacity>
         </View>
 
         <BottomSheetScrollView
@@ -276,37 +258,30 @@ const addWidgetModalStyles = (isDark: boolean) =>
       paddingHorizontal: 16,
       backgroundColor: isDark ? Colors.black : Colors.white,
     },
-    header: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      justifyContent: "space-between",
-      gap: 16,
-      paddingTop: 4,
-      paddingBottom: 14,
-    },
+
     headerText: {
       flex: 1,
     },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 12,
+      marginBottom: 14,
+    },
+
     title: {
-      fontFamily: Fonts.SEMIBOLD,
-      fontSize: 24,
+      textAlign: "center",
+      fontFamily: Fonts.BOLD,
+      fontSize: 20,
       color: isDark ? Colors.white : Colors.black,
     },
     subtitle: {
+      textAlign: "center",
       marginTop: 2,
       fontFamily: Fonts.REGULAR,
       fontSize: 14,
       color: isDark ? Colors.lightGray : Colors.darkGray,
-    },
-    closeButton: {
-      alignItems: "center",
-      justifyContent: "center",
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: isDark
-        ? Colors.dark.itemBackground
-        : Colors.light.itemBackground,
     },
     options: {
       gap: 10,

@@ -1,6 +1,5 @@
 import { Dropdown } from "components/Dropdown";
 import { Colors } from "constants/styles";
-import React from "react";
 import { StyleSheet, View } from "react-native";
 import HeadingTwo from "./Heading";
 
@@ -19,11 +18,11 @@ type HeadingWithDropdownsProps = {
   isDark: boolean;
 };
 
-const HeadingWithDropdowns: React.FC<HeadingWithDropdownsProps> = ({
+export default function HeadingWithDropdowns({
   title,
   dropdowns = [],
   isDark,
-}) => {
+}: HeadingWithDropdownsProps) {
   return (
     <View style={styles.container}>
       <HeadingTwo style={styles.heading} isDark={isDark}>
@@ -47,7 +46,7 @@ const HeadingWithDropdowns: React.FC<HeadingWithDropdownsProps> = ({
       )}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -67,5 +66,3 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-
-export default HeadingWithDropdowns;

@@ -1,22 +1,16 @@
 // hooks/useAccountDetails.ts
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isAxiosError } from "axios";
 import { useCallback, useEffect, useState } from "react";
 
-import { apiClient, BASE_URL } from "utils/apiClient";
+import type { PrivateAccountUser } from "types/user";
+import { apiClient, BASE_URL, saveTokens } from "utils/apiClient";
 
-export type AccountDetailsUser = {
-  id: number;
-  fullName: string;
-  username: string;
-  email: string;
-  created_at: string;
-  profile_image?: string | null;
-  banner_image?: string | null;
-};
+export type AccountDetailsUser = PrivateAccountUser;
 
-type ChangePasswordResponse = {
+export type ChangePasswordResponse = {
   message: string;
+  accessToken: string;
+  refreshToken: string;
 };
 
 export type ChangePasswordInput = {
@@ -54,25 +48,22 @@ function parseImageUrl(url: string | null | undefined): string | null {
 
 export function useAccountDetails() {
   const [isLoading, setIsLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [userData, setUserData] = useState<AccountDetailsUser | null>(null);
 
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUserData = useCallback(async (userId: number) => {
+  const fetchUserData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const res = await apiClient.get<AccountDetailsUser>(
-        `/api/users/id/${userId}`,
-      );
+      const res = await apiClient.get<AccountDetailsUser>("/api/users/me");
       const data = res.data;
 
       setUserData({
         ...data,
-        profile_image: parseImageUrl(data.profile_image),
-        banner_image: parseImageUrl(data.banner_image),
+        profileImage: parseImageUrl(data.profileImage),
+        bannerImage: parseImageUrl(data.bannerImage),
       });
     } catch (err: unknown) {
       console.error(
@@ -87,19 +78,7 @@ export function useAccountDetails() {
   }, []);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const storedId = await AsyncStorage.getItem("userId");
-        if (!storedId) return;
-
-        const idNum = Number(storedId);
-        setCurrentUserId(idNum);
-        await fetchUserData(idNum);
-      } catch {
-        setCurrentUserId(null);
-        setIsLoading(false);
-      }
-    })();
+    void fetchUserData();
   }, [fetchUserData]);
 
   const changePassword = async ({
@@ -109,13 +88,20 @@ export function useAccountDetails() {
     setError(null);
 
     try {
-      await apiClient.patch<ChangePasswordResponse>(
+      const response = await apiClient.patch<ChangePasswordResponse>(
         "/api/users/me/password",
         {
           currentPassword,
           newPassword,
         },
       );
+
+      await saveTokens(
+        response.data.accessToken,
+        response.data.refreshToken,
+      );
+
+      return response.data;
     } catch (err: unknown) {
       const message = getApiErrorMessage(err, "Failed to update password");
       setError(message);
@@ -125,11 +111,9 @@ export function useAccountDetails() {
 
   return {
     isLoading,
-    currentUserId,
     userData,
     error,
-    refetch: () =>
-      currentUserId ? fetchUserData(currentUserId) : Promise.resolve(),
+    refetch: fetchUserData,
     changePassword,
   };
 }

@@ -29,6 +29,8 @@ import {
   WidgetDashboardStyles,
 } from "styles/ExploreStyles/WidgetDashboardStyles";
 import type {
+  ExploreCollegePollLeague,
+  ExploreCollegePollType,
   ExploreWidgetConfig,
   ExploreWidgetGame,
   ExploreStandingsLeague,
@@ -38,6 +40,7 @@ import type {
 import SortableWidgetGrid, {
   type SortableWidgetRenderArgs,
 } from "./SortableWidgetGrid";
+import CollegePollWidget from "./Widgets/CollegePollWidget";
 import CreatePostWidget from "./Widgets/CreatePostWidget";
 import FavoriteTeamsWidget from "./Widgets/FavoriteTeamsWidget";
 import StandingsWidget from "./Widgets/StandingsWidget";
@@ -61,6 +64,11 @@ type ExploreWidgetDashboardProps = {
   onSetStandingsLeague: (
     widgetId: string,
     league: ExploreStandingsLeague,
+  ) => void;
+  onSetCollegePollSelection: (
+    widgetId: string,
+    league: ExploreCollegePollLeague,
+    pollType: ExploreCollegePollType,
   ) => void;
   onMoveWidget: (widgetId: string, direction: -1 | 1) => void;
   onReorderWidgets: (widgets: ExploreWidgetConfig[]) => void;
@@ -162,6 +170,7 @@ export default function ExploreWidgetDashboard({
   onRemoveWidget,
   onResizeWidget,
   onSetStandingsLeague,
+  onSetCollegePollSelection,
   onMoveWidget,
   onReorderWidgets,
   isEditing,
@@ -378,6 +387,23 @@ export default function ExploreWidgetDashboard({
             league={widget.standingsLeague ?? "nba"}
             onChangeLeague={(league) =>
               onSetStandingsLeague(widget.id, league)
+            }
+            {...editProps}
+          />
+        </View>
+      );
+    } else if (widget.type === "college_polls") {
+      content = (
+        <View style={dashboardStyles.section}>
+          <CollegePollWidget
+            isDark={isDark}
+            size={widget.size}
+            width={width}
+            height={height}
+            league={widget.collegePollLeague ?? "cfb"}
+            pollType={widget.collegePollType ?? "ap"}
+            onChangeSelection={(league, pollType) =>
+              onSetCollegePollSelection(widget.id, league, pollType)
             }
             {...editProps}
           />

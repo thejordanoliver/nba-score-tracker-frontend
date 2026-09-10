@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { LEAGUE_TABS, TEAM_TABS } from "utils/tabs";
 
@@ -24,15 +24,38 @@ export function useLeagueTabs(league: string) {
   }, [normalizedLeague]);
 
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0]);
+  const [visitedTabs, setVisitedTabs] = useState<ReadonlySet<string>>(
+    () => new Set([tabs[0]]),
+  );
 
   useEffect(() => {
     setSelectedTab(tabs[0]);
+    setVisitedTabs(new Set([tabs[0]]));
   }, [tabs]);
+
+  useEffect(() => {
+    setVisitedTabs((current) => {
+      if (current.has(selectedTab)) {
+        return current;
+      }
+
+      const next = new Set(current);
+      next.add(selectedTab);
+      return next;
+    });
+  }, [selectedTab]);
+
+  const hasVisitedTab = useCallback(
+    (tab: string) => visitedTabs.has(tab),
+    [visitedTabs],
+  );
 
   return {
     tabs,
     selectedTab,
     setSelectedTab,
+    visitedTabs,
+    hasVisitedTab,
   };
 }
 

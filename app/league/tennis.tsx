@@ -84,7 +84,8 @@ export default function TennisLeagueScreen() {
 
   const favoriteHeaderProps = useLeagueFavoriteHeader(league);
 
-  const { tabs, selectedTab, setSelectedTab } = useLeagueTabs(league);
+  const { tabs, selectedTab, setSelectedTab, hasVisitedTab } =
+    useLeagueTabs(league);
 
   const [selectedDate, setSelectedDate] = useState(() =>
     dayjs().startOf("day").toDate(),
@@ -121,7 +122,7 @@ export default function TennisLeagueScreen() {
     refreshing: newsRefreshing,
     error: newsError,
     refresh: refreshNews,
-  } = useLeaguesNews(league, 10);
+  } = useLeaguesNews(league, 10, { enabled: hasVisitedTab("news") });
 
   /**
    * Select the preferred singles division as soon as divisions load.
@@ -279,18 +280,18 @@ export default function TennisLeagueScreen() {
           </View>
 
           <View key="news" style={styles.contentArea}>
-            <NewsList
+            {hasVisitedTab("news") ? <NewsList
               items={articles}
               loading={newsLoading}
               error={newsError}
               refreshing={newsRefreshing}
               onRefresh={refreshNews}
               isDark={isDark}
-            />
+            /> : null}
           </View>
 
           <View key="forum" style={styles.contentArea}>
-            <ForumFeed league={league} />
+            {hasVisitedTab("forum") ? <ForumFeed league={league} /> : null}
           </View>
         </PagerView>
       </View>

@@ -4,20 +4,35 @@ import { apiClient } from "utils/apiClient";
 /* ----------------------------- Types ----------------------------- */
 
 export interface Leader {
-  playerId: number;
-  value: number;
-  rank: number;
-  displayValue: string;
-  athleteId: string | number;
-  name: string;
-  position?: string;
-  headshot?: string;
-  shortName: string;
-  teamId?: string | number;
-  teamName?: string;
-  teamAbbrev?: string;
-  teamLogo?: string;
-  espnId?: string | number;
+  id: number | string | null;
+  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  short_name: string | null;
+  height: string | null;
+  weight: string | null;
+  position: string | null;
+  jersey_number: number | string | null;
+  experience: number | string | null;
+  experience_display: string | null;
+  experience_abbr: string | null;
+  birth_city: string | null;
+  birth_state: string | null;
+  birth_country: string | null;
+  birth_display: string | null;
+  team_id: number | string | null;
+  headshot_url: string | null;
+  active: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
+  birth_date: string | null;
+  rank: number | string | null;
+  value: number | string | null;
+  displayValue: string | null;
+  teamId: number | string | null;
+  teamName: string | null;
+  teamAbbrev: string | null;
+  teamLogo: string | null;
 }
 
 export interface LeaderCategory {
@@ -39,9 +54,10 @@ interface SeasonLeaderResult {
 export function useSeasonLeaders(
   season: number,
   league: string,
+  { enabled = true }: { enabled?: boolean } = {},
 ): SeasonLeaderResult {
   const [categories, setCategories] = useState<LeaderCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
 
   const cacheRef = useRef<Partial<Record<string, LeaderCategory[]>>>({});
@@ -49,6 +65,11 @@ export function useSeasonLeaders(
 
   const fetchLeaders = useCallback(
     async (forceRefresh = false) => {
+      if (!enabled) {
+        setLoading(false);
+        return;
+      }
+
       if (!forceRefresh && cacheRef.current[cacheKey]) {
         setCategories(cacheRef.current[cacheKey]!);
         setLoading(false);
@@ -61,7 +82,7 @@ export function useSeasonLeaders(
       try {
         const leaguePath = league.toLowerCase();
 
-        const res = await apiClient.get(`api/leaders/${leaguePath}/leaders`, {
+        const res = await apiClient.get(`api/leaders/${leaguePath}`, {
           params: { season },
         });
 
@@ -77,17 +98,24 @@ export function useSeasonLeaders(
         setLoading(false);
       }
     },
-    [cacheKey, season, league],
+    [cacheKey, enabled, season, league],
   );
 
   useEffect(() => {
-    fetchLeaders();
-  }, [fetchLeaders]);
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
+
+    void fetchLeaders();
+  }, [enabled, fetchLeaders]);
 
   return {
     categories,
     loading,
     error,
-    refresh: () => fetchLeaders(true),
+    refresh: () => {
+      void fetchLeaders(true);
+    },
   };
 }

@@ -1,5 +1,5 @@
 // screens/EditProfileScreen.tsx
-import { useProfileRefreshStore } from "@/store/profileRefreshStore";
+import { zodResolver } from "@hookform/resolvers/zod";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation, useRouter } from "expo-router";
@@ -8,9 +8,10 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
-  useMemo,
+  useRef,
   useState,
 } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -18,24 +19,36 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import Button from "../components/Buttons/Button";
-import ConfirmModal from "../components/ConfirmModal";
-import CropEditorModal from "../components/CropEditorModal";
-import { CustomHeader } from "../components/CustomHeader";
-import LabeledInput from "../components/LabeledInput";
-import ProfileBanner from "../components/Profile/ProfileBanner";
-import { usePreferences } from "../contexts/PreferencesContext";
-import { useEditProfile } from "../hooks/UserHooks/useEditProfile";
-import { AlertConfig } from "../types/alert";
 
-const MAX_BIO_LENGTH = 150;
+import Button from "components/Buttons/Button";
+import ConfirmModal from "components/ConfirmModal";
+import CropEditorModal from "components/CropEditorModal";
+import { CustomHeader } from "components/CustomHeader";
+import LabeledInput from "components/LabeledInput";
+import ProfileBanner from "components/Profile/ProfileBanner";
+import { usePreferences } from "contexts/PreferencesContext";
+import { useAccountDetails } from "hooks/UserHooks/useAccountDetails";
+import { useEditProfile } from "hooks/UserHooks/useEditProfile";
+import {
+  EDIT_PROFILE_BIO_MAX_LENGTH,
+  editProfileSchema,
+  type EditProfileFormValues,
+} from "schemas/user/editProfileSchema";
+import { useProfileRefreshStore } from "store/profileRefreshStore";
+import type { AlertConfig } from "types/alert";
+
 const BIO_INPUT_BUFFER = 25;
+
+const INITIAL_FORM_VALUES: EditProfileFormValues = {
+  fullName: "",
+  bio: "",
+};
 
 type CropTarget = "profile" | "banner";
 type ImageFieldName = "profileImage" | "bannerImage";
+type InitializationSource = "cache" | "server";
 
 type StoredProfileData = {
-  userId?: string | null;
   username?: string | null;
   fullName?: string | null;
   bio?: string | null;
@@ -43,11 +56,12 @@ type StoredProfileData = {
   bannerImage?: string | null;
 };
 
-type CachedAuthUser = {
-  id?: number;
-  username?: string;
-  fullName?: string;
-  profileImage?: string;
+type InitialProfileData = {
+  username: string;
+  fullName: string;
+  bio: string;
+  profileImage: string | null;
+  bannerImage: string | null;
 };
 
 type EditableImageAsset = {
@@ -56,23 +70,21 @@ type EditableImageAsset = {
   mimeType?: string | null;
 };
 
-type SavedProfileData = {
-  id?: number | string | null;
-  username?: string | null;
-  full_name?: string | null;
-  fullName?: string | null;
-  bio?: string | null;
-  profile_image?: string | null;
-  profileImage?: string | null;
-  banner_image?: string | null;
-  bannerImage?: string | null;
-};
-
 type ReactNativeFormDataFile = {
   uri: string;
   name: string;
   type: string;
 };
+
+const FULL_NAME_SERVER_ERRORS = new Set([
+  "Full name is required",
+  "Full name must be 1-80 characters",
+]);
+
+const BIO_SERVER_ERRORS = new Set([
+  "Bio must be a string",
+  "Bio must be 150 characters or less",
+]);
 
 const normalizeStoredValue = (value?: string | null) => {
   if (!value || value === "null" || value === "undefined") return "";
@@ -82,40 +94,6 @@ const normalizeStoredValue = (value?: string | null) => {
 const normalizeStoredImage = (value?: string | null) => {
   const normalized = normalizeStoredValue(value);
   return normalized || null;
-};
-
-const readCachedAuthUser = async (): Promise<CachedAuthUser> => {
-  const storedUser = await AsyncStorage.getItem("authUser");
-
-  if (!storedUser) return {};
-
-  try {
-    const parsed = JSON.parse(storedUser);
-
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      return parsed as CachedAuthUser;
-    }
-  } catch {
-    try {
-      await AsyncStorage.removeItem("authUser");
-    } catch (error) {
-      console.warn("Failed to clear invalid cached auth user:", error);
-    }
-  }
-
-  return {};
-};
-
-const mergeCachedAuthUser = async (updates: CachedAuthUser) => {
-  const cachedUser = await readCachedAuthUser();
-
-  await AsyncStorage.setItem(
-    "authUser",
-    JSON.stringify({
-      ...cachedUser,
-      ...updates,
-    }),
-  );
 };
 
 const getImageMimeType = (filenameOrUri: string, mimeType?: string | null) => {
@@ -193,28 +171,16 @@ const appendLocalImageToFormData = (
 ) => {
   if (!isLocalImageUri(uri)) return;
 
-  const localUri = uri;
-  const mimeType = getImageMimeType(localUri);
-  const filename = getSafeUploadFileName(localUri, fieldName, mimeType);
-
+  const mimeType = getImageMimeType(uri);
+  const filename = getSafeUploadFileName(uri, fieldName, mimeType);
   const file: ReactNativeFormDataFile = {
-    uri: localUri,
+    uri,
     name: filename,
     type: mimeType,
   };
 
-  formData.append(fieldName, file as any);
+  formData.append(fieldName, file as unknown as Blob);
 };
-
-const getSavedProfileImage = (
-  savedProfile: SavedProfileData | null | undefined,
-  fallback: string | null,
-) => savedProfile?.profile_image ?? savedProfile?.profileImage ?? fallback;
-
-const getSavedBannerImage = (
-  savedProfile: SavedProfileData | null | undefined,
-  fallback: string | null,
-) => savedProfile?.banner_image ?? savedProfile?.bannerImage ?? fallback;
 
 export default function EditProfileScreen() {
   const navigation = useNavigation();
@@ -223,31 +189,52 @@ export default function EditProfileScreen() {
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
 
-  const { saving, saveProfile } = useEditProfile();
+  const { saveProfile } = useEditProfile();
+  const { userData } = useAccountDetails();
   const requestProfileRefresh = useProfileRefreshStore(
     (state) => state.requestProfileRefresh,
   );
 
-  const [userId, setUserId] = useState<string | null>(null);
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setError,
+    trigger,
+    formState: { isDirty, isSubmitting, isValid, isValidating },
+  } = useForm<EditProfileFormValues>({
+    resolver: zodResolver(editProfileSchema),
+    defaultValues: INITIAL_FORM_VALUES,
+    mode: "onChange",
+  });
+
+  const initializationSourceRef = useRef<InitializationSource | null>(null);
+  const handledServerDataRef = useRef(false);
+
+  const [hasInitializedProfile, setHasInitializedProfile] = useState(false);
   const [username, setUsername] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [bio, setBio] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [bannerImage, setBannerImage] = useState<string | null>(null);
+  const [initialProfileImage, setInitialProfileImage] = useState<string | null>(
+    null,
+  );
+  const [initialBannerImage, setInitialBannerImage] = useState<string | null>(
+    null,
+  );
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [cropTarget, setCropTarget] = useState<CropTarget | null>(null);
   const [isCropModalVisible, setCropModalVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState<AlertConfig | null>(null);
 
-  const trimmedFullName = useMemo(() => fullName.trim(), [fullName]);
-  const trimmedBio = useMemo(() => bio.trim(), [bio]);
-
-  const isBioTooLong = bio.length > MAX_BIO_LENGTH;
-  const bioHint = isBioTooLong
-    ? `Must be ${MAX_BIO_LENGTH} characters or less`
-    : null;
-
-  const canSave = Boolean(userId) && !saving && !isBioTooLong;
+  const profileImageChanged = profileImage !== initialProfileImage;
+  const bannerImageChanged = bannerImage !== initialBannerImage;
+  const hasChanges = isDirty || profileImageChanged || bannerImageChanged;
+  const canSave =
+    hasInitializedProfile &&
+    hasChanges &&
+    isValid &&
+    !isSubmitting &&
+    !isValidating;
 
   const showAlert = useCallback((config: AlertConfig) => {
     setAlertConfig(config);
@@ -263,13 +250,30 @@ export default function EditProfileScreen() {
     setCropModalVisible(false);
   }, []);
 
+  const initializeProfile = useCallback(
+    (profile: InitialProfileData, source: InitializationSource) => {
+      initializationSourceRef.current = source;
+      setUsername(profile.username);
+      setProfileImage(profile.profileImage);
+      setBannerImage(profile.bannerImage);
+      setInitialProfileImage(profile.profileImage);
+      setInitialBannerImage(profile.bannerImage);
+      reset({
+        fullName: profile.fullName,
+        bio: profile.bio,
+      });
+      setHasInitializedProfile(true);
+      void trigger();
+    },
+    [reset, trigger],
+  );
+
   useEffect(() => {
     let mounted = true;
 
-    const loadData = async () => {
+    const loadCachedData = async () => {
       try {
         const pairs = await AsyncStorage.multiGet([
-          "userId",
           "username",
           "fullName",
           "bio",
@@ -277,32 +281,70 @@ export default function EditProfileScreen() {
           "bannerImage",
         ]);
 
-        if (!mounted) return;
+        if (!mounted || initializationSourceRef.current) return;
 
         const data = Object.fromEntries(pairs) as StoredProfileData;
+        const hasCachedProfile = pairs.some(([, value]) => value !== null);
 
-        setUserId(normalizeStoredValue(data.userId) || null);
-        setUsername(normalizeStoredValue(data.username));
-        setFullName(normalizeStoredValue(data.fullName));
-        setBio(normalizeStoredValue(data.bio));
-        setProfileImage(normalizeStoredImage(data.profileImage));
-        setBannerImage(normalizeStoredImage(data.bannerImage));
+        if (!hasCachedProfile) return;
+
+        initializeProfile(
+          {
+            username: normalizeStoredValue(data.username),
+            fullName: normalizeStoredValue(data.fullName),
+            bio: normalizeStoredValue(data.bio),
+            profileImage: normalizeStoredImage(data.profileImage),
+            bannerImage: normalizeStoredImage(data.bannerImage),
+          },
+          "cache",
+        );
       } catch {
         if (!mounted) return;
 
         showAlert({
           title: "Error",
-          message: "Failed to load your profile data.",
+          message: "Failed to load your cached profile data.",
         });
       }
     };
 
-    loadData();
+    void loadCachedData();
 
     return () => {
       mounted = false;
     };
-  }, [showAlert]);
+  }, [initializeProfile, showAlert]);
+
+  useEffect(() => {
+    if (!userData || handledServerDataRef.current) return;
+
+    handledServerDataRef.current = true;
+
+    const mediaIsDirty = profileImageChanged || bannerImageChanged;
+    const mayReplaceCachedValues =
+      initializationSourceRef.current === "cache" &&
+      !isDirty &&
+      !mediaIsDirty;
+
+    if (initializationSourceRef.current && !mayReplaceCachedValues) return;
+
+    initializeProfile(
+      {
+        username: userData.username,
+        fullName: userData.fullName,
+        bio: userData.bio,
+        profileImage: userData.profileImage,
+        bannerImage: userData.bannerImage,
+      },
+      "server",
+    );
+  }, [
+    bannerImageChanged,
+    initializeProfile,
+    isDirty,
+    profileImageChanged,
+    userData,
+  ]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -381,11 +423,11 @@ export default function EditProfileScreen() {
   );
 
   const handleProfileImagePress = useCallback(() => {
-    openImagePickerFor("profile");
+    void openImagePickerFor("profile");
   }, [openImagePickerFor]);
 
   const handleBannerImagePress = useCallback(() => {
-    openImagePickerFor("banner");
+    void openImagePickerFor("banner");
   }, [openImagePickerFor]);
 
   const handleImageCropped = useCallback(
@@ -410,138 +452,91 @@ export default function EditProfileScreen() {
     [cropTarget, resetCropState, showAlert],
   );
 
-  const handleSave = useCallback(async () => {
-    if (!canSave || saving) return;
+  const handleSave = useCallback(
+    async (values: EditProfileFormValues) => {
+      if (!hasInitializedProfile || !hasChanges) return;
 
-    if (!userId) {
-      showAlert({
-        title: "Error",
-        message: "User ID missing.",
-      });
-      return;
-    }
+      const formData = new FormData();
+      formData.append("fullName", values.fullName);
+      formData.append("bio", values.bio);
 
-    if (isBioTooLong) {
-      showAlert({
-        title: "Bio Too Long",
-        message: `Your bio must be ${MAX_BIO_LENGTH} characters or less.`,
-      });
-      return;
-    }
-
-    const formData = new FormData();
-
-    formData.append("fullName", trimmedFullName);
-    formData.append("bio", trimmedBio);
-
-    appendLocalImageToFormData(formData, profileImage, "profileImage");
-    appendLocalImageToFormData(formData, bannerImage, "bannerImage");
-
-    if (__DEV__) {
-      console.log("Edit profile save payload:", {
-        userId,
-        hasProfileImage: isLocalImageUri(profileImage),
-        hasBannerImage: isLocalImageUri(bannerImage),
-        profileImage,
-        bannerImage,
-      });
-    }
-
-    try {
-      const updatedUser = (await saveProfile(
-        userId,
-        formData,
-      )) as SavedProfileData;
-
-      const nextFullName = normalizeStoredValue(
-        updatedUser.full_name ?? updatedUser.fullName ?? trimmedFullName,
-      );
-      const nextBio = normalizeStoredValue(updatedUser.bio ?? trimmedBio);
-      const nextProfileImage = normalizeStoredImage(
-        getSavedProfileImage(updatedUser, profileImage),
-      );
-      const nextBannerImage = normalizeStoredImage(
-        getSavedBannerImage(updatedUser, bannerImage),
-      );
-
-      setFullName(nextFullName);
-      setBio(nextBio);
-      setProfileImage(nextProfileImage);
-      setBannerImage(nextBannerImage);
-
-      const storageUpdates: [string, string][] = [
-        ["fullName", nextFullName],
-        ["bio", nextBio],
-      ];
-
-      if (nextProfileImage) {
-        storageUpdates.push(["profileImage", nextProfileImage]);
+      if (profileImageChanged) {
+        appendLocalImageToFormData(formData, profileImage, "profileImage");
       }
 
-      if (nextBannerImage) {
-        storageUpdates.push(["bannerImage", nextBannerImage]);
+      if (bannerImageChanged) {
+        appendLocalImageToFormData(formData, bannerImage, "bannerImage");
       }
 
-      await AsyncStorage.multiSet(storageUpdates);
-
-      const parsedUserId = Number.parseInt(
-        String(updatedUser.id ?? userId),
-        10,
-      );
-      const nextUsername = normalizeStoredValue(
-        updatedUser.username ?? username,
-      );
-      const authUserUpdates: CachedAuthUser = {
-        fullName: nextFullName,
-        profileImage: nextProfileImage ?? "",
-      };
-
-      if (!Number.isNaN(parsedUserId)) {
-        authUserUpdates.id = parsedUserId;
+      if (__DEV__) {
+        console.log("Edit profile save payload:", {
+          hasChangedProfileImage:
+            profileImageChanged && isLocalImageUri(profileImage),
+          hasChangedBannerImage:
+            bannerImageChanged && isLocalImageUri(bannerImage),
+        });
       }
 
-      if (nextUsername) {
-        authUserUpdates.username = nextUsername;
+      try {
+        const updatedUser = await saveProfile(formData);
+
+        setUsername(updatedUser.username);
+        setProfileImage(updatedUser.profileImage);
+        setBannerImage(updatedUser.bannerImage);
+        setInitialProfileImage(updatedUser.profileImage);
+        setInitialBannerImage(updatedUser.bannerImage);
+        reset({
+          fullName: updatedUser.fullName,
+          bio: updatedUser.bio,
+        });
+        requestProfileRefresh();
+
+        showAlert({
+          title: "Saved",
+          message: "Profile updated successfully.",
+          onConfirm: () => {
+            closeAlert();
+            router.back();
+          },
+        });
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to update your profile.";
+
+        if (FULL_NAME_SERVER_ERRORS.has(message)) {
+          setError("fullName", { type: "server", message });
+          return;
+        }
+
+        if (BIO_SERVER_ERRORS.has(message)) {
+          setError("bio", { type: "server", message });
+          return;
+        }
+
+        showAlert({
+          title: "Error",
+          message,
+        });
       }
-
-      await mergeCachedAuthUser(authUserUpdates);
-
-      showAlert({
-        title: "Saved",
-        message: "Profile updated successfully.",
-        onConfirm: () => {
-          requestProfileRefresh();
-          closeAlert();
-          router.back();
-        },
-      });
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to update your profile.";
-
-      showAlert({
-        title: "Error",
-        message,
-      });
-    }
-  }, [
-    bannerImage,
-    canSave,
-    closeAlert,
-    isBioTooLong,
-    profileImage,
-    router,
-    saveProfile,
-    saving,
-    showAlert,
-    trimmedBio,
-    trimmedFullName,
-    userId,
-    username,
-    requestProfileRefresh,
-  ]);
+    },
+    [
+      bannerImage,
+      bannerImageChanged,
+      closeAlert,
+      hasChanges,
+      hasInitializedProfile,
+      profileImage,
+      profileImageChanged,
+      requestProfileRefresh,
+      reset,
+      router,
+      saveProfile,
+      setError,
+      showAlert,
+    ],
+  );
 
   return (
     <KeyboardAvoidingView
@@ -559,18 +554,27 @@ export default function EditProfileScreen() {
           bannerImage={bannerImage}
           profileImage={profileImage}
           isDark={isDark}
-          editable
+          editable={hasInitializedProfile}
           onPressBanner={handleBannerImagePress}
           onPressProfile={handleProfileImagePress}
         />
 
         <View style={styles.formContainer}>
-          <LabeledInput
-            label="Name"
-            value={fullName}
-            onChangeText={setFullName}
-            autoCapitalize="words"
-            returnKeyType="next"
+          <Controller
+            control={control}
+            name="fullName"
+            render={({ field, fieldState }) => (
+              <LabeledInput
+                label="Name"
+                value={field.value}
+                hint={fieldState.error?.message}
+                onBlur={field.onBlur}
+                onChangeText={field.onChange}
+                autoCapitalize="words"
+                editable={hasInitializedProfile}
+                returnKeyType="next"
+              />
+            )}
           />
 
           <LabeledInput
@@ -581,18 +585,30 @@ export default function EditProfileScreen() {
             autoCapitalize="none"
           />
 
-          <LabeledInput
-            label="Bio"
-            value={bio}
-            hint={bioHint}
-            onChangeText={setBio}
-            multiline
-            enforceMaxLength={false}
-            maxLength={MAX_BIO_LENGTH + BIO_INPUT_BUFFER}
+          <Controller
+            control={control}
+            name="bio"
+            render={({ field, fieldState }) => (
+              <LabeledInput
+                label="Bio"
+                value={field.value}
+                hint={fieldState.error?.message}
+                onBlur={field.onBlur}
+                onChangeText={field.onChange}
+                editable={hasInitializedProfile}
+                multiline
+                enforceMaxLength={false}
+                maxLength={EDIT_PROFILE_BIO_MAX_LENGTH + BIO_INPUT_BUFFER}
+              />
+            )}
           />
 
-          <Button onPress={handleSave} disabled={!canSave} isDark={isDark}>
-            {saving ? "Saving..." : "Save"}
+          <Button
+            onPress={() => void handleSubmit(handleSave)()}
+            disabled={!canSave}
+            isDark={isDark}
+          >
+            {isSubmitting ? "Saving..." : "Save"}
           </Button>
         </View>
       </ScrollView>

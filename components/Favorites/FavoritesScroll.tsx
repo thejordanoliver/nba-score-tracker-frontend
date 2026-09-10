@@ -4,7 +4,7 @@ import { LEAGUE_CONFIG } from "constants/leagues";
 import { Colors } from "constants/styles";
 import { useFavoriteTeamsContext } from "contexts/FavoriteTeamsContext";
 import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import { type Href, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
@@ -37,7 +37,10 @@ import {
   reorderFavoriteRailItems,
   splitFavoriteRailOrder,
 } from "types/favorites";
-import { getFavoriteBaseTeam } from "utils/favoriteTeams";
+import {
+  getFavoriteBaseTeam,
+  getFavoriteTeamRoute,
+} from "utils/favoriteTeams";
 import { FavoritesTab } from "./FavoritesTab";
 
 type Props = {
@@ -69,6 +72,8 @@ const FAVORITES_SNAP_ANIMATION = {
   restDisplacementThreshold: 0.25,
   restSpeedThreshold: 2,
 };
+
+const FAVORITE_NAVIGATION_LOCK_MS = 750;
 
 type FavoriteDragAnimationValues = Parameters<
   NonNullable<DraggableFlatListProps<FavoriteItem>["onAnimValInit"]>
@@ -195,6 +200,10 @@ export default function FavoritesScroll({
     team: Promise.resolve(),
   });
   const interactionActiveRef = useRef(false);
+  const navigationLockedRef = useRef(false);
+  const navigationUnlockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const [dragAnimationValues, setDragAnimationValues] =
     useState<FavoriteDragAnimationValues | null>(null);
 
@@ -304,8 +313,56 @@ export default function FavoritesScroll({
   useEffect(
     () => () => {
       handleInteractionEnd();
+
+      if (navigationUnlockTimerRef.current) {
+        clearTimeout(navigationUnlockTimerRef.current);
+      }
     },
     [handleInteractionEnd],
+  );
+
+  const pushOnce = useCallback(
+    (href: Href) => {
+      if (navigationLockedRef.current) {
+        return;
+      }
+
+      navigationLockedRef.current = true;
+      navigationUnlockTimerRef.current = setTimeout(() => {
+        navigationLockedRef.current = false;
+        navigationUnlockTimerRef.current = null;
+      }, FAVORITE_NAVIGATION_LOCK_MS);
+
+      void Haptics.selectionAsync();
+      router.push(href);
+    },
+    [router],
+  );
+
+  const handleFavoritePress = useCallback(
+    (item: FavoriteItem) => {
+      if (item.kind === "league") {
+        const config = LEAGUE_CONFIG[item.id];
+
+        pushOnce({
+          pathname: config.route,
+          params: {
+            league: item.id,
+            leagueLabel: config.label,
+          },
+        });
+        return;
+      }
+
+      pushOnce({
+        pathname: getFavoriteTeamRoute(item.league),
+        params: {
+          teamId: item.id,
+          league: item.league,
+        },
+      });
+    },
+    [pushOnce],
   );
 
   const handleDragBegin = useCallback(() => {
@@ -435,9 +492,13 @@ export default function FavoritesScroll({
 
   const renderItem = useCallback(
     (props: RenderItemParams<FavoriteItem>) => (
-      <FavoritesTab {...props} styles={styles} />
+      <FavoritesTab
+        {...props}
+        onPressItem={handleFavoritePress}
+        styles={styles}
+      />
     ),
-    [styles],
+    [handleFavoritePress, styles],
   );
 
   const renderPlaceholder = useCallback(() => {
@@ -449,10 +510,17 @@ export default function FavoritesScroll({
   }, [styles]);
 
   const handleEditFavorites = useCallback(() => {
-    void Haptics.selectionAsync();
+    pushOnce("/edit-favorites");
+  }, [pushOnce]);
 
-    router.push("/edit-favorites");
-  }, [router]);
+  const getItemLayout = useCallback(
+    (_: ArrayLike<FavoriteItem> | null | undefined, index: number) => ({
+      length: FAVORITES_RAIL_CELL_WIDTH,
+      offset: FAVORITES_RAIL_CELL_WIDTH * index,
+      index,
+    }),
+    [],
+  );
 
   const renderFooter = useCallback(() => {
     const hasFavorites = data.length > 0;
@@ -517,6 +585,11 @@ export default function FavoritesScroll({
         data={data}
         horizontal
         keyExtractor={(item) => item.key}
+        getItemLayout={getItemLayout}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        updateCellsBatchingPeriod={50}
+        windowSize={5}
         showsHorizontalScrollIndicator={false}
         contentInsetAdjustmentBehavior="never"
         contentContainerStyle={styles.container}

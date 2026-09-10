@@ -27,6 +27,7 @@ export const rosterStatsStyles = (isDark: boolean) =>
       borderColor: isDark ? Colors.darkGray : Colors.lightGray,
     },
     table: {
+      width: "100%",
       borderWidth: 1,
       borderColor: isDark ? Colors.darkGray : Colors.lightGray,
       borderRadius: 8,
@@ -34,10 +35,26 @@ export const rosterStatsStyles = (isDark: boolean) =>
     },
     tableWrapper: {
       flexDirection: "row",
+      width: "100%",
       borderWidth: 1,
       borderColor: isDark ? Colors.darkGray : Colors.lightGray,
       borderRadius: 8,
       overflow: "hidden",
+    },
+    tableContent: {
+      flex: 1,
+      flexDirection: "row",
+    },
+    scrollSection: {
+      flex: 1,
+    },
+    scrollContentContainer: {
+      flexGrow: 1,
+    },
+    statScrollContent: {
+      flexGrow: 1,
+      minWidth: "100%",
+      alignSelf: "stretch",
     },
     tableRow: {
       flexDirection: "row",
@@ -59,6 +76,7 @@ export const rosterStatsStyles = (isDark: boolean) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+      width: "100%",
       minHeight: 40,
       paddingHorizontal: 8,
       borderBottomWidth: 1,

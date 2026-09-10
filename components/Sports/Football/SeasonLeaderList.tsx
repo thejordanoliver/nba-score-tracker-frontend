@@ -9,6 +9,7 @@ import { ScrollView } from "react-native-gesture-handler";
 import { leadersListStyles } from "styles/LeagueStyles/LeadersListStyles";
 
 import HeadingTwo from "../../Headings/HeadingTwo";
+import { getCFBTeam } from "@/constants/teamsCFB";
 
 interface Category {
   categoryName: string;
@@ -78,17 +79,18 @@ export default function SeasonLeadersList({
 
             <View style={styles.playersList}>
               {item.leaders.slice(0, 5).map((player) => {
+                const team = getCFBTeam(player.team_id ?? player.teamId ?? 0);
                 return (
                   <PlayerCard
-                    key={player.playerId ?? player.athleteId}
+                    key={player.id}
                     rank={player.rank}
-                    id={Number(player.playerId ?? player.athleteId)}
-                    name={player.shortName}
+                    id={Number(player.id)}
+                    name={player.short_name}
                     position={player.position}
-                    headshot={player.headshot}
+                    headshot={player.headshot_url}
                     statNumber={isMLB ? player.value : player.displayValue}
                     league={league}
-                    teamId={Number(player.teamId)}
+                    teamId={team?.id ?? 0}
                   />
                 );
               })}

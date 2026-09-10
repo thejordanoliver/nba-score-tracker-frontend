@@ -1,14 +1,23 @@
 // components/CBBStandingsList.tsx
+import HeadingTwo from "@/components/Headings/HeadingTwo";
 import {
   CBBTeamRank,
   useCBBRankings,
 } from "@/hooks/BasketballHooks/useCBBRankings";
 import { Ionicons } from "@expo/vector-icons";
-import { Dropdown } from "components/Dropdown";
+import Dropdown from "components/Dropdown";
 import { StandingsSkeleton } from "components/Skeletons/StandingsSkeleton";
 import { Colors, Fonts, globalStyles } from "constants/styles";
-import { getCBBTeamByESPNId, getCBBTeamLogo } from "constants/teamsCBB";
-import { getWCBBTeamByESPNId, getWCBBTeamLogo } from "constants/teamsWCBB";
+import {
+  getCBBTeam,
+  getCBBTeamByESPNId,
+  getCBBTeamLogo,
+} from "constants/teamsCBB";
+import {
+  getWCBBTeam,
+  getWCBBTeamByESPNId,
+  getWCBBTeamLogo,
+} from "constants/teamsWCBB";
 import { useFavoriteTeamsContext } from "contexts/FavoriteTeamsContext";
 import { usePreferences } from "contexts/PreferencesContext";
 import { useRouter } from "expo-router";
@@ -242,45 +251,26 @@ export const CBBStandingsList = ({ league = "cbb" }: Props) => {
     if (!droppedOutTeams.length) return null;
 
     return (
-      <View style={{ marginTop: 24 }}>
-        <View
-          style={[
-            styles.header,
-            { borderBottomColor: isDark ? Colors.darkGray : Colors.lightGray },
-          ]}
-        >
-          <Text
-            style={[
-              styles.heading,
-              {
-                color: isDark ? Colors.white : Colors.black,
-                fontSize: 20,
-                fontFamily: Fonts.SEMIBOLD,
-              },
-            ]}
-          >
-            Dropped From Rankings
-          </Text>
-        </View>
-        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-          {droppedOutTeams.map((item) => {
-            const team = getRankedTeam(
-              item.team?.espnId ?? item.team?.id ?? "",
-            );
+      <View style={styles.droppedoutContainer}>
+        <HeadingTwo isDark={isDark}>Dropped From Rankings</HeadingTwo>
+
+        <View style={styles.droppedoutWrapper}>
+          {droppedOutTeams.map((item, index) => {
+            const teamId = item.team?.id ?? 0;
+            const team = isWCBB ? getWCBBTeam(teamId) : getCBBTeam(teamId);
             const teamName = team?.shortName || team?.name || "N/A";
+            const teamLogo = isWCBB
+              ? getWCBBTeamLogo(teamId, isDark)
+              : getCBBTeamLogo(teamId, isDark);
             return (
-              <Text
-                key={item.team?.id || `dropped-${item.previous}-${item.date}`}
-                style={{
-                  color: isDark ? Colors.white : Colors.black,
-                  fontFamily: Fonts.LIGHT,
-                  fontSize: 16,
-                  marginVertical: 2,
-                  marginRight: 8,
-                }}
-              >
-                {teamName} ({item.previous})
-              </Text>
+              <View key={item.team?.id} style={styles.droppedoutRow}>
+                {teamLogo && (
+                  <Image source={teamLogo} style={styles.droppedoutLogo} />
+                )}
+                <Text style={styles.droppedoutName}>
+                  {teamName} ({item.previous})
+                </Text>
+              </View>
             );
           })}
         </View>

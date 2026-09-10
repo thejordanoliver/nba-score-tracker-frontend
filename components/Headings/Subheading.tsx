@@ -1,18 +1,21 @@
-// components/Subheading.tsx
 import { Colors, Fonts } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";
-import React from "react";
+import type { ReactNode } from "react";
 import { StyleSheet, Text } from "react-native";
+
 type Props = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
-const Subheading: React.FC<Props> = ({ children }) => {
+export default function Subheading({ children }: Props) {
   const { resolvedColorScheme } = usePreferences();
+
   const isDark = resolvedColorScheme === "dark";
+
   const styles = subHeadingStyles(isDark);
-  return <Text style={[styles.heading]}>{children}</Text>;
-};
+
+  return <Text style={styles.heading}>{children}</Text>;
+}
 
 const subHeadingStyles = (isDark: boolean) =>
   StyleSheet.create({
@@ -25,5 +28,3 @@ const subHeadingStyles = (isDark: boolean) =>
       color: isDark ? Colors.white : Colors.black,
     },
   });
-
-export default Subheading;

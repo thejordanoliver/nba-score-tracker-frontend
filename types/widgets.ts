@@ -15,6 +15,7 @@ export type ExploreWidgetType =
   | "favorite_games"
   | "favorite_teams"
   | "create_post"
+  | "college_polls"
   | "standings";
 
 export type ExploreWidgetSize = "small" | "medium" | "large";
@@ -27,7 +28,24 @@ export type ExploreWidgetConfig = {
   size: ExploreWidgetSize;
   order: number;
   standingsLeague?: ExploreStandingsLeague;
+  collegePollLeague?: ExploreCollegePollLeague;
+  collegePollType?: ExploreCollegePollType;
 };
+
+export const EXPLORE_COLLEGE_POLL_LEAGUES = ["cfb", "cbb"] as const;
+
+export type ExploreCollegePollLeague =
+  (typeof EXPLORE_COLLEGE_POLL_LEAGUES)[number];
+
+export const EXPLORE_COLLEGE_POLL_TYPES = [
+  "ap",
+  "coaches",
+  "cfp",
+  "fcs",
+] as const;
+
+export type ExploreCollegePollType =
+  (typeof EXPLORE_COLLEGE_POLL_TYPES)[number];
 
 export const EXPLORE_STANDINGS_LEAGUES = [
   "nba",

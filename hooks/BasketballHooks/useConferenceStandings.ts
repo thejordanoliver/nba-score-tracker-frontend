@@ -43,7 +43,11 @@ interface ConferenceStandingsResponse {
   conferences: StandingConference[];
 }
 
-export const useConferenceStandings = (league: string, group?: number | string | null, ) => {
+export const useConferenceStandings = (
+  league: string,
+  group?: number | string | null,
+  { enabled = true }: { enabled?: boolean } = {},
+) => {
   const [conference, setConference] = useState<StandingConference | null>(
     null,
   );
@@ -57,6 +61,12 @@ export const useConferenceStandings = (league: string, group?: number | string |
 
   const fetchStandings = useCallback(
     async (isRefresh = false) => {
+      if (!enabled) {
+        setConferencesLoading(false);
+        setConferencesRefreshing(false);
+        return;
+      }
+
       if (!canFetch) {
         setConference(null);
         setConferences([]);
@@ -121,7 +131,7 @@ export const useConferenceStandings = (league: string, group?: number | string |
         setConferencesRefreshing(false);
       }
     },
-    [canFetch, league, normalizedGroup],
+    [canFetch, enabled, league, normalizedGroup],
   );
 
   useEffect(() => {

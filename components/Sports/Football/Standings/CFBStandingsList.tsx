@@ -1,6 +1,7 @@
 // components/CFBStandingsList.tsx
+import Dropdown from "@/components/Dropdown";
+import HeadingTwo from "@/components/Headings/HeadingTwo";
 import { Ionicons } from "@expo/vector-icons";
-import { Dropdown } from "components/Dropdown";
 import { StandingsSkeleton } from "components/Skeletons/StandingsSkeleton";
 import { Colors, Fonts, globalStyles } from "constants/styles";
 import { getCFBTeam, getCFBTeamLogo } from "constants/teamsCFB";
@@ -43,7 +44,6 @@ export const CFBStandingsList = () => {
   const { rankings, loading, error, refresh } = useCFBRankings();
   const { resolvedColorScheme } = usePreferences();
   const { isFavorite } = useFavoriteTeamsContext();
-
 
   const isDark = resolvedColorScheme === "dark";
   const global = globalStyles(isDark);
@@ -91,11 +91,7 @@ export const CFBStandingsList = () => {
     const team = getCFBTeam(item.team?.id ?? "");
     const teamId = team?.id ?? 0;
     const teamLogo = getCFBTeamLogo(teamId, isDark);
-    const teamCode =
-      team?.code ||
-      item.team?.abbreviation ||
-      item.team?.shortDisplayName ||
-      "N/A";
+    const teamCode = team?.code || "N/A";
 
     const trendNum = Number(item.trend);
     const hasTrend = Number.isFinite(trendNum) && trendNum !== 0;
@@ -142,14 +138,7 @@ export const CFBStandingsList = () => {
             }}
             style={styles.teamInfoWrapper}
           >
-            {teamLogo ? (
-              <Image source={teamLogo} style={styles.logo} />
-            ) : item.team?.logos?.[0]?.href ? (
-              <Image
-                source={{ uri: item.team.logos[0].href }}
-                style={styles.logo}
-              />
-            ) : null}
+            {teamLogo && <Image source={teamLogo} style={styles.logo} />}
 
             <Text style={styles.collegeTeamName}>{teamCode}</Text>
           </TouchableOpacity>
@@ -279,18 +268,24 @@ export const CFBStandingsList = () => {
     }
 
     return (
-      <View style={{ marginTop: 24 }}>
-        <Text style={styles.droppedHeading}>Dropped From Rankings</Text>
+      <View style={styles.droppedoutContainer}>
+        <HeadingTwo isDark={isDark}>Dropped From Rankings</HeadingTwo>
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+        <View style={styles.droppedoutWrapper}>
           {droppedOutTeams.map((item, index) => {
             const team = getCFBTeam(item.team?.id ?? "");
-            const teamName =
-              team?.shortName || team?.name || item.team?.abbreviation || "N/A";
+            const teamId = item.team?.id;
+            const teamName = team?.shortName || team?.name || "N/A";
+            const teamLogo = getCFBTeamLogo(teamId, isDark);
             return (
-              <Text key={item.team?.id} style={styles.droppedoutNames}>
-                {teamName} ({item.previous})
-              </Text>
+              <View key={item.team?.id} style={styles.droppedoutRow}>
+                {teamLogo && (
+                  <Image source={teamLogo} style={styles.droppedoutLogo} />
+                )}
+                <Text style={styles.droppedoutName}>
+                  {teamName} ({item.previous})
+                </Text>
+              </View>
             );
           })}
         </View>

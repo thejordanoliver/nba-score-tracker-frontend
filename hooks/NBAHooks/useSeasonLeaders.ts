@@ -13,12 +13,17 @@ interface ApiResponse {
   leaderboards: LeadersByStat;
 }
 
-export function useSeasonLeaders() {
+export function useSeasonLeaders({ enabled = true }: { enabled?: boolean } = {}) {
   const [leaders, setLeaders] = useState<LeadersByStat>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
+
     let isCancelled = false;
 
     async function fetchLeaders() {
@@ -53,7 +58,7 @@ export function useSeasonLeaders() {
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [enabled]);
 
   return { leaders, loading, error };
 }

@@ -53,7 +53,8 @@ function UFCLeagueScreen() {
     null,
   );
 
-  const { tabs, selectedTab, setSelectedTab } = useLeagueTabs(league);
+  const { tabs, selectedTab, setSelectedTab, hasVisitedTab } =
+    useLeagueTabs(league);
   const { calendar } = useLeagueCalendar(league, league);
 
   const sortedCalendar = useMemo(() => {
@@ -98,7 +99,7 @@ function UFCLeagueScreen() {
     refreshing: refreshingNews,
     error: newsError,
     refresh: refreshNews,
-  } = useLeaguesNews(league, 10);
+  } = useLeaguesNews(league, 10, { enabled: hasVisitedTab("news") });
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -163,22 +164,22 @@ function UFCLeagueScreen() {
           </View>
 
           <View key="news" style={styles.contentArea}>
-            <NewsList
+            {hasVisitedTab("news") ? <NewsList
               items={articles}
               loading={newsLoading}
               error={newsError}
               refreshing={refreshingNews}
               onRefresh={refreshNews}
               isDark={isDark}
-            />
+            /> : null}
           </View>
 
           <View key="champions" style={styles.contentArea}>
-            <MMAChampionsList />
+            {hasVisitedTab("champions") ? <MMAChampionsList /> : null}
           </View>
 
           <View key="forum" style={styles.contentArea}>
-            <ForumFeed league={league} />
+            {hasVisitedTab("forum") ? <ForumFeed league={league} /> : null}
           </View>
         </PagerView>
       </View>

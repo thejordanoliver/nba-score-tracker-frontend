@@ -1,8 +1,6 @@
-import { LEAGUE_CONFIG } from "constants/leagues";
 import { Colors } from "constants/styles";
-import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
+import { memo, useCallback } from "react";
 import { Pressable, Text, View } from "react-native";
 import {
   ScaleDecorator,
@@ -12,50 +10,29 @@ import { FavoritesScrollStyles } from "styles/HomeStyles/FavoritesScrollStyles";
 import type { FavoriteItem } from "types/favorites";
 import {
   getFavoriteTeamLogo,
-  getFavoriteTeamRoute,
   isCollegeFavoriteLeague,
 } from "utils/favoriteTeams";
 
 type Props = RenderItemParams<FavoriteItem> & {
+  onPressItem: (item: FavoriteItem) => void;
   styles: ReturnType<typeof FavoritesScrollStyles>;
 };
 
-export function FavoritesTab({
+function FavoritesTabComponent({
   item,
   drag,
   isActive,
+  onPressItem,
   styles,
 }: Props) {
-  const router = useRouter();
   const isTeam = item.kind === "team";
   const logo = isTeam ? getFavoriteTeamLogo(item) : item.logo;
   const collegeLeague =
     isTeam && isCollegeFavoriteLeague(item.league) ? item.league : null;
 
-  const handlePress = () => {
-    void Haptics.selectionAsync();
-
-    if (item.kind === "league") {
-      const config = LEAGUE_CONFIG[item.id];
-
-      router.push({
-        pathname: config.route,
-        params: {
-          league: item.id,
-          leagueLabel: config.label,
-        },
-      });
-      return;
-    }
-
-    router.push({
-      pathname: getFavoriteTeamRoute(item.league),
-      params: {
-        teamId: item.id,
-        league: item.league,
-      },
-    });
-  };
+  const handlePress = useCallback(() => {
+    onPressItem(item);
+  }, [item, onPressItem]);
 
   return (
     <View style={styles.cell}>
@@ -81,7 +58,12 @@ export function FavoritesTab({
               { backgroundColor: item.color || Colors.midTone },
             ]}
           >
-            <Image source={logo} style={styles.logo} contentFit="contain" />
+            <Image
+              source={logo}
+              style={styles.logo}
+              contentFit="contain"
+              cachePolicy="memory-disk"
+            />
           </View>
 
           {!collegeLeague && (
@@ -113,3 +95,5 @@ export function FavoritesTab({
     </View>
   );
 }
+
+export const FavoritesTab = memo(FavoritesTabComponent);

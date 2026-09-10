@@ -25,7 +25,9 @@ type Props = {
   onClose: () => void;
   onSave: (preference: MessageThemePreference) => Promise<unknown>;
 };
-const getTeamKey = (team: Team) => `${team.league}:${team.id}`;
+const getTeamKey = (team: Team): string => {
+  return `${String(team.league).toUpperCase()}:${String(team.id)}`;
+};
 
 const getPreferenceTeamKey = (
   preference: MessageThemePreference,
@@ -38,7 +40,9 @@ const getPreferenceTeamKey = (
     return null;
   }
 
-  return `${String(preference.league).toUpperCase()}:${preference.teamId}`;
+  return `${String(preference.league).toUpperCase()}:${String(
+    preference.teamId,
+  )}`;
 };
 
 const getErrorMessage = (error: unknown): string => {

@@ -1058,7 +1058,12 @@ export default function PlayerStatTable({
           </View>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.scrollSection}
+          contentContainerStyle={styles.scrollContentContainer}
+        >
           <View style={styles.statScrollContent}>
             <View style={[styles.row, styles.headerRow]}>
               {statKeys.map((key) => {

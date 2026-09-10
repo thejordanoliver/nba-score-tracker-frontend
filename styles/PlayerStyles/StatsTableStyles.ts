@@ -56,6 +56,7 @@ export const statsTableStyles = (isDark: boolean) => {
 
     tableWrapper: {
       flexDirection: "row",
+      width: "100%",
       borderWidth: 1,
       borderColor,
       borderRadius: 8,
@@ -69,6 +70,10 @@ export const statsTableStyles = (isDark: boolean) => {
 
     scrollSection: {
       flex: 1,
+    },
+
+    scrollContentContainer: {
+      flexGrow: 1,
     },
 
     headerRow: {
@@ -147,9 +152,10 @@ export const statsTableStyles = (isDark: boolean) => {
     },
 
     statScrollContent: {
-      flexGrow: 0,
+      flexGrow: 1,
       flexShrink: 0,
-      alignSelf: "flex-start",
+      minWidth: "100%",
+      alignSelf: "stretch",
     },
 
     fixedCell: {

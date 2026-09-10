@@ -1,12 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import type {
+  ExploreCollegePollLeague,
+  ExploreCollegePollType,
   ExploreStandingsLeague,
   ExploreWidgetConfig,
   ExploreWidgetLeague,
   ExploreWidgetSize,
   ExploreWidgetType,
 } from "types/widgets";
-import { EXPLORE_STANDINGS_LEAGUES } from "types/widgets";
+import {
+  EXPLORE_COLLEGE_POLL_LEAGUES,
+  EXPLORE_COLLEGE_POLL_TYPES,
+  EXPLORE_STANDINGS_LEAGUES,
+} from "types/widgets";
 
 type ExploreWidgetRegistryEntry = {
   title: string;
@@ -67,11 +73,21 @@ export const EXPLORE_WIDGET_REGISTRY: Record<
   standings: {
     title: "Standings",
     description: "Follow the latest league tables from your Explore board.",
-    badge: "Live",
+    badge: "Tables",
     icon: "podium-outline",
     defaultSize: "medium",
     sizes: ["medium", "large"],
     emptyCopy: "Standings are not available for this league right now.",
+  },
+
+  college_polls: {
+    title: "College Polls",
+    description: "Follow the latest college football and basketball polls.",
+    badge: "Top 25",
+    icon: "school-outline",
+    defaultSize: "medium",
+    sizes: EXPLORE_WIDGET_SIZES,
+    emptyCopy: "College rankings are not available right now.",
   },
 
   nba_games: {
@@ -198,6 +214,8 @@ export type ExploreGameWidgetType = (typeof EXPLORE_GAME_WIDGET_TYPES)[number];
 const widgetTypeSet = new Set<string>(EXPLORE_WIDGET_TYPES);
 const widgetSizeSet = new Set<string>(EXPLORE_WIDGET_SIZES);
 const standingsLeagueSet = new Set<string>(EXPLORE_STANDINGS_LEAGUES);
+const collegePollLeagueSet = new Set<string>(EXPLORE_COLLEGE_POLL_LEAGUES);
+const collegePollTypeSet = new Set<string>(EXPLORE_COLLEGE_POLL_TYPES);
 
 export function isExploreWidgetType(
   value: unknown,
@@ -215,6 +233,18 @@ export function isExploreStandingsLeague(
   value: unknown,
 ): value is ExploreStandingsLeague {
   return typeof value === "string" && standingsLeagueSet.has(value);
+}
+
+export function isExploreCollegePollLeague(
+  value: unknown,
+): value is ExploreCollegePollLeague {
+  return typeof value === "string" && collegePollLeagueSet.has(value);
+}
+
+export function isExploreCollegePollType(
+  value: unknown,
+): value is ExploreCollegePollType {
+  return typeof value === "string" && collegePollTypeSet.has(value);
 }
 
 export function getDefaultWidgetSize(

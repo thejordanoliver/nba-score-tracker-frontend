@@ -1,11 +1,22 @@
- import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import CustomActivityIndicator from "components/CustomActivityIndicator";
 import { LEAGUE_CONFIG } from "constants/leagues";
 import { Colors, Fonts, activeOpacity } from "constants/styles";
-import { useFavoriteTeamsContext } from "contexts/FavoriteTeamsContext";
+import { getNBATeamLogo, getTeamByESPNId } from "constants/teams";
+import { getMLBTeamByEspnId, getMLBTeamLogo } from "constants/teamsMLB";
+import { getNFLTeamByESPNId, getNFLTeamLogo } from "constants/teamsNFL";
+import {
+  getNHLTeamByEspnId,
+  getNHLTeamLogo,
+} from "constants/teamsNHL";
+import { getUFLTeamByESPNId, getUFLTeamLogo } from "constants/teamsUFL";
+import { getWNBATeamByESPNId, getWNBATeamLogo } from "constants/teamsWNBA";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
-import { useLeagueStandings } from "hooks/LeagueHooks/useLeagueStandings";
+import {
+  type StandingsTeam,
+  useLeagueStandings,
+} from "hooks/LeagueHooks/useLeagueStandings";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type {
@@ -43,13 +54,45 @@ type StandingsTableProps = Pick<
   "height" | "isDark" | "isEditing" | "league"
 >;
 
+function getLocalTeamLogo(
+  team: StandingsTeam,
+  league: ExploreStandingsLeague,
+  isDark: boolean,
+) {
+  switch (league) {
+    case "nba": {
+      const localTeam = getTeamByESPNId(team.id);
+      return localTeam ? getNBATeamLogo(localTeam.id, isDark) : undefined;
+    }
+    case "wnba": {
+      const localTeam = getWNBATeamByESPNId(team.id);
+      return localTeam ? getWNBATeamLogo(localTeam.id, isDark) : undefined;
+    }
+    case "nfl": {
+      const localTeam = getNFLTeamByESPNId(team.id);
+      return localTeam ? getNFLTeamLogo(localTeam.id, isDark) : undefined;
+    }
+    case "ufl": {
+      const localTeam = getUFLTeamByESPNId(team.id);
+      return localTeam ? getUFLTeamLogo(localTeam.id, isDark) : undefined;
+    }
+    case "mlb": {
+      const localTeam = getMLBTeamByEspnId(team.id);
+      return localTeam ? getMLBTeamLogo(localTeam.id, isDark) : undefined;
+    }
+    case "nhl": {
+      const localTeam = getNHLTeamByEspnId(team.id);
+      return localTeam ? getNHLTeamLogo(localTeam.id, isDark) : undefined;
+    }
+  }
+}
+
 function StandingsTable({
   height,
   isDark,
   isEditing,
   league,
 }: StandingsTableProps) {
-  const { allTeams } = useFavoriteTeamsContext();
   const { standings, seasonDisplayName, loading, error, refetch } =
     useLeagueStandings(league);
   const styles = useMemo(() => standingsWidgetStyles(isDark), [isDark]);
@@ -57,18 +100,6 @@ function StandingsTable({
   const rows = useMemo(
     () => buildStandingsPreviewRows(standings, rowLimit),
     [rowLimit, standings],
-  );
-  const teamLogoById = useMemo(
-    () =>
-      new Map(
-        allTeams
-          .filter((team) => team.league.toLowerCase() === league)
-          .map((team) => [
-            String(team.id),
-            isDark ? (team.logoLight ?? team.logo) : team.logo,
-          ]),
-      ),
-    [allTeams, isDark, league],
   );
 
   if (loading) {
@@ -128,7 +159,7 @@ function StandingsTable({
       </View>
 
       {rows.map(({ conference, position, team }) => {
-        const logo = teamLogoById.get(team.id);
+        const logo = getLocalTeamLogo(team, league, isDark);
 
         return (
           <View key={`${conference}:${team.id}`} style={styles.row}>
@@ -137,7 +168,11 @@ function StandingsTable({
             </Text>
             <View style={[styles.teamCell, styles.teamColumn]}>
               {logo ? (
-                <Image source={logo} style={styles.teamLogo} contentFit="contain" />
+                <Image
+                  source={logo}
+                  style={styles.teamLogo}
+                  contentFit="contain"
+                />
               ) : (
                 <View style={styles.logoFallback}>
                   <Text style={styles.logoFallbackText}>
@@ -203,10 +238,7 @@ export default function StandingsWidget({
 
   return (
     <>
-      <BlurView
-        intensity={100}
-        style={[styles.container, { width, height }]}
-      >
+      <BlurView intensity={100} style={[styles.container, { width, height }]}>
         <View style={styles.header}>
           <View style={styles.headingCopy}>
             <Text style={styles.title}>Standings</Text>

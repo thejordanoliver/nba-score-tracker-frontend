@@ -1183,6 +1183,7 @@ export default function PlayerStatTable({ seasons, loading, error }: Props) {
               horizontal
               showsHorizontalScrollIndicator={false}
               style={styles.scrollSection}
+              contentContainerStyle={styles.scrollContentContainer}
             >
               <View style={styles.statScrollContent}>
                 <View

@@ -1,16 +1,24 @@
 import { Colors, Fonts } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";
 import React from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  type TextInputProps,
+  View,
+} from "react-native";
 
-type LabeledInputProps = {
+type LabeledInputProps = Omit<
+  TextInputProps,
+  "multiline" | "onChangeText" | "value"
+> & {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
   multiline?: boolean;
   placeholder?: string;
   enforceMaxLength?: boolean;
-  [key: string]: any; // for other TextInput props
   hint?: string | null;
 };
 

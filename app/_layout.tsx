@@ -82,7 +82,11 @@ const hiddenRoutes = [
   "/comment-thread/",
 ];
 
-const publicRoutes = ["/login", "/forgot-password"];
+const publicRoutes = [
+  "/login",
+  "/forgot-password",
+  "/settings/deleteaccountsplash",
+];
 
 function BadgeRealtimeBridge({
   token,
