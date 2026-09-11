@@ -7,18 +7,18 @@ import {
   TennisProps,
 } from "styles/GameDetailStyles/TeamRow.styles";
 
-type TennisCardStyleSheet = ReturnType<typeof CompetitorRowStyles>;
-
 function FlagStack({
   competitor,
-  styles,
+  isDark,
 }: {
   competitor: Pick<TennisCompetitor, "flags" | "country">;
-  styles: TennisCardStyleSheet;
+  isDark: boolean;
 }) {
   if (!competitor.flags.length) {
     return null;
   }
+
+  const styles = CompetitorRowStyles(isDark);
 
   return (
     <View style={styles.flagStack}>
@@ -91,7 +91,7 @@ export const CompetitorRow = ({
 
   return (
     <View style={styles.row}>
-      {isHome && inProgress && (
+      {isHome && (inProgress || isFinal) && (
         <View style={styles.scoreWrapper}>
           {serving && <View style={styles.serveIndicator} />}
           <Text style={[styles.score, getScoreStyle()]}>{score}</Text>
@@ -104,7 +104,7 @@ export const CompetitorRow = ({
             flags: competitorFlags,
             country,
           }}
-          styles={styles}
+          isDark={isDark}
         />
 
         <View style={styles.teamInfo}>
@@ -120,7 +120,7 @@ export const CompetitorRow = ({
         </View>
       </View>
 
-      {!isHome && inProgress && (
+      {!isHome && (inProgress || isFinal) && (
         <View style={styles.scoreWrapper}>
           {serving && <View style={styles.serveIndicator} />}
           <Text style={[styles.score, getScoreStyle()]}>{score}</Text>

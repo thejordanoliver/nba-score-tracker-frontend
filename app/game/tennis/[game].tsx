@@ -3,6 +3,7 @@ import { goBack } from "expo-router/build/global-state/routing";
 import { useLayoutEffect, useMemo } from "react";
 import { ScrollView, Text, View } from "react-native";
 
+import MatchInformation from "@/components/Sports/Tennis/GameDetails/MatchInformation";
 import GameHeader from "@/components/Sports/Tennis/GamePreview/GameHeader";
 import { useScrollFade } from "@/hooks/useScrollFade";
 import { gameDetailsScreenStyles } from "@/styles/GameDetailStyles/GameDetailsScreenStyles";
@@ -12,7 +13,6 @@ import { CustomHeader } from "components/CustomHeader";
 import { Colors, Fonts } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";
 import type { TennisMatch } from "types/tennis/tennis";
-import MatchInformation from "@/components/Sports/Tennis/GameDetails/MatchInformation";
 
 type RouteParams = {
   game?: string | string[];
@@ -84,7 +84,7 @@ export default function TennisMatchDetailsScreen() {
   const leftCompetitorFlags = leftCompetitor?.flags ?? [];
   const rightCompetitorFlags = rightCompetitor?.flags ?? [];
 
-  const state = match?.status.state;
+  const state = match?.status.state ?? "";
   const gameStatusDescription = match?.status.description ?? "";
   const gameStatusDetail = match?.status.detail ?? "";
 

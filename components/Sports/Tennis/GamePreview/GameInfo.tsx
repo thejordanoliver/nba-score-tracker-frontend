@@ -5,6 +5,7 @@ type GameInfoProps = {
   date: string;
   time: string;
   isDark: boolean;
+  state: string | undefined;
   gameStatusDescription: string | undefined;
   gameStatusDetail: string | undefined;
   broadcast?: string;
@@ -15,18 +16,20 @@ export function GameInfo({
   time,
   isDark,
   gameStatusDescription,
+  state,
   gameStatusDetail,
   broadcast,
 }: GameInfoProps) {
   const styles = gameInfoStyles(isDark);
 
-  const isScheduled = gameStatusDescription === "Scheduled";
+  const isScheduled = state === "pre";
+  const isFinal = state === "post";
   const isCanceled = gameStatusDescription === "Canceled";
-  const isFinal = gameStatusDescription === "Final";
   const isPostponed = gameStatusDescription === "Postponed";
   const isDelayed = gameStatusDescription === "Delayed";
   const isForfeited = gameStatusDescription === "Forfeited";
   const inProgress = gameStatusDescription === "In Progress";
+
   return (
     <View style={styles.container}>
       {isScheduled && (
@@ -52,6 +55,8 @@ export function GameInfo({
 
       {isFinal && (
         <View style={styles.infoWrapper}>
+          <Text style={styles.finalText}>{date}</Text>
+          <View style={styles.finalStatusDivider} />
           <Text style={styles.finalText}>{gameStatusDetail}</Text>
         </View>
       )}

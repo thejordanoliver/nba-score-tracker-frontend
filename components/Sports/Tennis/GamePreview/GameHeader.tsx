@@ -27,7 +27,7 @@ type Props = {
   date?: string;
   time?: string;
   broadcast?: string;
-  state: string | null | undefined;
+  state: string | undefined;
   gameStatusDescription: string | undefined;
   gameStatusDetail: string | undefined;
 };
@@ -84,6 +84,7 @@ export default function GameHeader({
           date={date}
           time={time}
           broadcast={broadcast}
+          state={state}
           gameStatusDetail={gameStatusDetail}
           gameStatusDescription={gameStatusDescription}
           isDark={isDark}

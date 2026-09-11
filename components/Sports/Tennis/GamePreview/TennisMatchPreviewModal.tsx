@@ -136,6 +136,7 @@ export default function TennisMatchPreviewModal({
                   date={formattedDate}
                   time={tbd || formattedTime}
                   broadcast={broadcast}
+                  state={state}
                   gameStatusDetail={gameStatusDetail}
                   gameStatusDescription={gameStatusDescription}
                   isDark={isDark}
