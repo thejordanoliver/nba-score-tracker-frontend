@@ -2,7 +2,7 @@ import { Colors } from "constants/styles";
 import { useRouter } from "expo-router";
 import { Image, Pressable, Text, View } from "react-native";
 import {
-  FootballTeamRowProps,
+  FootballProps,
   TeamRowStyles,
 } from "styles/GameDetailStyles/TeamRow.styles";
 import Football from "../../../../assets/icons8/Football.png";
@@ -24,7 +24,7 @@ export const TeamRow = ({
   hasPossession = false,
   timeouts,
   league,
-}: FootballTeamRowProps) => {
+}: FootballProps) => {
   const router = useRouter();
   const styles = TeamRowStyles(isDark);
 

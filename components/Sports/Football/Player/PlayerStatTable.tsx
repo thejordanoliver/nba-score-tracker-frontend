@@ -11,18 +11,28 @@ import HeadingTwo from "components/Headings/HeadingTwo";
 import PlayerStatTableSkeleton from "components/Skeletons/PlayerStatsTableSkeleton";
 import { globalStyles } from "constants/styles";
 import { usePreferences } from "contexts/PreferencesContext";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { statsTableStyles } from "styles/PlayerStyles/StatsTableStyles";
 type StatTableProps = {
   data: FootballPlayerSeason[];
+  collegeData?: FootballPlayerSeason[];
   loading?: boolean;
   error?: string | null;
   position?: string | null;
   league: "nfl" | "cfb";
 };
 
+type CareerViewTab = "pro" | "college";
 type SeasonTypeTab = "regular" | "postseason";
+
+const CAREER_VIEW_OPTIONS: {
+  label: string;
+  value: CareerViewTab;
+}[] = [
+  { label: "NFL", value: "pro" },
+  { label: "College", value: "college" },
+];
 
 const SEASON_TYPE_TABS: { label: string; value: SeasonTypeTab }[] = [
   { label: "Regular Season", value: "regular" },
@@ -527,6 +537,10 @@ function getSeasonTeamCode(
   season: FootballPlayerSeason,
   league: "nfl" | "cfb",
 ) {
+  if (season.team?.code) {
+    return season.team.code;
+  }
+
   const teamId = Number(season.teamId);
 
   if (!Number.isFinite(teamId)) {
@@ -637,6 +651,7 @@ function formatCareerValue(key: string, displayValues: string[]) {
 
 export default function PlayerStatTable({
   data,
+  collegeData = [],
   loading = false,
   error = null,
   position,
@@ -647,13 +662,27 @@ export default function PlayerStatTable({
   const styles = statsTableStyles(isDark);
   const global = globalStyles(isDark);
 
-  const showSeasonTypeTabs = league === "nfl";
+  const hasCollegeStats = league === "nfl" && collegeData.length > 0;
+
+  const [selectedCareerView, setSelectedCareerView] =
+    useState<CareerViewTab>("pro");
 
   const [selectedSeasonType, setSelectedSeasonType] =
     useState<SeasonTypeTab>("regular");
 
+  const activeCareerView: CareerViewTab =
+    selectedCareerView === "college" && hasCollegeStats ? "college" : "pro";
+
+  const activeData = activeCareerView === "college" ? collegeData : data;
+
+  const activeLeague: "nfl" | "cfb" =
+    activeCareerView === "college" ? "cfb" : league;
+
+  const showCareerViewTabs = league === "nfl" && hasCollegeStats;
+  const showSeasonTypeTabs = activeLeague === "nfl";
+
   const sortedData = useMemo(() => {
-    return [...data].sort((a, b) => {
+    return [...activeData].sort((a, b) => {
       if (b.season !== a.season) {
         return b.season - a.season;
       }
@@ -667,7 +696,7 @@ export default function PlayerStatTable({
 
       return String(a.teamId).localeCompare(String(b.teamId));
     });
-  }, [data]);
+  }, [activeData]);
 
   const visibleData = useMemo(() => {
     if (!showSeasonTypeTabs) {
@@ -702,15 +731,10 @@ export default function PlayerStatTable({
 
   const [selectedGroup, setSelectedGroup] = useState<string>("");
 
-  useEffect(() => {
-    if (!availableGroups.length) return;
-
-    if (!selectedGroup || !availableGroups.includes(selectedGroup)) {
-      setSelectedGroup(availableGroups[0]);
-    }
-  }, [availableGroups, selectedGroup]);
-
-  const activeGroup = selectedGroup || availableGroups[0];
+  const activeGroup =
+    selectedGroup && availableGroups.includes(selectedGroup)
+      ? selectedGroup
+      : availableGroups[0] || "";
 
   const seasonsWithGroup = useMemo(() => {
     return visibleData.map((season, index) => {
@@ -724,12 +748,12 @@ export default function PlayerStatTable({
         year: getSeasonLabel(season, !showSeasonTypeTabs),
         seasonNumber: season.season,
         teamId: season.teamId,
-        teamCode: getSeasonTeamCode(season, league),
+        teamCode: getSeasonTeamCode(season, activeLeague),
         seasonType: season.seasonType,
         stats: category?.stats || [],
       };
     });
-  }, [visibleData, activeGroup, league, showSeasonTypeTabs]);
+  }, [visibleData, activeGroup, activeLeague, showSeasonTypeTabs]);
 
   const statKeys = useMemo(() => {
     const actualKeys = new Set<string>();
@@ -798,41 +822,60 @@ export default function PlayerStatTable({
   const shouldShowCategoryDropdown =
     visibleData.length > 0 && availableGroups.length > 0 && statKeys.length > 0;
 
-  const renderHeader = () => (
-    <>
-      <View style={styles.statsHeader}>
+const renderHeader = () => (
+  <>
+    <View style={styles.statsHeader}>
         <HeadingTwo isDark={isDark}>Career Stats</HeadingTwo>
+      <View style={styles.statsHeaderTopRow}>
 
-        {shouldShowCategoryDropdown ? (
-          <Dropdown
-            options={availableGroups.map((group) => ({
-              label: group,
-              value: group,
-            }))}
-            selectedValue={activeGroup}
-            onSelect={setSelectedGroup}
-            isDark={isDark}
-            style={styles.dropdown}
-          />
-        ) : null}
+        <View style={styles.filtersRow}>
+          {showCareerViewTabs ? (
+            <Dropdown
+              options={CAREER_VIEW_OPTIONS}
+              selectedValue={activeCareerView}
+              onSelect={(value) =>
+                setSelectedCareerView(value as CareerViewTab)
+              }
+              isDark={isDark}
+              style={[styles.filterDropdown, styles.careerDropdown]}
+            />
+          ) : null}
+
+          {shouldShowCategoryDropdown ? (
+            <Dropdown
+              options={availableGroups.map((group) => ({
+                label: group,
+                value: group,
+              }))}
+              selectedValue={activeGroup}
+              onSelect={setSelectedGroup}
+              isDark={isDark}
+              style={[styles.filterDropdown, styles.categoryDropdown]}
+            />
+          ) : null}
+        </View>
       </View>
+    </View>
 
-      {showSeasonTypeTabs ? (
-        <PillTabs
-          tabs={SEASON_TYPE_TABS}
-          selectedValue={selectedSeasonType}
-          onChange={setSelectedSeasonType}
-        />
-      ) : null}
-    </>
-  );
-
+    {showSeasonTypeTabs ? (
+      <PillTabs
+        tabs={SEASON_TYPE_TABS}
+        selectedValue={selectedSeasonType}
+        onChange={setSelectedSeasonType}
+      />
+    ) : null}
+  </>
+);
   if (loading) {
     return (
       <View style={styles.container}>
         <PlayerStatTableSkeleton />
       </View>
     );
+  }
+
+  if (error) {
+    return <Text style={global.errorText}>{error}</Text>;
   }
 
   if (!sortedData.length) {
@@ -851,10 +894,6 @@ export default function PlayerStatTable({
         <Text style={global.emptyText}>{emptyText}</Text>
       </View>
     );
-  }
-
-  if (error) {
-    return <Text style={global.errorText}>{error}</Text>;
   }
 
   if (!activeGroup || statKeys.length === 0) {

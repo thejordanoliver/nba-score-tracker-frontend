@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Fonts } from "constants/styles";
 import { BlurView } from "expo-blur";
 import { GlassView } from "expo-glass-effect";
-import { useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Animated,
   ScrollView,
@@ -11,7 +11,8 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ViewStyle,
+  type StyleProp,
+  type ViewStyle,
 } from "react-native";
 
 export type DropdownOption = {
@@ -25,7 +26,7 @@ type DropdownProps = {
   onSelect: (value: string) => void;
   isDark: boolean;
   width?: number;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 };
 
 export default function Dropdown({
@@ -37,7 +38,15 @@ export default function Dropdown({
   style,
 }: DropdownProps) {
   const [visible, setVisible] = useState(false);
-  const anim = useRef(new Animated.Value(0)).current;
+
+  /**
+   * Keep the Animated.Value stable without useRef.
+   *
+   * React's newer refs lint does not want refs read during render.
+   * Animated.Value is stateful/mutable internally, so a lazy state
+   * initializer is a good fit here.
+   */
+  const [anim] = useState(() => new Animated.Value(0));
 
   const liquid = supportsLiquidGlass();
 
@@ -47,17 +56,30 @@ export default function Dropdown({
     visible,
   });
 
-  const translateY = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-10, 0],
-  });
+  /**
+   * Derive interpolation nodes from the stable Animated.Value.
+   */
+  const translateY = useMemo(
+    () =>
+      anim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [-10, 0],
+      }),
+    [anim],
+  );
 
-  const rotate = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "180deg"],
-  });
+  const rotate = useMemo(
+    () =>
+      anim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ["0deg", "180deg"],
+      }),
+    [anim],
+  );
 
   const openDropdown = () => {
+    anim.stopAnimation();
+
     setVisible(true);
 
     Animated.timing(anim, {
@@ -68,12 +90,16 @@ export default function Dropdown({
   };
 
   const closeDropdown = () => {
+    anim.stopAnimation();
+
     Animated.timing(anim, {
       toValue: 0,
       duration: 180,
       useNativeDriver: true,
-    }).start(() => {
-      setVisible(false);
+    }).start(({ finished }) => {
+      if (finished) {
+        setVisible(false);
+      }
     });
   };
 
@@ -248,6 +274,7 @@ export const dropDownStyles = ({
       width,
       maxHeight: 260,
       borderRadius: 12,
+
       shadowColor: Colors.black,
       shadowOffset: {
         width: 0,
@@ -255,6 +282,7 @@ export const dropDownStyles = ({
       },
       shadowOpacity: 0.2,
       shadowRadius: 8,
+
       elevation: 9999,
     },
 
@@ -272,10 +300,13 @@ export const dropDownStyles = ({
       maxHeight: 260,
       overflow: "hidden",
       borderRadius: 12,
+
       backgroundColor: isDark
         ? Colors.transparentDarkGray
         : Colors.transparentLightGray,
+
       borderWidth: StyleSheet.hairlineWidth,
+
       borderColor: isDark ? "rgba(255, 255, 255, 0.16)" : "rgba(0, 0, 0, 0.12)",
     },
 
@@ -298,6 +329,7 @@ export const dropDownStyles = ({
 
     optionBorder: {
       borderBottomWidth: StyleSheet.hairlineWidth,
+
       borderBottomColor: isDark
         ? "rgba(255, 255, 255, 0.1)"
         : "rgba(0, 0, 0, 0.08)",

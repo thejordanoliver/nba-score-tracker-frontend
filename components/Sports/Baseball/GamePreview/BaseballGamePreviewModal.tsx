@@ -236,7 +236,6 @@ export default function BaseballGamePreviewModal({
       <View style={styles.container}>
         <View style={styles.leftCircle} />
         <View style={styles.rightCircle} />
-
         <BlurView intensity={100} style={styles.blurViewContainer}>
           {isLoading ? (
             <View style={styles.loadingContainer}>

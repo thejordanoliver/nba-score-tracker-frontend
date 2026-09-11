@@ -1,6 +1,5 @@
 import { getSOCCTeam, getSOCCTeamLogo } from "@/constants/teamsSOCC";
 import { Ionicons } from "@expo/vector-icons";
-import playerPlaceholderImage from "assets/Placeholders/playerPlaceholder.png";
 import { Colors } from "constants/styles";
 import { getNBATeam, getNBATeamLogo } from "constants/teams";
 import { getCBBTeam, getCBBTeamLogo } from "constants/teamsCBB";
@@ -27,6 +26,9 @@ type Props = {
   onDelete?: (item: ResultItem) => void;
   query?: string;
 };
+
+const playerPlaceholderImage =
+  "https://res.cloudinary.com/dm3qtdhag/image/upload/v1781892365/playerPlaceholder_vi9zk3.png";
 
 export default function ResultItemRow({
   item,

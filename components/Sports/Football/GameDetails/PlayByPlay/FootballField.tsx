@@ -101,9 +101,9 @@ const MIDFIELD_LOGO_X = MIDFIELD_LOGO_CENTER_X - MIDFIELD_LOGO_WIDTH / 2;
 
 const MIDFIELD_LOGO_Y = MIDFIELD_LOGO_CENTER_Y - MIDFIELD_LOGO_HEIGHT / 2;
 
-// Compresses the logo vertically so it appears painted onto the
-// perspective plane of the football field.
-const MIDFIELD_LOGO_PERSPECTIVE_SCALE_Y = 0.38;
+// Flatten the logo to match the field plane.
+// 0.50 keeps it visibly foreshortened without making it look crushed.
+const MIDFIELD_LOGO_PERSPECTIVE_SCALE_Y = 0.25;
 
 // Skew angle that "flattens" the endzone logo onto the field's perspective
 // plane. The goal line and back line of the endzone aren't vertical — they
@@ -755,7 +755,6 @@ function FootballField({
   league,
   neutralSite,
 }: FootballFieldProps) {
-
   const selectedPlay = useMemo(
     () =>
       findSelectedPlay({
@@ -1042,29 +1041,6 @@ function FootballField({
           ))}
         </G>
 
-        {/* Midfield logo painted onto field */}
-        {midfieldLogo && !neutralSite ? (
-          <G clipPath="url(#playingFieldClip)">
-            <G
-              transform={`
-        translate(${MIDFIELD_LOGO_CENTER_X} ${MIDFIELD_LOGO_CENTER_Y})
-        scale(1 ${MIDFIELD_LOGO_PERSPECTIVE_SCALE_Y})
-        translate(${-MIDFIELD_LOGO_CENTER_X} ${-MIDFIELD_LOGO_CENTER_Y})
-      `}
-            >
-              <Image
-                href={midfieldLogo}
-                x={MIDFIELD_LOGO_X}
-                y={MIDFIELD_LOGO_Y}
-                width={MIDFIELD_LOGO_WIDTH}
-                height={MIDFIELD_LOGO_HEIGHT}
-                opacity={1}
-                preserveAspectRatio="xMidYMid meet"
-              />
-            </G>
-          </G>
-        ) : null}
-
         {/* Ten-yard lines */}
         <G clipPath="url(#playingFieldClip)">
           {Array.from({ length: 11 }, (_, index) => {
@@ -1083,6 +1059,38 @@ function FootballField({
             );
           })}
         </G>
+
+        {/* Midfield logo
+    Render AFTER all field markings so the logo sits on top of the lines.
+    Vertical compression makes it appear painted onto the field plane.
+*/}
+        {midfieldLogo && !neutralSite ? (
+          <G clipPath="url(#playingFieldClip)">
+            <G
+              transform={`
+        translate(
+          ${MIDFIELD_LOGO_CENTER_X}
+          ${MIDFIELD_LOGO_CENTER_Y}
+        )
+        scale(1 ${MIDFIELD_LOGO_PERSPECTIVE_SCALE_Y})
+        translate(
+          ${-MIDFIELD_LOGO_CENTER_X}
+          ${-MIDFIELD_LOGO_CENTER_Y}
+        )
+      `}
+            >
+              <Image
+                href={midfieldLogo}
+                x={MIDFIELD_LOGO_X}
+                y={MIDFIELD_LOGO_Y}
+                width={MIDFIELD_LOGO_WIDTH}
+                height={MIDFIELD_LOGO_HEIGHT}
+                opacity={1}
+                preserveAspectRatio="xMidYMid meet"
+              />
+            </G>
+          </G>
+        ) : null}
 
         {/* Full field border */}
         <Polygon

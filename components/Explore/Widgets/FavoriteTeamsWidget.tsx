@@ -3,10 +3,13 @@ import { EXPLORE_WIDGET_HEIGHTS } from "constants/exploreWidgetSizes";
 import { Colors, Fonts } from "constants/styles";
 import { useFavoriteTeamsContext } from "contexts/FavoriteTeamsContext";
 import { BlurView } from "expo-blur";
+import { GlassView } from "expo-glass-effect";
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { isFavoriteLeague } from "types/favorites";
 import { ExploreWidgetSize } from "types/widgets";
+
+import { supportsLiquidGlass } from "@/utils/glass";
 import FavoriteTeamsSlider, { FavoriteTeamSlide } from "./FavoriteTeamsSlider";
 import { WidgetEditControls } from "./WidgetSlider";
 
@@ -51,6 +54,8 @@ export default function FavoriteTeamsWidget({
 }: FavoriteTeamsWidgetProps) {
   const { favorites, isLoading, ready, allTeams } = useFavoriteTeamsContext();
 
+  const liquid = supportsLiquidGlass();
+
   const resolvedWidth = Math.max(
     width ?? containerWidth ?? sizeFallback[size],
     1,
@@ -62,7 +67,12 @@ export default function FavoriteTeamsWidget({
   );
 
   const compact = size === "small" || resolvedWidth < 240;
-  const styles = favoriteTeamsWidgetStyles(isDark, compact);
+
+  const styles = useMemo(
+    () => favoriteTeamsWidgetStyles(isDark, compact),
+    [compact, isDark],
+  );
+
   const showActions = isEditing && Boolean(widgetId);
 
   const teamByFavoriteKey = useMemo(
@@ -80,12 +90,24 @@ export default function FavoriteTeamsWidget({
     () =>
       favorites.flatMap((key) => {
         const separatorIndex = key.indexOf(":");
+
+        if (separatorIndex === -1) {
+          return [];
+        }
+
         const league = key.slice(0, separatorIndex);
         const id = key.slice(separatorIndex + 1);
 
-        if (!isFavoriteLeague(league)) return [];
+        if (!isFavoriteLeague(league)) {
+          return [];
+        }
 
-        const favorite = { key, league, id };
+        const favorite = {
+          key,
+          league,
+          id,
+        };
+
         const team = teamByFavoriteKey.get(key);
 
         return [
@@ -142,44 +164,62 @@ export default function FavoriteTeamsWidget({
     );
   };
 
-  return (
-    <BlurView
+  const cardStyle = [
+    styles.card,
+    {
+      width: resolvedWidth,
+      height: resolvedHeight,
+    },
+  ];
+
+  const widgetContent = (
+    <View
       style={[
-        styles.card,
+        styles.body,
         {
           width: resolvedWidth,
           height: resolvedHeight,
         },
       ]}
-   
-      intensity={100}
     >
-      <View
-        style={[
-          styles.body,
-          {
-            width: resolvedWidth,
-            height: resolvedHeight,
-          },
-        ]}
-      >
-        {renderContent()}
+      {renderContent()}
 
-        {showActions && widgetId && (
-          <WidgetEditControls
-            isDark={isDark}
-            widgetId={widgetId}
-            widgetSize={widgetSize}
-            availableSizeOptions={availableSizeOptions}
-            onResizeWidget={onResizeWidget}
-            onRemoveWidget={onRemoveWidget}
-            onMoveWidget={onMoveWidget}
-            canMoveUp={canMoveUp}
-            canMoveDown={canMoveDown}
-            compact={compact}
-          />
-        )}
-      </View>
+      {showActions && widgetId && (
+        <WidgetEditControls
+          isDark={isDark}
+          widgetId={widgetId}
+          widgetSize={widgetSize}
+          availableSizeOptions={availableSizeOptions}
+          onResizeWidget={onResizeWidget}
+          onRemoveWidget={onRemoveWidget}
+          onMoveWidget={onMoveWidget}
+          canMoveUp={canMoveUp}
+          canMoveDown={canMoveDown}
+          compact={compact}
+        />
+      )}
+    </View>
+  );
+
+  if (liquid) {
+    return (
+      <GlassView
+        style={cardStyle}
+        glassEffectStyle="regular"
+        
+      >
+        {widgetContent}
+      </GlassView>
+    );
+  }
+
+  return (
+    <BlurView
+      style={cardStyle}
+      intensity={100}
+      tint={isDark ? "dark" : "light"}
+    >
+      {widgetContent}
     </BlurView>
   );
 }
@@ -193,11 +233,13 @@ const favoriteTeamsWidgetStyles = (isDark: boolean, compact: boolean) =>
       borderRadius: 8,
       overflow: "hidden",
     },
+
     body: {
       flex: 1,
       minHeight: 0,
       overflow: "hidden",
     },
+
     stateCard: {
       flex: 1,
       alignItems: "center",
@@ -205,11 +247,13 @@ const favoriteTeamsWidgetStyles = (isDark: boolean, compact: boolean) =>
       gap: compact ? 6 : 8,
       padding: compact ? 8 : 12,
     },
+
     stateTitle: {
       fontFamily: Fonts.MEDIUM,
       fontSize: compact ? 14 : 16,
       color: isDark ? Colors.white : Colors.black,
     },
+
     stateText: {
       fontFamily: Fonts.REGULAR,
       fontSize: compact ? 11 : 13,

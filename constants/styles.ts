@@ -146,12 +146,19 @@ export const Colors = {
 };
 
 export const Fonts = {
+  // Normal UI
   EXTRALIGHT: "Oswald_200ExtraLight",
   LIGHT: "Oswald_300Light",
   REGULAR: "Oswald_400Regular",
   MEDIUM: "Oswald_500Medium",
   SEMIBOLD: "Oswald_600SemiBold",
   BOLD: "Oswald_700Bold",
+
+  // Sports / display
+  SPORTS_MEDIUM: "BarlowCondensed_500Medium",
+  SPORTS_SEMIBOLD: "BarlowCondensed_600SemiBold",
+  SPORTS_BOLD: "BarlowCondensed_700Bold",
+  SPORTS_EXTRA_BOLD: "BarlowCondensed_800ExtraBold",
 };
 
 export const globalStyles = (isDark: boolean) =>
@@ -168,7 +175,7 @@ export const globalStyles = (isDark: boolean) =>
       justifyContent: "center",
       padding: 12,
     },
-   
+
     emptyIconContainer: {
       alignItems: "center",
       justifyContent: "center",

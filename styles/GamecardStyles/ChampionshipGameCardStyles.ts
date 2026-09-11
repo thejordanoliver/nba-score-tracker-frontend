@@ -69,7 +69,7 @@ export const champGameCardStyles = (isDark: boolean) =>
       fontSize: 34,
       lineHeight: 38,
       textAlign: "center",
-      fontFamily: Fonts.BOLD,
+      fontFamily: Fonts.SPORTS_EXTRA_BOLD,
       color: isDark ? Colors.white : Colors.black,
       fontVariant: ["tabular-nums"],
     },

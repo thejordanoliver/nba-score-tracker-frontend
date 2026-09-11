@@ -7,14 +7,23 @@ import {
   Oswald_700Bold,
   useFonts,
 } from "@expo-google-fonts/oswald";
+
+import {
+  BarlowCondensed_300Light,
+  BarlowCondensed_400Regular,
+  BarlowCondensed_500Medium,
+  BarlowCondensed_600SemiBold,
+  BarlowCondensed_700Bold,
+  BarlowCondensed_800ExtraBold,
+} from "@expo-google-fonts/barlow-condensed";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Stack, usePathname, useRouter } from "expo-router";
 import {
   DarkTheme as NavigationDarkTheme,
   DefaultTheme as NavigationLightTheme,
   ThemeProvider,
 } from "expo-router/react-navigation";
-import { Stack, usePathname, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
@@ -23,8 +32,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { CustomHeader } from "../components/CustomHeader";
 import CustomTabBar from "../components/CustomTabBar";
-import BadgeUnlockedModal from "../components/Profile/Badges/BadgeUnlockedModal";
 import ForegroundNotificationBanner from "../components/Notifications/ForegroundNotificationBanner";
+import BadgeUnlockedModal from "../components/Profile/Badges/BadgeUnlockedModal";
 import { Colors } from "../constants/styles";
 import { ExploreWidgetsProvider } from "../contexts/ExploreWidgetsContext";
 import { FavoriteTeamsProvider } from "../contexts/FavoriteTeamsContext";
@@ -318,6 +327,12 @@ export default function RootLayout() {
     Oswald_500Medium,
     Oswald_600SemiBold,
     Oswald_700Bold,
+    BarlowCondensed_300Light,
+    BarlowCondensed_400Regular,
+    BarlowCondensed_500Medium,
+    BarlowCondensed_600SemiBold,
+    BarlowCondensed_700Bold,
+    BarlowCondensed_800ExtraBold,
   });
 
   if (!fontsLoaded) {

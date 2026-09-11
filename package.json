@@ -20,7 +20,9 @@
     "lint": "expo lint"
   },
   "dependencies": {
+    "@expo-google-fonts/barlow-condensed": "^0.4.1",
     "@expo-google-fonts/funnel-sans": "^0.4.2",
+    "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/oswald": "^0.4.2",
     "@expo-google-fonts/roboto": "^0.4.3",
     "@expo-google-fonts/russo-one": "^0.4.1",

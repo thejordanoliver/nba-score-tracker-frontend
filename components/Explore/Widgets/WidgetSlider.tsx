@@ -3,11 +3,13 @@ import { BaseballGame } from "@/types/baseball/baseball";
 import { BasketballGame } from "@/types/basketball/basketball";
 import { FootballGame } from "@/types/football/football";
 import { HockeyGame } from "@/types/hockey/hockey";
+import { supportsLiquidGlass } from "@/utils/glass";
 import { Ionicons } from "@expo/vector-icons";
 import { EXPLORE_WIDGET_SLIDE_INDICATOR_BOTTOM } from "constants/exploreWidgetSizes";
 import { EXPLORE_WIDGET_SIZES } from "constants/exploreWidgets";
 import { Colors, activeOpacity } from "constants/styles";
 import { BlurView } from "expo-blur";
+import { GlassView } from "expo-glass-effect";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -215,6 +217,7 @@ export default function WidgetSlider({
   canMoveUp,
   canMoveDown,
 }: WidgetSliderProps) {
+  const liquid = supportsLiquidGlass();
   const { width: screenWidth, height: screenHeight } = useMemo(
     () => Dimensions.get("window"),
     [],
@@ -612,49 +615,95 @@ export default function WidgetSlider({
       }}
     >
       <View style={styles.container}>
-        <BlurView intensity={100}>
-          <FlatList
-            ref={flatListRef}
-            data={slides}
-            keyExtractor={keyExtractor}
-            horizontal={isHorizontal}
-            pagingEnabled
-            snapToInterval={isHorizontal ? slideWidth : slideHeight}
-            decelerationRate="fast"
-            disableIntervalMomentum
-            directionalLockEnabled
-            showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
-            getItemLayout={getItemLayout}
-            onScrollBeginDrag={showProgress}
-            onMomentumScrollBegin={showProgress}
-            onMomentumScrollEnd={hideProgress}
-            onScrollEndDrag={hideProgress}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            renderItem={renderItem}
-            scrollEnabled={!showEditControls}
-          />
-
-          {canResize && (
-            <View style={styles.resizeHandle} {...panResponder.panHandlers} />
-          )}
-
-          {showEditControls && widgetId && widgetSize && (
-            <WidgetEditControls
-              isDark={isDark}
-              widgetId={widgetId}
-              widgetSize={widgetSize}
-              availableSizeOptions={availableSizeOptions}
-              onResizeWidget={onResizeWidget}
-              onRemoveWidget={onRemoveWidget}
-              onMoveWidget={onMoveWidget}
-              canMoveUp={canMoveUp}
-              canMoveDown={canMoveDown}
-              compact={slideWidth < 240 || slideHeight < 260}
+        {liquid ? (
+          <GlassView style={styles.glassSurface}>
+            <FlatList
+              ref={flatListRef}
+              data={slides}
+              keyExtractor={keyExtractor}
+              horizontal={isHorizontal}
+              pagingEnabled
+              snapToInterval={isHorizontal ? slideWidth : slideHeight}
+              decelerationRate="fast"
+              disableIntervalMomentum
+              directionalLockEnabled
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}
+              getItemLayout={getItemLayout}
+              onScrollBeginDrag={showProgress}
+              onMomentumScrollBegin={showProgress}
+              onMomentumScrollEnd={hideProgress}
+              onScrollEndDrag={hideProgress}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
+              renderItem={renderItem}
+              scrollEnabled={!showEditControls}
             />
-          )}
-        </BlurView>
+
+            {canResize && (
+              <View style={styles.resizeHandle} {...panResponder.panHandlers} />
+            )}
+
+            {showEditControls && widgetId && widgetSize && (
+              <WidgetEditControls
+                isDark={isDark}
+                widgetId={widgetId}
+                widgetSize={widgetSize}
+                availableSizeOptions={availableSizeOptions}
+                onResizeWidget={onResizeWidget}
+                onRemoveWidget={onRemoveWidget}
+                onMoveWidget={onMoveWidget}
+                canMoveUp={canMoveUp}
+                canMoveDown={canMoveDown}
+                compact={slideWidth < 240 || slideHeight < 260}
+              />
+            )}
+          </GlassView>
+        ) : (
+          <BlurView style={styles.glassSurface} intensity={100}>
+            <FlatList
+              ref={flatListRef}
+              data={slides}
+              keyExtractor={keyExtractor}
+              horizontal={isHorizontal}
+              pagingEnabled
+              snapToInterval={isHorizontal ? slideWidth : slideHeight}
+              decelerationRate="fast"
+              disableIntervalMomentum
+              directionalLockEnabled
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}
+              getItemLayout={getItemLayout}
+              onScrollBeginDrag={showProgress}
+              onMomentumScrollBegin={showProgress}
+              onMomentumScrollEnd={hideProgress}
+              onScrollEndDrag={hideProgress}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
+              renderItem={renderItem}
+              scrollEnabled={!showEditControls}
+            />
+
+            {canResize && (
+              <View style={styles.resizeHandle} {...panResponder.panHandlers} />
+            )}
+
+            {showEditControls && widgetId && widgetSize && (
+              <WidgetEditControls
+                isDark={isDark}
+                widgetId={widgetId}
+                widgetSize={widgetSize}
+                availableSizeOptions={availableSizeOptions}
+                onResizeWidget={onResizeWidget}
+                onRemoveWidget={onRemoveWidget}
+                onMoveWidget={onMoveWidget}
+                canMoveUp={canMoveUp}
+                canMoveDown={canMoveDown}
+                compact={slideWidth < 240 || slideHeight < 260}
+              />
+            )}
+          </BlurView>
+        )}
       </View>
 
       {!dashboardMode && (
@@ -691,6 +740,13 @@ const sliderStyles = (isDark: boolean, dashboardMode: boolean) =>
       padding: dashboardMode ? 0 : 4,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: Colors.midTone,
+      borderRadius: 8,
+      overflow: "hidden",
+    },
+    glassSurface: {
+      flex: 1,
+      width: "100%",
+      height: "100%",
       borderRadius: 8,
       overflow: "hidden",
     },

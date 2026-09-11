@@ -4,6 +4,7 @@ import { StyleSheet } from "react-native";
 export const statsTableStyles = (isDark: boolean) => {
   const borderColor = isDark ? Colors.darkGray : Colors.lightGray;
   const textColor = isDark ? Colors.white : Colors.black;
+
   const altRowColor = isDark
     ? Colors.dark.itemBackground
     : Colors.light.itemBackground;
@@ -16,43 +17,57 @@ export const statsTableStyles = (isDark: boolean) => {
   return StyleSheet.create({
     container: {
       paddingTop: 24,
+      width: "100%",
     },
+
+    // -------------------------------------------------
+    // HEADER / FILTERS
+    // -------------------------------------------------
 
     statsHeader: {
-      minHeight: 44,
+      width: "100%",
+      marginBottom: 12,
     },
 
-    dropdown: {
-      position: "absolute",
-      top: -12,
-      right: 0,
+    statsHeaderTopRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
     },
 
     filtersRow: {
-      position: "absolute",
-      top: -12,
-      right: 0,
-      zIndex: 20,
       flexDirection: "row",
+      alignItems: "center",
       justifyContent: "flex-end",
+      flexWrap: "wrap",
       gap: 8,
     },
 
-    filterDropdown: { marginBottom: 4 },
-
-    compColumn: {
-      width: 96,
+    filterDropdown: {
+      minWidth: 120,
     },
 
-    compCell: {
-      width: 96,
+    careerDropdown: {
+      minWidth: 110,
     },
 
-    emptyText: {
-      marginTop: 8,
-      fontFamily: Fonts.MEDIUM,
-      color: Colors.midTone,
+    categoryDropdown: {
+      minWidth: 130,
     },
+
+    /**
+     * Keep this only if other code still references styles.dropdown.
+     *
+     * It is no longer absolutely positioned.
+     */
+    dropdown: {
+      minWidth: 120,
+    },
+
+    // -------------------------------------------------
+    // TABLE
+    // -------------------------------------------------
 
     tableWrapper: {
       flexDirection: "row",
@@ -76,6 +91,25 @@ export const statsTableStyles = (isDark: boolean) => {
       flexGrow: 1,
     },
 
+    statScrollContent: {
+      flexGrow: 1,
+      flexShrink: 0,
+      minWidth: "100%",
+      alignSelf: "stretch",
+    },
+
+    // -------------------------------------------------
+    // ROWS
+    // -------------------------------------------------
+
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      height: rowHeight,
+      borderBottomWidth: 1,
+      borderBottomColor: borderColor,
+    },
+
     headerRow: {
       backgroundColor: isDark
         ? Colors.dark.itemBackground
@@ -84,14 +118,6 @@ export const statsTableStyles = (isDark: boolean) => {
 
     tableHeaderRow: {
       height: rowHeight,
-    },
-
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      height: rowHeight,
-      borderBottomWidth: 1,
-      borderBottomColor: borderColor,
     },
 
     lastRow: {
@@ -118,16 +144,35 @@ export const statsTableStyles = (isDark: boolean) => {
       backgroundColor: isDark ? Colors.dark.leafGreen : Colors.light.green,
     },
 
-    careerCell: {
-      alignItems: "center",
-      width: statCellWidth,
-      paddingHorizontal: 4,
-      fontFamily: Fonts.MEDIUM,
-      fontSize: 14,
-      color: Colors.white,
-      textAlign: "center",
-      includeFontPadding: false,
+    // -------------------------------------------------
+    // FIXED COLUMNS
+    // -------------------------------------------------
+
+    fixedColumn: {
+      width: seasonColumnWidth,
     },
+
+    seasonColumn: {
+      width: seasonColumnWidth,
+      flexShrink: 0,
+    },
+
+    teamColumn: {
+      width: teamColumnWidth,
+      flexShrink: 0,
+    },
+
+    compColumn: {
+      width: 96,
+    },
+
+    compCell: {
+      width: 96,
+    },
+
+    // -------------------------------------------------
+    // CELLS
+    // -------------------------------------------------
 
     cell: {
       width: statCellWidth,
@@ -137,35 +182,28 @@ export const statsTableStyles = (isDark: boolean) => {
       color: isDark ? Colors.lightGray : Colors.darkGray,
       textAlign: "center",
       textAlignVertical: "center",
+      includeFontPadding: false,
     },
 
-    fixedColumn: {
-      width: seasonColumnWidth,
-    },
-
-    seasonColumn: {
-      width: seasonColumnWidth,
-    },
-
-    teamColumn: {
-      width: teamColumnWidth,
-    },
-
-    statScrollContent: {
-      flexGrow: 1,
-      flexShrink: 0,
-      minWidth: "100%",
-      alignSelf: "stretch",
+    careerCell: {
+      width: statCellWidth,
+      paddingHorizontal: 4,
+      fontFamily: Fonts.MEDIUM,
+      fontSize: 14,
+      color: Colors.white,
+      textAlign: "center",
+      textAlignVertical: "center",
+      includeFontPadding: false,
     },
 
     fixedCell: {
-      alignItems: "center",
       width: seasonColumnWidth,
       paddingHorizontal: 4,
       fontFamily: Fonts.MEDIUM,
       fontSize: 14,
       color: textColor,
       textAlign: "center",
+      textAlignVertical: "center",
       includeFontPadding: false,
     },
 
@@ -176,6 +214,7 @@ export const statsTableStyles = (isDark: boolean) => {
       fontSize: 14,
       color: textColor,
       textAlign: "center",
+      textAlignVertical: "center",
       includeFontPadding: false,
     },
 
@@ -190,13 +229,13 @@ export const statsTableStyles = (isDark: boolean) => {
     },
 
     fixedCareerCell: {
-      alignItems: "center",
       width: teamColumnWidth,
       paddingHorizontal: 4,
       fontFamily: Fonts.MEDIUM,
       fontSize: 14,
       color: Colors.white,
       textAlign: "center",
+      textAlignVertical: "center",
       includeFontPadding: false,
     },
 
@@ -206,6 +245,10 @@ export const statsTableStyles = (isDark: boolean) => {
       color: textColor,
       textTransform: "uppercase",
     },
+
+    // -------------------------------------------------
+    // NFL REGULAR / POSTSEASON TABS
+    // -------------------------------------------------
 
     seasonTabsPill: {
       flexDirection: "row",
@@ -244,10 +287,19 @@ export const statsTableStyles = (isDark: boolean) => {
       color: isDark ? Colors.black : Colors.white,
     },
 
-    legendText: {
-      fontFamily: Fonts.REGULAR,
-      fontSize: 14,
+    // -------------------------------------------------
+    // EMPTY / ERROR
+    // -------------------------------------------------
+
+    emptyText: {
+      marginTop: 8,
+      fontFamily: Fonts.MEDIUM,
+      color: Colors.midTone,
     },
+
+    // -------------------------------------------------
+    // GLOSSARY
+    // -------------------------------------------------
 
     glossaryContainer: {
       marginTop: 12,
@@ -296,6 +348,11 @@ export const statsTableStyles = (isDark: boolean) => {
       fontFamily: Fonts.REGULAR,
       fontSize: 10,
       color: isDark ? Colors.lightGray : Colors.darkGray,
+    },
+
+    legendText: {
+      fontFamily: Fonts.REGULAR,
+      fontSize: 14,
     },
   });
 };

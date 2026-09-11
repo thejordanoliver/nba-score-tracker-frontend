@@ -1,5 +1,6 @@
 import { getWCBBTeamLogo } from "@/constants/teamsWCBB";
 import { Team } from "@/types/types";
+import { supportsLiquidGlass } from "@/utils/glass";
 import { Colors } from "constants/styles";
 import { getNBATeamLogo } from "constants/teams";
 import { getCBBTeamLogo } from "constants/teamsCBB";
@@ -10,12 +11,12 @@ import { getNHLTeamLogo } from "constants/teamsNHL";
 import { getWNBATeamLogo } from "constants/teamsWNBA";
 import { usePreferences } from "contexts/PreferencesContext";
 import { BlurView } from "expo-blur";
+import { GlassView } from "expo-glass-effect";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Animated, Easing, Image, Modal, Pressable, Text } from "react-native";
 import { teamPreviewModalStyles } from "styles/TeamStyles/TeamPreviewModalStyles";
 import Button from "../Buttons/Button";
-
 type Props = {
   visible: boolean;
   team: Team;
@@ -24,7 +25,6 @@ type Props = {
   onRemove?: (team: Team) => void;
   currentUser?: boolean;
 };
-
 export default function TeamPreviewModal({
   visible,
   team,
@@ -33,23 +33,23 @@ export default function TeamPreviewModal({
   onRemove,
   currentUser,
 }: Props) {
-  const scaleAnim = useRef(new Animated.Value(0.85)).current;
+  const liquid = supportsLiquidGlass();
+  const [scaleAnim] = useState(() => new Animated.Value(0.85));
   const { resolvedColorScheme } = usePreferences();
   const isDark = resolvedColorScheme === "dark";
   const styles = teamPreviewModalStyles(isDark);
-
   useEffect(() => {
-    if (visible) {
-      scaleAnim.setValue(0.85);
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 200,
-        easing: Easing.out(Easing.exp),
-        useNativeDriver: true,
-      }).start();
+    if (!visible) {
+      return;
     }
+    scaleAnim.setValue(0.85);
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: 200,
+      easing: Easing.out(Easing.exp),
+      useNativeDriver: true,
+    }).start();
   }, [scaleAnim, visible]);
-
   const isNBA = team.league === "nba";
   const isWNBA = team.league === "wnba";
   const isWCBB = team.league === "wcbb";
@@ -58,7 +58,6 @@ export default function TeamPreviewModal({
   const isNFL = team.league === "nfl";
   const isCFB = team.league === "cfb";
   const isNHL = team.league === "nhl";
-
   const logo =
     team.id == null
       ? null
@@ -79,72 +78,78 @@ export default function TeamPreviewModal({
                     : isNHL
                       ? getNHLTeamLogo(team.id, isDark)
                       : null;
-
   const baseColor = isDark
-    ? team?.secondaryColor || Colors.midTone
-    : team?.color || Colors.midTone;
-
-  const est =
+    ? team.secondaryColor || Colors.midTone
+    : team.color || Colors.midTone;
+  const established =
     typeof team.established === "string" || typeof team.established === "number"
       ? team.established
       : "-";
-
+  const innerContent = (
+    <>
+      {logo && (
+        <Image source={logo} style={styles.teamLogo} resizeMode="contain" />
+      )}
+      <Text style={styles.teamName}>
+        {team.fullName ?? team.name ?? team.shortName}
+      </Text>
+      <Text style={styles.establishedText}> EST. {established} </Text>
+      <Button onPress={onGo} style={styles.goButton} isDark={isDark}>
+        <Text style={styles.goText}> Go to Team </Text>
+      </Button>
+      {onRemove && currentUser && (
+        <Button
+          onPress={() => onRemove(team)}
+          style={styles.removeButton}
+          isDark={isDark}
+        >
+          <Text style={styles.removeText}> Remove from Favorites </Text>
+        </Button>
+      )}
+    </>
+  );
+  const teamCard = (
+    <LinearGradient
+      colors={
+        isDark
+          ? [baseColor, "rgba(50,50,50,0.5)"]
+          : [team.color || Colors.midTone, Colors.transparentMidTone]
+      }
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 0.5 }}
+      style={styles.linearGradient}
+    >
+      <Animated.View
+        style={{
+          borderTopLeftRadius: 18.5,
+          borderTopRightRadius: 18.5,
+          overflow: "hidden",
+          transform: [{ scale: scaleAnim }],
+          backgroundColor: "transparent",
+        }}
+      >
+        {liquid ? (
+          <GlassView style={styles.blurViewWrapper} glassEffectStyle="clear">
+            {innerContent}
+          </GlassView>
+        ) : (
+          <BlurView intensity={100} style={styles.blurViewWrapper}>
+            {innerContent}
+          </BlurView>
+        )}
+      </Animated.View>
+    </LinearGradient>
+  );
   return (
-    <Modal animationType="fade" transparent visible={visible}>
+    <Modal
+      animationType="fade"
+      transparent
+      visible={visible}
+      onRequestClose={onClose}
+    >
       <Pressable onPress={onClose} style={styles.container}>
         <BlurView intensity={40} style={styles.blurViewContainer}>
-          <LinearGradient
-            colors={
-              isDark
-                ? [baseColor, "rgba(50,50,50,0.5)"]
-                : [team.color || Colors.midTone, Colors.transparentMidTone]
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 0.5 }}
-            style={styles.linearGradient}
-          >
-            <Animated.View
-              style={{
-                borderTopLeftRadius: 18.5,
-                borderTopRightRadius: 18.5,
-                overflow: "hidden",
-                transform: [{ scale: scaleAnim }],
-                backgroundColor: "transparent",
-              }}
-            >
-              <BlurView intensity={100} style={styles.blurViewWrapper}>
-                {logo && (
-                  <Image
-                    source={logo}
-                    style={styles.teamLogo}
-                    resizeMode="contain"
-                  />
-                )}
-
-                <Text style={styles.teamName}>
-                  {team.fullName ?? team.name ?? team.shortName}
-                </Text>
-
-                <Text style={styles.establishedText}>EST. {est}</Text>
-
-                {/* Go To Team */}
-                <Button onPress={onGo} style={styles.goButton} isDark={isDark}>
-                  <Text style={styles.goText}>Go to Team</Text>
-                </Button>
-
-                {/* Remove Favorite */}
-                {onRemove && currentUser && (
-                  <Button
-                    onPress={() => onRemove(team)}
-                    style={styles.removeButton}
-                    isDark={isDark}
-                  >
-                    <Text style={styles.removeText}>Remove from Favorites</Text>
-                  </Button>
-                )}
-              </BlurView>
-            </Animated.View>
-          </LinearGradient>
+          {teamCard}
         </BlurView>
       </Pressable>
     </Modal>
